@@ -10,7 +10,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-unispace}
       POSTGRES_DB: ${POSTGRES_DB:-unispace}
     ports:
-      - "${POSTGRES_PORT:-5431}:5431"
+      - "${POSTGRES_PORT:-5433}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -25,13 +25,14 @@ services:
     restart: unless-stopped
     env_file: .env
     environment:
-      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-unispace}:${POSTGRES_PASSWORD:-unispace}@db:5431/${POSTGRES_DB:-unispace}
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-unispace}:${POSTGRES_PASSWORD:-unispace}@db:5432/${POSTGRES_DB:-unispace}
+      WATCHFILES_FORCE_POLLING: "true"
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     volumes:
       # Dev only: live code reload. Remove for a production-like run.
       - ./backend:/app
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir /app
     depends_on:
       db:
         condition: service_healthy
