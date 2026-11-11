@@ -1,5 +1,113 @@
 # docs/design/registry.yaml — every screen and shared component, by DS- ID.
 # Plans, commits, mocks and board files use the ID (tickets don't). kind: foundation | component | screen
 # status: draft (mock drawn) | approved (confirmed on the board) | implemented | deprecated (never delete an entry)
-# No screens yet: add an entry (DS-unispace-<name>) when the first screen is built.
-designs: []
+#
+# The first frontend scaffold (2026-11-11) was built as placeholder pages without
+# confirmed mocks, because the user asked for the structure first. Their status is
+# "implemented" but design_ref is none: each screen needs a mock and a confirmation
+# (DESIGN.md → Procedure) before its real content is built. Screenshots: Q-003.
+designs:
+  - id: DS-unispace-tokens
+    kind: foundation
+    source: frontend/css/tokens.css
+    screenshots: []
+    design_ref: none
+    status: implemented
+
+  - id: DS-unispace-base
+    kind: foundation
+    source: frontend/css/base.css
+    screenshots: []
+    design_ref: none
+    status: implemented
+
+  - id: DS-unispace-site-header
+    kind: component
+    source: frontend/js/layout.js
+    screenshots: []
+    design_ref: none
+    status: implemented
+
+  - id: DS-unispace-landing
+    kind: screen
+    source: frontend/index.html
+    screenshots: []
+    design_ref: none
+    status: implemented
+
+  - id: DS-unispace-timetable
+    kind: screen
+    source: frontend/timetable.html
+    screenshots: []
+    design_ref: none
+    status: implemented
+
+  - id: DS-unispace-rooms
+    kind: screen
+    source: frontend/rooms/index.html
+    screenshots: []
+    design_ref: none
+    status: implemented
+
+  - id: DS-unispace-room-detail
+    kind: screen
+    source: frontend/rooms/detail.html
+    screenshots: []
+    design_ref: none
+    status: implemented
+
+  - id: DS-unispace-free-rooms
+    kind: screen
+    source: frontend/rooms/free.html
+    screenshots: []
+    design_ref: none
+    status: implemented
+
+  - id: DS-unispace-bookings
+    kind: screen
+    source: frontend/bookings/index.html
+    screenshots: []
+    design_ref: none
+    status: implemented
+
+  - id: DS-unispace-announcements
+    kind: screen
+    source: frontend/announcements.html
+    screenshots: []
+    design_ref: none
+    status: implemented
+
+  - id: DS-unispace-changes
+    kind: screen
+    source: frontend/changes.html
+    screenshots: []
+    design_ref: none
+    status: implemented
+
+  - id: DS-unispace-calendar
+    kind: screen
+    source: frontend/calendar.html
+    screenshots: []
+    design_ref: none
+    status: implemented
+
+  - id: DS-unispace-login
+    kind: screen
+    source: frontend/login.html
+    screenshots: []
+    design_ref: none
+    status: implemented
+
+  - id: DS-unispace-admin
+    kind: screen
+    source: frontend/admin/index.html
+    screenshots: []
+    design_ref: none
+    status: implemented
+
+  - id: DS-unispace-not-found
+    kind: screen
+    source: frontend/404.html
+    screenshots: []
+    design_ref: none
+    status: implemented

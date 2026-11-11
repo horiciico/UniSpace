@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calendar · UniSpace</title>
+    <link rel="stylesheet" href="/css/tokens.css" />
+    <link rel="stylesheet" href="/css/base.css" />
+    <meta name="theme-color" content="#263EC9" />
+    <script src="/js/auth.js"></script>
+    <script src="/js/layout.js" defer></script>
+  </head>
+  <body>
+    <main id="main" class="container">
+      <p class="eyebrow">Calendar</p>
+      <h1>Keep your timetable in your calendar</h1>
+      <p class="muted">Subscribe once. Google Calendar and Apple Calendar update on their own when the timetable changes.</p>
+
+      <div class="card-grid card-grid--2" style="margin-top: var(--space-5)">
+        <section class="card" aria-labelledby="sub-title">
+          <h2 id="sub-title">Your subscription link</h2>
+          <form class="form-grid" data-placeholder>
+            <div class="field">
+              <label for="cal-group">Group</label>
+              <select id="cal-group"><option>CS-2A</option><option>CS-2B</option><option>IS-1A</option></select>
+            </div>
+          </form>
+          <div class="field">
+            <label for="cal-url">Subscription URL</label>
+            <div class="copy-row">
+              <input id="cal-url" type="text" readonly value="webcal://unispace.example/ical/group/CS-2A.ics" />
+              <button class="btn btn-small" type="button" data-copy="#cal-url">Copy</button>
+            </div>
+          </div>
+          <p class="muted" style="margin-top: var(--space-3)">Placeholder address. The real link is created per group.</p>
+        </section>
+
+        <section class="card" aria-labelledby="how-cal-title">
+          <h2 id="how-cal-title">How to add it</h2>
+          <ol class="steps">
+            <li><div><strong>Copy the link</strong><p class="muted">Use the button on the left.</p></div></li>
+            <li><div><strong>Google Calendar</strong><p class="muted">Other calendars → From URL → paste.</p></div></li>
+            <li><div><strong>Apple Calendar</strong><p class="muted">File → New calendar subscription → paste.</p></div></li>
+          </ol>
+        </section>
+      </div>
+
+      <section class="section" aria-labelledby="one-title">
+        <h2 id="one-title">Single day file</h2>
+        <div class="card placeholder-card">
+          <p>Placeholder: download one week as an .ics file for a one-off import.</p>
+          <div class="card__actions">
+            <button class="btn btn-ghost btn-small" type="button" data-placeholder-action="Placeholder: .ics download comes with the backend">Download this week (.ics)</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

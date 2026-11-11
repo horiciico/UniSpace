@@ -14,6 +14,7 @@
 - Q-003 · How are UI screenshots taken for review?
 - Q-004 · Is there a design board (Claude Design) or Figma for the UI?
 - Q-005 · Where and how is the platform deployed?
+- Q-007 · How do users sign in (university account, password, or both)?
 - Q-006 · Which lint and type-check tools should run?
 
 ---
@@ -42,6 +43,11 @@
 ## Q-005 · Where and how is the platform deployed?
 - **Status:** open
 - **Blocks:** a production compose setup, secrets handling in production, and the deploy steps in AGENTS.md section 5.
+- **Who answers:** the user
+
+## Q-007 · How do users sign in (university account, password, or both)?
+- **Status:** open
+- **Blocks:** the real login. The frontend has a dummy gate (`frontend/js/auth.js`) for now: any email and password work, and it is not security.
 - **Who answers:** the user
 
 ## Q-006 · Which lint and type-check tools should run?

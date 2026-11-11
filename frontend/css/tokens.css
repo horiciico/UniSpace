@@ -1,0 +1,124 @@
+/*
+ * Design tokens. The source of the values in docs/design/DESIGN.md.
+ * Change a value here, then update DESIGN.md (a token change is a PROPOSAL).
+ * Dark values follow the OS setting unless data-theme is set on <html>.
+ */
+
+:root {
+  color-scheme: light;
+
+  /* Colour: light */
+  --color-bg: #f7f6f2;
+  --color-surface: #ffffff;
+  --color-text: #1d1c2b;
+  --color-muted: #55546a;
+  --color-border: #dcdad2;
+  --color-primary: #263ec9;
+  --color-link: #263ec9;
+  --color-on-primary: #ffffff;
+  --color-accent: #ffb703;
+  --color-on-accent: #1d1c2b;
+  --color-focus: #263ec9;
+  --color-success-bg: #d7f3e3;
+  --color-success-text: #14603d;
+  --color-warning-bg: #fde7c0;
+  --color-warning-text: #7a4a00;
+  --color-danger-bg: #fbd5d0;
+  --color-danger-text: #8a2118;
+  --color-info-bg: #dfe3ff;
+  --color-info-text: #2b2e8f;
+  --color-shadow: rgb(20 19 40 / 0.08);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --color-bg: #13121d;
+    --color-surface: #1d1c2c;
+    --color-text: #ecebf6;
+    --color-muted: #aaa9bf;
+    --color-border: #33324a;
+    --color-primary: #263ec9;
+    --color-link: #8f91ff;
+    --color-on-primary: #ffffff;
+    --color-accent: #ffb703;
+    --color-on-accent: #1d1c2b;
+    --color-focus: #8f91ff;
+    --color-success-bg: #123d2a;
+    --color-success-text: #9fe3c2;
+    --color-warning-bg: #4a3210;
+    --color-warning-text: #ffd58a;
+    --color-danger-bg: #4a1d19;
+    --color-danger-text: #ffb4a9;
+    --color-info-bg: #252a55;
+    --color-info-text: #c5c9ff;
+    --color-shadow: rgb(0 0 0 / 0.4);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-bg: #13121d;
+  --color-surface: #1d1c2c;
+  --color-text: #ecebf6;
+  --color-muted: #aaa9bf;
+  --color-border: #33324a;
+  --color-primary: #263ec9;
+  --color-link: #8f91ff;
+  --color-on-primary: #ffffff;
+  --color-accent: #ffb703;
+  --color-on-accent: #1d1c2b;
+  --color-focus: #8f91ff;
+  --color-success-bg: #123d2a;
+  --color-success-text: #9fe3c2;
+  --color-warning-bg: #4a3210;
+  --color-warning-text: #ffd58a;
+  --color-danger-bg: #4a1d19;
+  --color-danger-text: #ffb4a9;
+  --color-info-bg: #252a55;
+  --color-info-text: #c5c9ff;
+  --color-shadow: rgb(0 0 0 / 0.4);
+}
+
+:root {
+  /* Typography */
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
+  --text-2xl: 1.75rem;
+  --text-3xl: 2.5rem;
+  --leading-tight: 1.2;
+  --leading-body: 1.55;
+
+  /* Spacing scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  /* Shape and motion */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-pill: 999px;
+  --shadow-card: 0 1px 2px var(--color-shadow), 0 6px 18px var(--color-shadow);
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
+
+  /* Layout */
+  --container-max: 1120px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+  }
+}

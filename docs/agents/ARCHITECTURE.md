@@ -24,11 +24,14 @@ browser ──> frontend (nginx :8080) ──> backend (FastAPI :8000) ──> d
 | Routers | `backend/app/routers/` | one module per endpoint group | `main.py` |
 | Database layer | `backend/app/db.py` | engine, session, base model | PostgreSQL |
 | Migrations | `backend/alembic/` | schema revisions | PostgreSQL |
-| Frontend | `frontend/` | static HTML, CSS, JS | backend API (not built yet) |
+| Frontend pages | `frontend/*.html`, `frontend/rooms/`, `frontend/bookings/`, `frontend/admin/` | placeholder pages, one per route | nginx (routes), `css/`, `js/` |
+| Frontend styles | `frontend/css/tokens.css`, `frontend/css/base.css` | design tokens, components | the pages |
+| Frontend scripts | `frontend/js/layout.js`, `frontend/js/timetable.js` | shared header and footer, theme, placeholder actions, sample timetable | the pages |
+| Web routing | `infra/nginx/default.conf` | clean URLs, 404 page, proxy of `/health` and `/api/` to the backend | nginx, backend |
 | Stack | `docker-compose.yml` | runs db, backend, frontend | Docker |
 
 ## Data flow
-1. Browser requests a page → nginx serves `frontend/` files.
+1. Browser requests a page → nginx serves `frontend/` files. Clean URLs map to files: `/timetable` → `timetable.html`, `/rooms/` → `rooms/index.html`. Unknown paths → `404.html`.
 2. Browser calls the API → FastAPI route → `get_db` session → PostgreSQL → JSON response.
 3. Schema change → new Alembic revision → `alembic upgrade head` applies it to PostgreSQL.
 
@@ -52,5 +55,8 @@ Local only so far. Deploy is not defined (Q-005). See AGENTS.md sections 2 and 5
 ## Boundaries
 - The database is reachable only inside the compose network by default; the host port
   mapping is for local tools. Guards: D-005 (credentials stay out of the repo).
-- The API has no authentication yet (C-001 is public). Auth is not decided.
+- The API has no authentication yet (C-001 is public). Auth is not decided (Q-007).
+- The frontend gate (`frontend/js/auth.js`) is a dummy: it redirects visitors without a
+  localStorage session to `/login`. Files stay public on the server, so it stops casual
+  browsing only. Real protection moves to the backend session and nginx.
 - Contracts: docs/agents/CONTRACTS.md.

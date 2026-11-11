@@ -3,10 +3,161 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>UniSpace</title>
+    <meta name="description" content="UniSpace: the faculty timetable, free rooms and student room bookings in one place." />
+    <title>UniSpace · Faculty rooms and timetable</title>
+    <link rel="stylesheet" href="/css/tokens.css" />
+    <link rel="stylesheet" href="/css/base.css" />
+    <meta name="theme-color" content="#263EC9" />
+    <script src="/js/auth.js"></script>
+    <script src="/js/layout.js" defer></script>
   </head>
   <body>
-    <h1>UniSpace</h1>
-    <p>Frontend placeholder. The API health check is at <a href="http://localhost:8000/health">/health</a>.</p>
+    <main id="main" class="container">
+      <section class="hero" aria-labelledby="hero-title">
+        <div>
+          <p class="eyebrow">Welcome back, <span data-user-name>there</span></p>
+          <h1 id="hero-title">Know where your lecture is. Find a free room in seconds.</h1>
+          <p class="hero__lead">
+            UniSpace imports the real timetable, shows it by group, teacher and room,
+            and lets student organizations book rooms with clear priorities.
+          </p>
+          <div class="btn-group">
+            <a class="btn btn-primary" href="/timetable">Open the timetable</a>
+            <a class="btn btn-accent" href="/rooms/free">Free rooms now</a>
+          </div>
+        </div>
+
+        <div>
+          <div class="stat-grid" aria-label="Sample statistics">
+            <div class="stat">
+              <div class="stat__value">12</div>
+              <div class="stat__label">rooms tracked</div>
+            </div>
+            <div class="stat">
+              <div class="stat__value">5</div>
+              <div class="stat__label">free right now</div>
+            </div>
+            <div class="stat">
+              <div class="stat__value">38</div>
+              <div class="stat__label">bookings this week</div>
+            </div>
+            <div class="stat">
+              <div class="stat__value">2</div>
+              <div class="stat__label">bumps waiting</div>
+            </div>
+          </div>
+          <p class="sample-badge" style="margin-top: var(--space-3)">Sample data · placeholder numbers</p>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="free-title">
+        <div class="card__meta">
+          <h2 id="free-title">Free right now</h2>
+          <a class="link-arrow" href="/rooms/free">See all free rooms</a>
+        </div>
+        <div class="card-grid card-grid--3">
+          <a class="card card--link" href="/rooms/detail">
+            <div class="card__meta">
+              <span class="room-icon" aria-hidden="true">A1</span>
+              <span class="pill pill--free">Free now</span>
+            </div>
+            <h3>Room A101</h3>
+            <p class="muted">120 seats · projector · whiteboard</p>
+            <span class="tag">Next class 16:00</span>
+          </a>
+          <a class="card card--link" href="/rooms/detail">
+            <div class="card__meta">
+              <span class="room-icon" aria-hidden="true">B2</span>
+              <span class="pill pill--soon">Free at 14:30</span>
+            </div>
+            <h3>Room B204</h3>
+            <p class="muted">60 seats · projector</p>
+            <span class="tag">Seminar until 14:30</span>
+          </a>
+          <a class="card card--link" href="/rooms/detail">
+            <div class="card__meta">
+              <span class="room-icon" aria-hidden="true">L1</span>
+              <span class="pill pill--free">Free now</span>
+            </div>
+            <h3>Lab L1</h3>
+            <p class="muted">24 seats · 24 workstations</p>
+            <span class="tag">Booked tomorrow 09:00</span>
+          </a>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="week-title">
+        <div class="card__meta">
+          <h2 id="week-title">Your week</h2>
+          <span class="sample-badge">Group CS-2A · odd week</span>
+        </div>
+        <div class="card-grid card-grid--2">
+          <div class="card">
+            <h3>Today</h3>
+            <ul class="list">
+              <li><span>08:00 · Analysis I (lecture)</span><span class="tag">A101</span></li>
+              <li><span>12:00 · Databases (seminar)</span><span class="tag">B204</span></li>
+              <li><span>16:00 · Web programming lab</span><span class="tag">L2</span></li>
+            </ul>
+            <div class="card__actions">
+              <a class="btn btn-small" href="/timetable">Full week</a>
+              <a class="btn btn-small btn-ghost" href="/calendar">Subscribe in your calendar</a>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Latest announcements</h3>
+            <ul class="list">
+              <li><span><strong>Databases</strong> · lecture moved to Thursday 10:00</span><span class="pill pill--soon">Changed</span></li>
+              <li><span><strong>Analysis I</strong> · seminar cancelled this week</span><span class="pill pill--busy">Cancelled</span></li>
+            </ul>
+            <div class="card__actions">
+              <a class="link-arrow" href="/announcements">All announcements</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="how-title">
+        <h2 id="how-title">How a booking works</h2>
+        <ol class="steps">
+          <li>
+            <div>
+              <strong>Request a room.</strong>
+              <p class="muted">Pick a room, a time and your activity. UniSpace checks for conflicts before you send it.</p>
+            </div>
+          </li>
+          <li>
+            <div>
+              <strong>An admin reviews it.</strong>
+              <p class="muted">Courses and exams always win. A higher-priority activity can bump a booking, and the bumped booking gets an alternative room.</p>
+            </div>
+          </li>
+          <li>
+            <div>
+              <strong>You get a confirmation.</strong>
+              <p class="muted">The room appears in your organization's calendar and in the room's timetable.</p>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      <section class="section" aria-labelledby="soon-title">
+        <h2 id="soon-title">Coming soon</h2>
+        <div class="card-grid card-grid--3">
+          <div class="card placeholder-card">
+            <h3>Calendar subscription</h3>
+            <p>One link per group, that stays in sync in Google or Apple Calendar.</p>
+          </div>
+          <div class="card placeholder-card">
+            <h3>Change history</h3>
+            <p>Every one-off moved class, with who moved it and when.</p>
+          </div>
+          <div class="card placeholder-card">
+            <h3>Priority bumps</h3>
+            <p>Bumped bookings, alternative rooms and the response deadline, in one queue.</p>
+          </div>
+        </div>
+      </section>
+    </main>
   </body>
 </html>

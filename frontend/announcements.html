@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Announcements · UniSpace</title>
+    <link rel="stylesheet" href="/css/tokens.css" />
+    <link rel="stylesheet" href="/css/base.css" />
+    <meta name="theme-color" content="#263EC9" />
+    <script src="/js/auth.js"></script>
+    <script src="/js/layout.js" defer></script>
+  </head>
+  <body>
+    <main id="main" class="container">
+      <p class="eyebrow">Announcements</p>
+      <h1>What changed</h1>
+      <p class="muted">Cancellations, room changes and notes from teachers, per discipline or group.</p>
+
+      <div class="chips" style="margin: var(--space-5) 0" aria-label="Filter announcements">
+        <button class="chip" type="button" aria-pressed="true">All</button>
+        <button class="chip" type="button" aria-pressed="false">My groups</button>
+        <button class="chip" type="button" aria-pressed="false">Cancelled</button>
+        <button class="chip" type="button" aria-pressed="false">Room changed</button>
+      </div>
+
+      <div class="card-grid card-grid--2">
+        <article class="card">
+          <div class="card__meta">
+            <span class="pill pill--busy">Cancelled</span>
+            <span class="muted">Today · 08:12</span>
+          </div>
+          <h2>Analysis I · seminar cancelled</h2>
+          <p class="muted">Thursday 13:00, group CS-2A. Placeholder text from the teacher.</p>
+          <div class="card__actions">
+            <span class="tag">Discipline: Analysis I</span>
+            <span class="tag">Group CS-2A</span>
+          </div>
+        </article>
+        <article class="card">
+          <div class="card__meta">
+            <span class="pill pill--soon">Room changed</span>
+            <span class="muted">Yesterday · 17:40</span>
+          </div>
+          <h2>Databases · lecture moved to A101</h2>
+          <p class="muted">Was B204. Same time, same week. Placeholder text.</p>
+          <div class="card__actions">
+            <span class="tag">Discipline: Databases</span>
+            <span class="tag">Week 14 only</span>
+          </div>
+        </article>
+        <article class="card">
+          <div class="card__meta">
+            <span class="pill pill--info">Note</span>
+            <span class="muted">Mon · 09:00</span>
+          </div>
+          <h2>Software design · bring the project repo</h2>
+          <p class="muted">Placeholder note from the teacher, visible to the whole group.</p>
+          <div class="card__actions">
+            <span class="tag">Discipline: Software design</span>
+          </div>
+        </article>
+      </div>
+
+      <section class="section" aria-labelledby="new-ann-title">
+        <h2 id="new-ann-title">Post an announcement</h2>
+        <p class="muted">For teachers. Placeholder form: posting comes with the backend and sends an email to the group.</p>
+        <form class="card form-card" data-placeholder style="margin-top: var(--space-3)">
+          <div class="form-grid form-grid--2">
+            <div class="field">
+              <label for="a-discipline">Discipline</label>
+              <select id="a-discipline"><option>Analysis I</option><option>Databases</option><option>Software design</option></select>
+            </div>
+            <div class="field">
+              <label for="a-kind">Type</label>
+              <select id="a-kind"><option>Cancelled</option><option>Room changed</option><option>Note</option></select>
+            </div>
+          </div>
+          <div class="field">
+            <label for="a-text">Message</label>
+            <textarea id="a-text" placeholder="Say what changed and what students should do"></textarea>
+          </div>
+          <div><button class="btn btn-primary" type="submit">Post and email the group</button></div>
+        </form>
+      </section>
+    </main>
+  </body>
+</html>

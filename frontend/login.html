@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#263EC9" />
+    <title>Log in · UniSpace</title>
+    <link rel="stylesheet" href="/css/tokens.css" />
+    <link rel="stylesheet" href="/css/base.css" />
+    <script src="/js/auth.js"></script>
+    <script src="/js/layout.js" defer></script>
+    <script src="/js/login.js" defer></script>
+  </head>
+  <body>
+    <main id="main" class="container">
+      <section class="hero" aria-labelledby="login-title" style="padding-top: var(--space-6)">
+        <div>
+          <p class="eyebrow">Faculty rooms, one place</p>
+          <h1 id="login-title">Log in to UniSpace</h1>
+          <p class="hero__lead">
+            The timetable, free rooms and room bookings are for people with an account.
+            Pick your role, then sign in.
+          </p>
+        </div>
+      </section>
+
+      <div class="card-grid card-grid--4" role="group" aria-label="Your role" style="margin-bottom: var(--space-5)">
+        <button class="card card--link role-option" type="button" data-role="student" aria-pressed="true">
+          <span class="room-icon" aria-hidden="true">S</span>
+          <h3>Student</h3>
+          <p class="muted">See your timetable, free rooms and changes.</p>
+        </button>
+        <button class="card card--link role-option" type="button" data-role="teacher" aria-pressed="false">
+          <span class="room-icon" aria-hidden="true">T</span>
+          <h3>Teacher</h3>
+          <p class="muted">See your classes and post announcements.</p>
+        </button>
+        <button class="card card--link role-option" type="button" data-role="organization" aria-pressed="false">
+          <span class="room-icon" aria-hidden="true">O</span>
+          <h3>Student organization</h3>
+          <p class="muted">Request rooms for events and follow their status.</p>
+        </button>
+        <button class="card card--link role-option" type="button" data-role="admin" aria-pressed="false">
+          <span class="room-icon" aria-hidden="true">A</span>
+          <h3>Admin</h3>
+          <p class="muted">Approve requests, handle bumps, manage the semester.</p>
+        </button>
+      </div>
+
+      <form class="card form-card" id="login-form" novalidate>
+        <div class="field">
+          <label for="login-email">University email</label>
+          <input id="login-email" name="email" type="email" autocomplete="username" placeholder="name@university.example" required />
+        </div>
+        <div class="field">
+          <label for="login-password">Password</label>
+          <input id="login-password" name="password" type="password" autocomplete="current-password" required />
+        </div>
+        <p class="notice" id="login-error" role="alert" hidden>Enter your email and password to continue.</p>
+        <div class="btn-group">
+          <button class="btn btn-primary" type="submit">Log in</button>
+        </div>
+        <p class="muted" style="margin: 0">
+          Dummy sign-in for now: any email and password work. The real sign-in method is not decided yet.
+        </p>
+      </form>
+    </main>
+  </body>
+</html>

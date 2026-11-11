@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bookings · UniSpace</title>
+    <link rel="stylesheet" href="/css/tokens.css" />
+    <link rel="stylesheet" href="/css/base.css" />
+    <meta name="theme-color" content="#263EC9" />
+    <script src="/js/auth.js"></script>
+    <script src="/js/layout.js" defer></script>
+  </head>
+  <body>
+    <main id="main" class="container">
+      <p class="eyebrow">Bookings</p>
+      <h1>Room requests</h1>
+      <p class="muted">Student organizations request rooms here. An admin approves each one.</p>
+
+      <div class="card-grid card-grid--2" style="margin-top: var(--space-5)">
+        <section class="card" aria-labelledby="mine-title">
+          <h2 id="mine-title">Your requests</h2>
+          <ul class="list">
+            <li>
+              <span><strong>Open Source Night</strong><br /><span class="muted">Aula Magna · Thu 18:00</span></span>
+              <span class="pill pill--requested">Requested</span>
+            </li>
+            <li>
+              <span><strong>Robotics workshop</strong><br /><span class="muted">L2 · Fri 14:00</span></span>
+              <span class="pill pill--approved">Approved</span>
+            </li>
+            <li>
+              <span><strong>Board game evening</strong><br /><span class="muted">B110 · Mon 19:00</span></span>
+              <span class="pill pill--bumped">Bumped · reply by Wed</span>
+            </li>
+          </ul>
+          <p class="muted" style="margin-top: var(--space-3)">Placeholder rows. Real data comes with the backend.</p>
+        </section>
+
+        <section class="card" aria-labelledby="new-title">
+          <h2 id="new-title">New request</h2>
+          <form class="form-grid" data-placeholder>
+            <div class="field">
+              <label for="b-activity">Activity name</label>
+              <input id="b-activity" name="activity" type="text" placeholder="Open Source Night" required />
+            </div>
+            <div class="form-grid form-grid--2">
+              <div class="field">
+                <label for="b-date">Date</label>
+                <input id="b-date" name="date" type="date" required />
+              </div>
+              <div class="field">
+                <label for="b-start">Start</label>
+                <input id="b-start" name="start" type="time" required />
+              </div>
+              <div class="field">
+                <label for="b-end">End</label>
+                <input id="b-end" name="end" type="time" required />
+              </div>
+              <div class="field">
+                <label for="b-seats">Expected people</label>
+                <input id="b-seats" name="seats" type="number" min="1" placeholder="40" />
+              </div>
+            </div>
+            <div class="field">
+              <label for="b-room">Preferred room</label>
+              <select id="b-room" name="room">
+                <option>Any free room</option>
+                <option>A101 · 120 seats</option>
+                <option>B204 · 60 seats</option>
+                <option>L1 · 24 workstations</option>
+              </select>
+            </div>
+            <fieldset class="field" style="border: 0; padding: 0; margin: 0">
+              <legend class="field__label">Equipment needed</legend>
+              <div class="chips">
+                <label class="chip"><input type="checkbox" style="accent-color: var(--color-primary)" /> Projector</label>
+                <label class="chip"><input type="checkbox" style="accent-color: var(--color-primary)" /> Sound</label>
+                <label class="chip"><input type="checkbox" style="accent-color: var(--color-primary)" /> Power outlets</label>
+              </div>
+            </fieldset>
+            <div class="field">
+              <label for="b-note">Note for the admin</label>
+              <textarea id="b-note" name="note" placeholder="Anything the admin should know"></textarea>
+            </div>
+            <div class="btn-group">
+              <button class="btn btn-primary" type="submit">Send request</button>
+              <p class="muted" style="align-self: center; margin: 0">Conflicts are checked when you send.</p>
+            </div>
+          </form>
+        </section>
+      </div>
+    </main>
+  </body>
+</html>

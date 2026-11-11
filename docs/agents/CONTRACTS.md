@@ -18,7 +18,7 @@
 ### C-001 · GET /health
 - **Status:** approved
 - **Interface:** HTTP `GET /health` on the backend (port 8000 locally).
-- **Consumers:** none yet. The frontend placeholder links to it for people only.
+- **Consumers:** the browser, through nginx on the same origin (`/health`, see `infra/nginx/default.conf`). The frontend does not call it from code yet.
 - **Shape:** 200 with `{"status": "ok"}`. No other fields.
 - **Rules:** No auth. Any change to the shape is a PROPOSAL.
 - **Evidence:** backend/app/routers/health.py:7; consumer link in frontend/index.html

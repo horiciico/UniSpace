@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin · UniSpace</title>
+    <link rel="stylesheet" href="/css/tokens.css" />
+    <link rel="stylesheet" href="/css/base.css" />
+    <meta name="theme-color" content="#263EC9" />
+    <script src="/js/auth.js"></script>
+    <script src="/js/layout.js" defer></script>
+  </head>
+  <body>
+    <main id="main" class="container">
+      <p class="eyebrow">Admin</p>
+      <h1>Approval queue</h1>
+      <p class="muted">Review requests, handle bumps and keep the semester setup right.</p>
+
+      <div class="stat-grid" style="margin: var(--space-5) 0" aria-label="Queue sample numbers">
+        <div class="stat"><div class="stat__value">4</div><div class="stat__label">waiting for approval</div></div>
+        <div class="stat"><div class="stat__value">2</div><div class="stat__label">bumps, reply pending</div></div>
+        <div class="stat"><div class="stat__value">1</div><div class="stat__label">conflict to resolve</div></div>
+        <div class="stat"><div class="stat__value">Wk 14</div><div class="stat__label">current week (odd)</div></div>
+      </div>
+
+      <section aria-labelledby="queue-title">
+        <h2 id="queue-title">Waiting for approval</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Organization</th>
+                <th scope="col">Activity</th>
+                <th scope="col">Room</th>
+                <th scope="col">When</th>
+                <th scope="col">Priority</th>
+                <th scope="col"><span class="muted">Decision</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Placeholder club A</td>
+                <td>Open Source Night</td>
+                <td>Aula Magna</td>
+                <td>Thu 18:00</td>
+                <td><span class="tag">Student organization</span></td>
+                <td>
+                  <div class="btn-group">
+                    <button class="btn btn-primary btn-small" type="button" data-placeholder-action="Placeholder: approved (nothing saved yet)">Approve</button>
+                    <button class="btn btn-small" type="button" data-placeholder-action="Placeholder: rejected (nothing saved yet)">Reject</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>Placeholder club B</td>
+                <td>Robotics workshop</td>
+                <td>L2</td>
+                <td>Fri 14:00</td>
+                <td><span class="tag">Student organization</span></td>
+                <td>
+                  <div class="btn-group">
+                    <button class="btn btn-primary btn-small" type="button" data-placeholder-action="Placeholder: approved (nothing saved yet)">Approve</button>
+                    <button class="btn btn-small" type="button" data-placeholder-action="Placeholder: rejected (nothing saved yet)">Reject</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>Faculty office</td>
+                <td>Entrance exam</td>
+                <td>A101</td>
+                <td>Mon 09:00</td>
+                <td><span class="tag">Exam · bumps lower priorities</span></td>
+                <td>
+                  <div class="btn-group">
+                    <button class="btn btn-primary btn-small" type="button" data-placeholder-action="Placeholder: bump proposal (nothing saved yet)">Approve and bump</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="bump-title">
+        <h2 id="bump-title">Bumps waiting for a reply</h2>
+        <ul class="list">
+          <li>
+            <span><strong>Board game evening</strong> · B110 → B204 proposed · 60 seats, projector</span>
+            <span class="pill pill--bumped">Reply by Wed 18:00</span>
+          </li>
+          <li>
+            <span><strong>Student film night</strong> · A102 → A201 proposed</span>
+            <span class="pill pill--bumped">Moves automatically Fri</span>
+          </li>
+        </ul>
+      </section>
+
+      <section class="section" aria-labelledby="setup-title">
+        <div class="card__meta">
+          <h2 id="setup-title">Semester setup</h2>
+        </div>
+        <div class="card-grid card-grid--3">
+          <div class="card placeholder-card">
+            <h3>First week</h3>
+            <p>Placeholder: 2026-09-28 · parity is set from here.</p>
+          </div>
+          <div class="card placeholder-card">
+            <h3>Holidays and session</h3>
+            <p>Placeholder: list of breaks and exam weeks.</p>
+          </div>
+          <div class="card placeholder-card">
+            <h3>Inverted weeks</h3>
+            <p>Placeholder: weeks where parity is swapped.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
