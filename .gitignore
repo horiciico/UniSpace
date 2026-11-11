@@ -1,0 +1,17 @@
+# Secrets and local config
+.env
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+
+# Claude Code: commit the skills and agents; keep local settings and agent worktrees out
+.claude/*
+!.claude/skills/
+!.claude/agents/
+.claude/worktrees/
+
+# The setup skill's source copy, not part of the platform
+Graffino-Agentic-Coding-Setup-Skill-develop/
