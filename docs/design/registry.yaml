@@ -1,0 +1,5 @@
+# docs/design/registry.yaml — every screen and shared component, by DS- ID.
+# Plans, commits, mocks and board files use the ID (tickets don't). kind: foundation | component | screen
+# status: draft (mock drawn) | approved (confirmed on the board) | implemented | deprecated (never delete an entry)
+# No screens yet: add an entry (DS-unispace-<name>) when the first screen is built.
+designs: []
