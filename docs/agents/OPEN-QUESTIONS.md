@@ -9,20 +9,22 @@
 <!-- graffino-agentic:end -->
 
 ## Index
-- Q-001 · What does UniSpace do, and who uses it?
+- Q-001 · What does UniSpace do, and who uses it? · _investigating_
 - Q-002 · Which branches and version scheme does the release use?
 - Q-003 · How are UI screenshots taken for review?
 - Q-004 · Is there a design board (Claude Design) or Figma for the UI?
 - Q-005 · Where and how is the platform deployed?
 - Q-007 · How do users sign in (university account, password, or both)?
 - Q-006 · Which lint and type-check tools should run?
+- Q-008 · How is the semester customized (holidays, breaks, inverted-parity weeks)?
 
 ---
 
 ## Q-001 · What does UniSpace do, and who uses it?
-- **Status:** open
+- **Status:** investigating
 - **Blocks:** the domain models and the first feature, the terms in CONTEXT.md, and any user-facing screen.
 - **Who answers:** the user (product owner)
+- **Proposed answer:** A faculty timetable and room-booking platform with priority-based bumping (course > exam > official faculty > student org > student), per the product brief of 2026-11-11. Not confirmed.
 
 ## Q-002 · Which branches and version scheme does the release use?
 - **Status:** open
@@ -54,3 +56,8 @@
 - **Status:** open
 - **Blocks:** the lint and type-check lines in AGENTS.md sections 2 and 6.
 - **Who answers:** the user
+
+## Q-008 · How is the semester customized (holidays, breaks, inverted-parity weeks)?
+- **Status:** open
+- **Blocks:** `CUSTOM` parity (a CHECK keeps it unusable), a weeks list on `activity`, and any `valid_from` / `valid_to` or semester table.
+- **Who answers:** the user (decided once there is a concrete customization flow)
