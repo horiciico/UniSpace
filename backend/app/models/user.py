@@ -8,7 +8,7 @@ from app.models.enums import Role
 
 
 class User(Base):
-    __tablename__ = "user"
+    __tablename__ = "users"
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, server_default=text("gen_random_uuid()"))
     email: Mapped[str] = mapped_column(String(255), unique=True)

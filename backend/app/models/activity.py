@@ -29,9 +29,9 @@ _TIME_RANGE = f"int4range(least({_START_MIN}, {_END_MIN}), greatest({_START_MIN}
 
 
 class Activity(Base):
-    """One row for both the imported official schedule and bookings (weekly recurrence rule)."""
+    """One row for both the imported official schedule and bookings (weekly recurrence rule)."""   
 
-    __tablename__ = "activity"
+    __tablename__ = "activities"
     __table_args__ = (
         CheckConstraint("priority BETWEEN 1 AND 5", name="ck_activity_priority"),
         CheckConstraint("day_of_week BETWEEN 1 AND 7", name="ck_activity_day_of_week"),
@@ -48,9 +48,9 @@ class Activity(Base):
     name: Mapped[str] = mapped_column(String(255))
     type: Mapped[ActivityType] = mapped_column(Enum(ActivityType, name="activity_type"))
     priority: Mapped[int] = mapped_column(SmallInteger)  # Priority values, 1-5
-    user_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("user.id", ondelete="SET NULL"))
-    group_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("student_group.id", ondelete="SET NULL"))
-    classroom_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("classroom.id", ondelete="RESTRICT"))
+    user_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    group_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("student_groups.id", ondelete="SET NULL"))
+    classroom_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("classrooms.id", ondelete="RESTRICT"))
 
     day_of_week: Mapped[int] = mapped_column(SmallInteger)  # 1 = Monday .. 7 = Sunday (ISO)
     start_time: Mapped[time] = mapped_column(Time)
@@ -63,7 +63,7 @@ class Activity(Base):
     status: Mapped[Status] = mapped_column(
         Enum(Status, name="status"), default=Status.APPROVED, server_default=Status.APPROVED.value
     )
-    alt_classroom_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("classroom.id", ondelete="SET NULL"))
+    alt_classroom_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("classrooms.id", ondelete="SET NULL"))
     alt_start_datetime: Mapped[datetime | None] = mapped_column(DateTime)
     alt_end_datetime: Mapped[datetime | None] = mapped_column(DateTime)
     bumped_date: Mapped[date | None] = mapped_column(Date)  # which occurrence was bumped

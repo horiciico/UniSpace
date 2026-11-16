@@ -32,7 +32,8 @@ services:
     volumes:
       # Dev only: live code reload. Remove for a production-like run.
       - ./backend:/app
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir /app
+    # Migrations first: a fresh database (down -v) gets its tables from Alembic (D-002).
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir /app"
     depends_on:
       db:
         condition: service_healthy

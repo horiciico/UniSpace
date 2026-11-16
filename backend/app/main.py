@@ -4,6 +4,8 @@ from starlette.middleware.sessions import SessionMiddleware
 from app.config import COOKIE_SECURE, SESSION_MAX_AGE_SECONDS, SESSION_SECRET_KEY
 from app.routers import auth, health
 
+# Tables come from Alembic migrations only (D-002). The backend container runs
+# `alembic upgrade head` before it starts (see docker-compose.yml).
 app = FastAPI(title="UniSpace API")
 
 # Signed, HttpOnly cookie. Holds the login (user_id) and the OAuth state during sign-in.

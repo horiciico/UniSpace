@@ -7,7 +7,7 @@ from app.db import Base
 
 
 class Classroom(Base):
-    __tablename__ = "classroom"
+    __tablename__ = "classrooms"
     __table_args__ = (CheckConstraint("capacity > 0", name="ck_classroom_capacity"),)
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, server_default=text("gen_random_uuid()"))

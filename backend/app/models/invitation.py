@@ -10,7 +10,7 @@ from app.models.enums import Role
 class Invitation(Base):
     """Lets one external (non-university) email sign in once, with the given role."""
 
-    __tablename__ = "invitation"
+    __tablename__ = "invitations"
     __table_args__ = (CheckConstraint("email = lower(email)", name="ck_invitation_email_lowercase"),)
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, server_default=text("gen_random_uuid()"))
