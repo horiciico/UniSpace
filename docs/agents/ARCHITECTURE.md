@@ -55,8 +55,10 @@ Local only so far. Deploy is not defined (Q-005). See AGENTS.md sections 2 and 5
 ## Boundaries
 - The database is reachable only inside the compose network by default; the host port
   mapping is for local tools. Guards: D-005 (credentials stay out of the repo).
-- Sign-in is Google OAuth with a session cookie (C-002, D-009). Other routes do not check it yet; C-001 is public. Q-007 awaits confirmation.
-- The frontend gate (`frontend/js/auth.js`) is a dummy: it redirects visitors without a
-  localStorage session to `/login`. Files stay public on the server, so it stops casual
-  browsing only. Real protection moves to the backend session and nginx.
+- Sign-in is Google OAuth with a session cookie (C-002, D-009). Q-007 awaits confirmation.
+- Pages are gated by nginx: `auth_request` asks the backend (`/auth/me`, `/auth/admin` for
+  `/admin/`) before any page is served, so a typed URL does not get around it (D-010).
+  Public: `/login`, `/css/`, `/js/`, `/health`, `/auth/`. The API routes under `/api/` and
+  the other backend routes are not gated by nginx.
+- `frontend/js/auth.js` only reads the signed-in user for the header; it is not a security check.
 - Contracts: docs/agents/CONTRACTS.md.

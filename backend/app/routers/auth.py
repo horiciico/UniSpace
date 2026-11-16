@@ -53,3 +53,11 @@ def me(user: User = Depends(get_current_user)) -> User:
 def logout(request: Request) -> Response:
     request.session.clear()
     return Response(status_code=204)
+
+
+@router.get("/auth/admin", status_code=204)
+def admin_check(user: User = Depends(get_current_user)) -> Response:
+    """Asked by nginx (auth_request) before it serves /admin/ pages."""
+    if user.role != Role.ADMIN:
+        raise HTTPException(403, "Admins only.")
+    return Response(status_code=204)
