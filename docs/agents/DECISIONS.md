@@ -15,6 +15,7 @@
 - D-006 · Primary keys are UUIDs; enums are native PostgreSQL enums
 - D-007 · Booking priority scale is 1 to 5
 - D-008 · day_of_week is an integer 1 to 7, Monday = 1
+- D-009 · Login is a signed HttpOnly session cookie, 8 hours · _proposed_
 
 ---
 
@@ -97,3 +98,12 @@
 - **Evidence:** backend/app/models/activity.py
 - **Source:** user · confidence high
 - **Confirmed:** 2026-11-12
+
+## D-009 · Login is a signed HttpOnly session cookie, 8 hours
+- **Status:** proposed
+- **Date:** 2026-11-16
+- **Rule:** Sign-in sets Starlette's signed session cookie (`SessionMiddleware`): HttpOnly, SameSite=Lax, 8-hour lifetime, Secure when `COOKIE_SECURE=true`. No JWT for now. The cookie holds `user_id` only.
+- **Why:** Authlib needs the session cookie for the OAuth state anyway; one mechanism, no extra library. The user said a separate JWT is "not yet".
+- **Rejected:** a separate JWT cookie (for now)
+- **Evidence:** backend/app/main.py, backend/app/auth.py:start_session
+- **Source:** user (cookie flags, lifetime proposed by the agent) · confidence medium

@@ -11,6 +11,7 @@
 - PATTERN-003 · Endpoint tests with FastAPI TestClient · candidate
 - PATTERN-004 · SQLAlchemy 2.0 typed models, one module per table · candidate
 - PATTERN-005 · Database tests run the real migration and roll back · candidate
+- PATTERN-006 · Mock the identity provider at the authlib client, keep the database real · candidate
 
 ---
 
@@ -52,4 +53,12 @@
 - **How:** A session fixture runs `alembic upgrade head`; a per-test fixture opens a connection and outer transaction, binds a `Session` with `join_transaction_mode="create_savepoint"`, and rolls back at the end. Run via compose, where `db` is available.
 - **Example:** backend/tests/test_models.py (fixtures `migrated`, `db`)
 - **Why:** Tests the schema as shipped, and leaves no rows behind.
+- **Source:** code · confidence medium
+
+## PATTERN-006 · Mock the identity provider at the authlib client, keep the database real
+- **Status:** candidate
+- **Use when:** testing a login or callback route.
+- **How:** `monkeypatch.setattr(oauth.google, "authorize_access_token", fake)` returning `{"userinfo": claims}`; override `get_db` with the rollback `db` fixture; use an `https://` TestClient base URL so the session cookie is sent whatever `COOKIE_SECURE` is. Commit seed rows with `db.commit()` before the request so a route-level rollback keeps them.
+- **Example:** backend/tests/test_auth.py
+- **Why:** The bouncer rules run against real constraints, with no network call to Google.
 - **Source:** code · confidence medium

@@ -3,10 +3,11 @@ from app.models.activity import Activity
 from app.models.classroom import Classroom
 from app.models.enums import ActivityType, Parity, Priority, Role, Status
 from app.models.event_exception import EventException
+from app.models.invitation import Invitation
 from app.models.student_group import StudentGroup
 from app.models.user import User
 
 __all__ = [
-    "Activity", "ActivityType", "Classroom", "EventException", "Parity",
+    "Activity", "ActivityType", "Classroom", "EventException", "Invitation", "Parity",
     "Priority", "Role", "Status", "StudentGroup", "User",
 ]
