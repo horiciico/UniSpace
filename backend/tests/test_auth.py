@@ -197,3 +197,24 @@ def test_me_requires_a_session_and_logout_ends_it(client, db, monkeypatch) -> No
 
     assert client.post("/auth/logout").status_code == 204
     assert client.get("/auth/me").status_code == 401
+
+
+def sign_in(client, db, monkeypatch, role: Role) -> None:
+    db.add(User(email="who@gmail.com", name="Who", role=role, google_sub="sub-w"))
+    db.commit()
+    google_returns(monkeypatch, sub="sub-w", email="who@gmail.com", hd=None, name="Who")
+    callback(client)
+
+
+def test_admin_check_is_401_when_signed_out(client) -> None:
+    assert client.get("/auth/admin").status_code == 401
+
+
+def test_admin_check_is_403_for_other_roles(client, db, monkeypatch) -> None:
+    sign_in(client, db, monkeypatch, Role.PROFESSOR)
+    assert client.get("/auth/admin").status_code == 403
+
+
+def test_admin_check_is_204_for_admin(client, db, monkeypatch) -> None:
+    sign_in(client, db, monkeypatch, Role.ADMIN)
+    assert client.get("/auth/admin").status_code == 204
