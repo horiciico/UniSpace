@@ -95,8 +95,8 @@ designs:
     kind: screen
     source: frontend/login.html
     screenshots: []
-    design_ref: none
-    status: implemented
+    design_ref: docs/design/mocks/DS-unispace-login.html
+    status: draft  # the implemented page is the old dummy form; the mock awaits confirmation
 
   - id: DS-unispace-admin
     kind: screen
