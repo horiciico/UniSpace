@@ -10,6 +10,7 @@
 
 ## Index
 - C-001 · GET /health · provided
+- C-002 · Auth routes (Google sign-in) · provided · _proposed_
 
 ---
 
@@ -22,6 +23,15 @@
 - **Shape:** 200 with `{"status": "ok"}`. No other fields.
 - **Rules:** No auth. Any change to the shape is a PROPOSAL.
 - **Evidence:** backend/app/routers/health.py:7; consumer link in frontend/index.html
+- **Source:** code · confidence high
+
+### C-002 · Auth routes (Google sign-in)
+- **Status:** proposed
+- **Interface:** HTTP on the backend, no `/api` prefix: `GET /auth/login` (redirect to Google), `GET /auth/callback` (Google redirect URI; sets the session cookie, 303 to `POST_LOGIN_URL`), `GET /auth/me`, `POST /auth/logout`.
+- **Consumers:** the browser. The frontend does not call them yet; nginx does not proxy `/auth/` yet.
+- **Shape:** `/auth/me` returns 200 `{"id", "email", "name", "role"}` or 401. `/auth/logout` returns 204. Rejections are 403 `{"detail": ...}`; Rule C text: "Access denied. Please use your institutional @ulbsibiu.ro account or request an invitation." Google failures are 400.
+- **Rules:** `@ulbsibiu.ro` (hd claim and email both) is auto-provisioned as STUDENT; other domains need an unused `invitation` row for the email. Any other role for a university user is an admin change (Q-009).
+- **Evidence:** backend/app/routers/auth.py, backend/app/auth.py
 - **Source:** code · confidence high
 
 ## Consumed

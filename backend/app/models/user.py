@@ -14,5 +14,6 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(255), unique=True)
     name: Mapped[str] = mapped_column(String(255))
     role: Mapped[Role] = mapped_column(Enum(Role, name="role"))
+    google_sub: Mapped[str | None] = mapped_column(String(255), unique=True)  # Google's immutable subject id
 
     activities: Mapped[list["Activity"]] = relationship(back_populates="user")  # noqa: F821

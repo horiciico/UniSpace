@@ -14,9 +14,10 @@
 - Q-003 · How are UI screenshots taken for review?
 - Q-004 · Is there a design board (Claude Design) or Figma for the UI?
 - Q-005 · Where and how is the platform deployed?
-- Q-007 · How do users sign in (university account, password, or both)?
+- Q-007 · How do users sign in (university account, password, or both)? · _investigating_
 - Q-006 · Which lint and type-check tools should run?
 - Q-008 · How is the semester customized (holidays, breaks, inverted-parity weeks)?
+- Q-009 · How does a university (@ulbsibiu.ro) user get a role above STUDENT?
 
 ---
 
@@ -48,9 +49,10 @@
 - **Who answers:** the user
 
 ## Q-007 · How do users sign in (university account, password, or both)?
-- **Status:** open
+- **Status:** investigating
 - **Blocks:** the real login. The frontend has a dummy gate (`frontend/js/auth.js`) for now: any email and password work, and it is not security.
 - **Who answers:** the user
+- **Proposed answer:** Google OAuth only: `@ulbsibiu.ro` accounts are auto-provisioned as STUDENT; other accounts need an invitation (built in this change, C-002). No passwords. Not confirmed.
 
 ## Q-006 · Which lint and type-check tools should run?
 - **Status:** open
@@ -61,3 +63,9 @@
 - **Status:** open
 - **Blocks:** `CUSTOM` parity (a CHECK keeps it unusable), a weeks list on `activity`, and any `valid_from` / `valid_to` or semester table.
 - **Who answers:** the user (decided once there is a concrete customization flow)
+
+## Q-009 · How does a university (@ulbsibiu.ro) user get a role above STUDENT?
+- **Status:** open
+- **Blocks:** professors and student-organization leaders with a university address getting their role without an admin changing the `user.role` column by hand. An unused invitation for a university email is ignored today.
+- **Who answers:** the user
+- **Proposed answer:** For now (decided 2026-11-16): everyone is STUDENT, an admin elevates. Later, perhaps read roles from the imported timetable (teachers appear there). Alternatives: an invitation sets the role at first login, or also later.

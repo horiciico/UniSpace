@@ -55,7 +55,7 @@ Local only so far. Deploy is not defined (Q-005). See AGENTS.md sections 2 and 5
 ## Boundaries
 - The database is reachable only inside the compose network by default; the host port
   mapping is for local tools. Guards: D-005 (credentials stay out of the repo).
-- The API has no authentication yet (C-001 is public). Auth is not decided (Q-007).
+- Sign-in is Google OAuth with a session cookie (C-002, D-009). Other routes do not check it yet; C-001 is public. Q-007 awaits confirmation.
 - The frontend gate (`frontend/js/auth.js`) is a dummy: it redirects visitors without a
   localStorage session to `/login`. Files stay public on the server, so it stops casual
   browsing only. Real protection moves to the backend session and nginx.
