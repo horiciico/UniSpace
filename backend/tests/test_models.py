@@ -1,16 +1,12 @@
-"""Scheduling schema tests. Tests 2-4 need PostgreSQL (compose `db`); they run the
-real Alembic migration, then roll every test back."""
-from collections.abc import Iterator
+"""Scheduling schema tests. Most need PostgreSQL (compose `db`); see conftest.py."""
 from datetime import time
 
 import pytest
-from alembic import command
-from alembic.config import Config
 from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.db import Base, engine
+from app.db import Base
 from app.models import (
     Activity,
     ActivityType,
@@ -35,25 +31,6 @@ def test_all_tables_and_enums_registered() -> None:
     assert {t.name for t in ActivityType} == {"COURSE", "LAB", "SEMINAR", "EXAM", "RESERVATION"}
     assert {p.name for p in Parity} == {"ALL", "EVEN", "ODD", "CUSTOM"}
     assert {s.name for s in Status} == {"APPROVED", "BUMPED_PENDING", "CANCELLED"}
-
-
-@pytest.fixture(scope="session")
-def migrated() -> None:
-    cfg = Config("alembic.ini")
-    command.upgrade(cfg, "head")
-
-
-@pytest.fixture
-def db(migrated: None) -> Iterator[Session]:
-    connection = engine.connect()
-    outer = connection.begin()
-    session = Session(bind=connection, join_transaction_mode="create_savepoint")
-    try:
-        yield session
-    finally:
-        session.close()
-        outer.rollback()
-        connection.close()
 
 
 def make_room(db: Session, name: str = "S02") -> Classroom:
