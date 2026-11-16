@@ -3,7 +3,7 @@
  * buttons, placeholder forms and actions (they show a toast instead of sending
  * anything until the backend endpoints exist). The header depends on the session:
  * logged-out visitors only get the brand, logged-in users get the navigation.
- * Access control itself lives in auth.js.
+ * Who is signed in comes from auth.js; the access check itself is nginx's.
  */
 (function () {
   "use strict";
@@ -39,14 +39,14 @@
 
     if (user) {
       links = NAV.filter(function (item) {
-        return !item.adminOnly || user.role === "admin";
+        return !item.adminOnly || user.role === "ADMIN";
       }).map(function (item) {
         var current = normalise(item.href) === here ? ' aria-current="page"' : "";
         return '<a href="' + item.href + '"' + current + ">" + item.label + "</a>";
       }).join("");
       actions +=
         '<span class="pill pill--info user-chip">' + escapeHtml(user.name) +
-        " · " + escapeHtml(user.role) + "</span>" +
+        " · " + escapeHtml(window.UniSpaceAuth.roleLabel(user.role)) + "</span>" +
         '<button class="btn btn-ghost btn-small logout" type="button">Log out</button>';
     }
 
@@ -75,8 +75,8 @@
     var logout = header.querySelector(".logout");
     if (logout) {
       logout.addEventListener("click", function () {
+        logout.disabled = true;
         window.UniSpaceAuth.logout();
-        window.location.replace("/login");
       });
     }
   }
@@ -172,10 +172,14 @@
     });
   }
 
-  var user = window.UniSpaceAuth ? window.UniSpaceAuth.user() : null;
-  buildHeader(user);
-  fillUserName(user);
-  buildFooter();
-  bindTheme();
-  bindPlaceholders();
+  // Apply the saved theme at once; the header (and its toggle) waits for the session
+  // so the navigation does not flash in and out.
+  applyTheme(currentTheme());
+  window.UniSpaceAuth.ready.then(function (user) {
+    buildHeader(user);
+    fillUserName(user);
+    buildFooter();
+    bindTheme();
+    bindPlaceholders();
+  });
 })();

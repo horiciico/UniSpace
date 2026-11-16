@@ -12,6 +12,7 @@
 - PATTERN-004 · SQLAlchemy 2.0 typed models, one module per table · candidate
 - PATTERN-005 · Database tests run the real migration and roll back · candidate
 - PATTERN-006 · Mock the identity provider at the authlib client, keep the database real · candidate
+- PATTERN-007 · Check the signed-in UI in headless Chrome over the DevTools protocol · candidate
 
 ---
 
@@ -62,3 +63,11 @@
 - **Example:** backend/tests/test_auth.py
 - **Why:** The bouncer rules run against real constraints, with no network call to Google.
 - **Source:** code · confidence medium
+
+## PATTERN-007 · Check the signed-in UI in headless Chrome over the DevTools protocol
+- **Status:** candidate
+- **Use when:** a UI change depends on the session (header, role label, redirects, logout) and Q-003 has no tooling yet.
+- **How:** Create temporary users and signed session cookies inside the backend container (`itsdangerous.TimestampSigner` over base64 JSON, same secret), start Chrome with `--headless=new --remote-debugging-port`, set the cookie with `Network.setCookie`, drive pages with Node's built-in `WebSocket`, assert on `location.pathname` and header text, and screenshot with `Page.captureScreenshot`. Delete the users and cookies afterwards. A dark system theme makes "no flag" render dark; `--blink-settings=preferredColorScheme=1` renders light.
+- **Example:** none in the repo (the script was a throwaway in the temp folder)
+- **Why:** Real browser, real cookies, no new dependency.
+- **Source:** code · confidence low

@@ -1,51 +1,33 @@
 /*
- * Dummy login: any non-empty email and password sign the user in. The role comes from
- * the picked card. Replace the body of submit with a real API call later.
+ * Login page. The button is a plain link to /auth/login, so it works without this
+ * script. This only shows why a sign-in was turned back (nginx sends the browser here
+ * with ?error=denied or ?error=failed) and skips the page for people already signed in.
  */
 (function () {
   "use strict";
 
-  var form = document.getElementById("login-form");
-  if (!form) return;
+  var MESSAGES = {
+    denied: {
+      title: "You could not be signed in.",
+      text: "Access denied. Please use your institutional @ulbsibiu.ro account or request an invitation."
+    },
+    failed: {
+      title: "Google sign-in did not finish.",
+      text: "Nothing was saved. Try again."
+    }
+  };
 
-  var roleButtons = document.querySelectorAll("[data-role]");
-  var error = document.getElementById("login-error");
-  var role = "student";
+  var box = document.getElementById("login-error");
+  var reason = new URLSearchParams(window.location.search).get("error");
+  var message = Object.prototype.hasOwnProperty.call(MESSAGES, reason) ? MESSAGES[reason] : null;
 
-  roleButtons.forEach(function (button) {
-    button.addEventListener("click", function () {
-      role = button.dataset.role;
-      roleButtons.forEach(function (other) {
-        other.setAttribute("aria-pressed", String(other === button));
-      });
-    });
-  });
-
-  function nameFromEmail(email) {
-    var local = email.split("@")[0].replace(/[._-]+/g, " ").trim();
-    return local
-      .split(" ")
-      .filter(Boolean)
-      .map(function (word) {
-        return word.charAt(0).toUpperCase() + word.slice(1);
-      })
-      .join(" ") || "Guest";
+  if (box && message) {
+    document.getElementById("login-error-title").textContent = message.title;
+    document.getElementById("login-error-text").textContent = message.text;
+    box.hidden = false;
   }
 
-  form.addEventListener("submit", function (event) {
-    event.preventDefault();
-    var email = form.elements.email.value.trim();
-    var password = form.elements.password.value;
-
-    if (!email || !password) {
-      error.hidden = false;
-      return;
-    }
-
-    window.UniSpaceAuth.login(nameFromEmail(email), role);
-
-    var next = new URLSearchParams(window.location.search).get("next");
-    var safe = next && next.charAt(0) === "/" && next.charAt(1) !== "/" ? next : "/";
-    window.location.replace(safe);
+  window.UniSpaceAuth.ready.then(function (user) {
+    if (user) window.location.replace("/");
   });
 })();

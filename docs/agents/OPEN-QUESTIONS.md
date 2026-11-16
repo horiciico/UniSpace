@@ -50,7 +50,7 @@
 
 ## Q-007 · How do users sign in (university account, password, or both)?
 - **Status:** investigating
-- **Blocks:** the real login. The frontend has a dummy gate (`frontend/js/auth.js`) for now: any email and password work, and it is not security.
+- **Blocks:** confirming the sign-in method. Google sign-in and the nginx page gate are built (C-002, D-009, D-010); the old dummy login is gone.
 - **Who answers:** the user
 - **Proposed answer:** Google OAuth only: `@ulbsibiu.ro` accounts are auto-provisioned as STUDENT; other accounts need an invitation (built in this change, C-002). No passwords. Not confirmed.
 

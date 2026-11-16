@@ -94,9 +94,11 @@ designs:
   - id: DS-unispace-login
     kind: screen
     source: frontend/login.html
-    screenshots: []
+    screenshots:
+      - docs/design/screens/DS-unispace-login.light.png
+      - docs/design/screens/DS-unispace-login.dark.png
     design_ref: docs/design/mocks/DS-unispace-login.html
-    status: draft  # the implemented page is the old dummy form; the mock awaits confirmation
+    status: implemented  # mock confirmed by the user 2026-11-16; Google sign-in page
 
   - id: DS-unispace-admin
     kind: screen

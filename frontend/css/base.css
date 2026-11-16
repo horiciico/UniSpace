@@ -227,6 +227,12 @@ a {
   font-size: var(--text-sm);
 }
 
+.btn-large {
+  min-height: 44px;
+  padding: var(--space-3) var(--space-5);
+  font-size: var(--text-base);
+}
+
 .btn-group {
   display: flex;
   flex-wrap: wrap;
@@ -646,6 +652,15 @@ th {
   border-radius: var(--radius-md);
   background: var(--color-info-bg);
   color: var(--color-info-text);
+}
+
+.notice--error {
+  background: var(--color-danger-bg);
+  color: var(--color-danger-text);
+}
+
+.notice--error strong {
+  display: block;
 }
 
 .toast {

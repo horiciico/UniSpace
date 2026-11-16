@@ -16,6 +16,7 @@
 - D-007 · Booking priority scale is 1 to 5
 - D-008 · day_of_week is an integer 1 to 7, Monday = 1
 - D-009 · Login is a signed HttpOnly session cookie, 8 hours · _proposed_
+- D-010 · Pages are gated by nginx, not by JavaScript · _proposed_
 
 ---
 
@@ -107,3 +108,12 @@
 - **Rejected:** a separate JWT cookie (for now)
 - **Evidence:** backend/app/main.py, backend/app/auth.py:start_session
 - **Source:** user (cookie flags, lifetime proposed by the agent) · confidence medium
+
+## D-010 · Pages are gated by nginx, not by JavaScript
+- **Status:** proposed
+- **Date:** 2026-11-16
+- **Rule:** nginx serves a frontend page only after `auth_request` to the backend (`/auth/me`; `/auth/admin` for `/admin/`) succeeds. Signed out goes to `/login`; a non-admin on `/admin/` goes to `/`. Public: `/login`, `/css/`, `/js/`, `/health`, `/auth/`. Client scripts never decide access.
+- **Why:** The static files are public on the server, so a script gate is only cosmetic. The user wants the app reachable only when signed in, also by typing a URL.
+- **Rejected:** a JavaScript-only gate (the old localStorage dummy)
+- **Evidence:** infra/nginx/default.conf, frontend/js/auth.js
+- **Source:** user · confidence high
