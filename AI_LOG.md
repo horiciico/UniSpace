@@ -16,6 +16,12 @@ What I did with it: <kept, changed, rejected, merged; where it went>
 
 ---
 
+## 2026-11-17 · Database password required; deploy moved to Oracle Cloud; project brief saved
+Tool: Claude Code (Haiku 5.5), free prompt
+What I asked: make the Postgres password required in compose; change the deploy answer from Vercel to Oracle Cloud; save the course description in the context file.
+What I got: `POSTGRES_PASSWORD` has no fallback in `docker-compose.yml` (compose stops with a message if .env does not set it, branch chore/require-db-password). Q-005 now says Oracle Cloud. The Romanian description is saved verbatim in `CONTEXT.md`.
+What I did with it: the plan for the Oracle Cloud deploy (domain, HTTPS, production redirect URI, backups) is still to be written. DECISIONS.md was left as it is, as asked.
+
 ## 2026-11-17 · Default passwords removed, Google-only sign-in recorded
 Tool: Claude Code (Haiku 5.5), free prompt
 What I asked: remove the pgAdmin password and the Postgres placeholder from the history and from .env.example; record that sign-in is Google only (no password hashing) and that deploy is on Vercel.

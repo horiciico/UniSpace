@@ -45,7 +45,7 @@
 
 ## Q-005 · Where and how is the platform deployed?
 - **Status:** answered
-- **Answer:** Vercel (the user, 2026-11-17). Vercel does not run the Compose stack, nginx or the Python backend as they are now. The deploy needs its own plan (see the open question on the production setup).
+- **Answer:** Oracle Cloud (the user, 2026-11-17; replaces the earlier Vercel answer). A VM there can run the Compose stack as it is. The deploy plan still needs a domain, HTTPS, the Google redirect URI for production, and backups.
 - **Blocks:** a production compose setup, secrets handling in production, and the deploy steps in AGENTS.md section 5.
 - **Who answers:** the user
 
