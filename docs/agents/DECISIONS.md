@@ -19,6 +19,7 @@
 - D-010 · Pages are gated by nginx, not by JavaScript · _proposed_
 - D-011 · The interface is in Romanian and English, from one dictionary per language
 - D-012 · Records from the backend are shown as they arrive, not translated in the frontend
+- D-013 · Sign-in is Google only; the app stores no passwords
 
 ---
 
@@ -137,5 +138,15 @@
 - **Why:** The user decided this: the data changes with the backend, so a copy in the frontend would go stale.
 - **Rejected:** translating course and room names in the frontend
 - **Evidence:** frontend/pages/student/timetable.html, frontend/js/pages/timetable.js, frontend/pages/student/rooms/index.html
+- **Source:** user · confidence high
+- **Confirmed:** 2026-11-17
+
+## D-013 · Sign-in is Google only; the app stores no passwords
+- **Status:** approved
+- **Date:** 2026-11-17
+- **Rule:** Users sign in with their Google account (OAuth 2.0 through authlib). The backend stores no passwords and no password hashes. Access rules come from the verified Google claims and the invitation table (C-002).
+- **Why:** The user decided this. A password store adds hashing, reset and lockout code, and a larger attack surface to secure. Google handles the credential and the second factor.
+- **Rejected:** local accounts with bcrypt or argon2 hashes
+- **Evidence:** backend/app/auth.py, backend/app/routers/auth.py, docs/agents/CONTRACTS.md (C-002)
 - **Source:** user · confidence high
 - **Confirmed:** 2026-11-17
