@@ -78,6 +78,12 @@ without new evidence. A rejected proposal is added there with the reason.
 - A settled constraint becomes a decision PROPOSAL in the same session.
 <!-- graffino-agentic:end -->
 
+### Every feature (all agents, every time)
+After each feature, before you report it done:
+1. Add or update the tests the feature needs, then run every suite: `docker compose run --rm backend pytest` (this includes the i18n key check in `backend/tests/test_i18n.py`). Report the results, including failures.
+2. Every new visible text gets an entry in **both** `frontend/i18n/ro.js` and `frontend/i18n/en.js`, used through a `data-i18n`, `data-i18n-attr` or `UniSpaceI18n.t()` key. No text is left hard-coded in one language. Records that come from the backend are not added (D-012).
+3. A feature is not done until steps 1 and 2 pass.
+
 ## 1. What this repo is
 UniSpace: a web platform. A FastAPI backend, a plain HTML/CSS/JS frontend, and a
 PostgreSQL database, all run with Docker Compose. Who uses it and what it does is not

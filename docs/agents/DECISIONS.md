@@ -17,6 +17,8 @@
 - D-008 · day_of_week is an integer 1 to 7, Monday = 1
 - D-009 · Login is a signed HttpOnly session cookie, 8 hours · _proposed_
 - D-010 · Pages are gated by nginx, not by JavaScript · _proposed_
+- D-011 · The interface is in Romanian and English, from one dictionary per language
+- D-012 · Records from the backend are shown as they arrive, not translated in the frontend
 
 ---
 
@@ -117,3 +119,23 @@
 - **Rejected:** a JavaScript-only gate (the old localStorage dummy)
 - **Evidence:** infra/nginx/default.conf, frontend/js/auth.js
 - **Source:** user · confidence high
+
+## D-011 · The interface is in Romanian and English, from one dictionary per language
+- **Status:** approved
+- **Date:** 2026-11-17
+- **Rule:** Every text the frontend shows is in `frontend/i18n/ro.js` and `frontend/i18n/en.js` under the same key, used through `data-i18n`, `data-i18n-attr` or `UniSpaceI18n.t()`. The first visit uses the browser language if it lists Romanian or English (the first of them listed), otherwise Romanian. A choice made with the RO | EN toggle is kept in `localStorage` (`unispace-lang`) and wins over the browser. Switching does not reload the page.
+- **Why:** The users are Romanian and the brief is in Romanian, and English is needed too. Keys in one place keep both languages complete.
+- **Rejected:** a translation library (a dependency with no need yet); JSON fetched at run time; a reload on switch
+- **Evidence:** frontend/i18n/i18n.js, frontend/i18n/ro.js, frontend/i18n/en.js, frontend/js/layout.js, backend/tests/test_i18n.py
+- **Source:** user · confidence high
+- **Confirmed:** 2026-11-17
+
+## D-012 · Records from the backend are shown as they arrive, not translated in the frontend
+- **Status:** approved
+- **Date:** 2026-11-17
+- **Rule:** Courses, rooms, teachers, times of real classes and other records that come from the backend are displayed as received. They are not put in the dictionaries. Labels the frontend defines (headings, buttons, fields, notices, status words such as Free or Cancelled, weekday names, role names) are translated. Sample rows in the placeholder pages are data and stay as they are.
+- **Why:** The user decided this: the data changes with the backend, so a copy in the frontend would go stale.
+- **Rejected:** translating course and room names in the frontend
+- **Evidence:** frontend/timetable.html, frontend/js/timetable.js, frontend/rooms/index.html
+- **Source:** user · confidence high
+- **Confirmed:** 2026-11-17

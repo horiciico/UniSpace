@@ -6,26 +6,25 @@
 (function () {
   "use strict";
 
-  var MESSAGES = {
-    denied: {
-      title: "You could not be signed in.",
-      text: "Access denied. Please use your institutional @ulbsibiu.ro account or request an invitation."
-    },
-    failed: {
-      title: "Google sign-in did not finish.",
-      text: "Nothing was saved. Try again."
-    }
-  };
-
+  var t = window.UniSpaceI18n.t;
   var box = document.getElementById("login-error");
   var reason = new URLSearchParams(window.location.search).get("error");
-  var message = Object.prototype.hasOwnProperty.call(MESSAGES, reason) ? MESSAGES[reason] : null;
+  var KNOWN = ["denied", "failed"];
 
-  if (box && message) {
-    document.getElementById("login-error-title").textContent = message.title;
-    document.getElementById("login-error-text").textContent = message.text;
+  // Only the two known reasons are shown; anything else in the URL is ignored.
+  function showError() {
+    if (!box) return;
+    if (KNOWN.indexOf(reason) === -1) {
+      box.hidden = true;
+      return;
+    }
+    document.getElementById("login-error-title").textContent = t("login." + reason + "Title");
+    document.getElementById("login-error-text").textContent = t("login." + reason + "Text");
     box.hidden = false;
   }
+
+  showError();
+  document.addEventListener("unispace:langchange", showError);
 
   window.UniSpaceAuth.ready.then(function (user) {
     if (user) window.location.replace("/");

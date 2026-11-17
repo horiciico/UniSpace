@@ -32,6 +32,8 @@ services:
     volumes:
       # Dev only: live code reload. Remove for a production-like run.
       - ./backend:/app
+      # Read-only, for the i18n key check (backend/tests/test_i18n.py).
+      - ./frontend:/frontend:ro
     # Migrations first: a fresh database (down -v) gets its tables from Alembic (D-002).
     command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir /app"
     depends_on:

@@ -11,13 +11,6 @@
 (function () {
   "use strict";
 
-  var ROLE_LABELS = {
-    STUDENT: "Student",
-    PROFESSOR: "Teacher",
-    STUDENT_ORG: "Student organization",
-    ADMIN: "Admin"
-  };
-
   var current = null;
 
   function onLoginPage() {
@@ -52,7 +45,7 @@
       return current;
     },
     roleLabel: function (role) {
-      return ROLE_LABELS[role] || role;
+      return window.UniSpaceI18n.t("role." + role);
     },
     isAdmin: function () {
       return !!current && current.role === "ADMIN";

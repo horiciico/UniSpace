@@ -113,3 +113,11 @@ designs:
     screenshots: []
     design_ref: none
     status: implemented
+
+  - id: DS-unispace-lang-toggle
+    kind: component
+    source: frontend/js/layout.js (buildLanguageToggle), frontend/css/base.css (.lang-toggle)
+    screenshots:
+    screenshots: []
+    design_ref: none
+    status: implemented  # built without a mock at the user's request (2026-11-17); appearance to be adjusted

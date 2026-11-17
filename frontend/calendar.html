@@ -1,56 +1,59 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ro">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Calendar · UniSpace</title>
+    <title data-i18n="calendar.title">Calendar · UniSpace</title>
     <link rel="stylesheet" href="/css/tokens.css" />
     <link rel="stylesheet" href="/css/base.css" />
     <meta name="theme-color" content="#263EC9" />
+    <script src="/i18n/i18n.js"></script>
+    <script src="/i18n/ro.js"></script>
+    <script src="/i18n/en.js"></script>
     <script src="/js/auth.js"></script>
     <script src="/js/layout.js" defer></script>
   </head>
   <body>
     <main id="main" class="container">
-      <p class="eyebrow">Calendar</p>
-      <h1>Keep your timetable in your calendar</h1>
-      <p class="muted">Subscribe once. Google Calendar and Apple Calendar update on their own when the timetable changes.</p>
+      <p class="eyebrow" data-i18n="calendar.eyebrow">Calendar</p>
+      <h1 data-i18n="calendar.heading">Keep your timetable in your calendar</h1>
+      <p class="muted" data-i18n="calendar.intro">Subscribe once. Google Calendar and Apple Calendar update on their own when the timetable changes.</p>
 
       <div class="card-grid card-grid--2" style="margin-top: var(--space-5)">
         <section class="card" aria-labelledby="sub-title">
-          <h2 id="sub-title">Your subscription link</h2>
+          <h2 id="sub-title" data-i18n="calendar.subTitle">Your subscription link</h2>
           <form class="form-grid" data-placeholder>
             <div class="field">
-              <label for="cal-group">Group</label>
+              <label for="cal-group" data-i18n="calendar.group">Group</label>
               <select id="cal-group"><option>CS-2A</option><option>CS-2B</option><option>IS-1A</option></select>
             </div>
           </form>
           <div class="field">
-            <label for="cal-url">Subscription URL</label>
+            <label for="cal-url" data-i18n="calendar.url">Subscription URL</label>
             <div class="copy-row">
               <input id="cal-url" type="text" readonly value="webcal://unispace.example/ical/group/CS-2A.ics" />
-              <button class="btn btn-small" type="button" data-copy="#cal-url">Copy</button>
+              <button class="btn btn-small" type="button" data-copy="#cal-url" data-i18n="calendar.copy">Copy</button>
             </div>
           </div>
-          <p class="muted" style="margin-top: var(--space-3)">Placeholder address. The real link is created per group.</p>
+          <p class="muted" style="margin-top: var(--space-3)" data-i18n="calendar.urlNote">Placeholder address. The real link is created per group.</p>
         </section>
 
         <section class="card" aria-labelledby="how-cal-title">
-          <h2 id="how-cal-title">How to add it</h2>
+          <h2 id="how-cal-title" data-i18n="calendar.howTitle">How to add it</h2>
           <ol class="steps">
-            <li><div><strong>Copy the link</strong><p class="muted">Use the button on the left.</p></div></li>
-            <li><div><strong>Google Calendar</strong><p class="muted">Other calendars → From URL → paste.</p></div></li>
-            <li><div><strong>Apple Calendar</strong><p class="muted">File → New calendar subscription → paste.</p></div></li>
+            <li><div><strong data-i18n="calendar.step1Title">Copy the link</strong><p class="muted" data-i18n="calendar.step1Text">Use the button on the left.</p></div></li>
+            <li><div><strong data-i18n="calendar.step2Title">Google Calendar</strong><p class="muted" data-i18n="calendar.step2Text">Other calendars → From URL → paste.</p></div></li>
+            <li><div><strong data-i18n="calendar.step3Title">Apple Calendar</strong><p class="muted" data-i18n="calendar.step3Text">File → New calendar subscription → paste.</p></div></li>
           </ol>
         </section>
       </div>
 
       <section class="section" aria-labelledby="one-title">
-        <h2 id="one-title">Single day file</h2>
+        <h2 id="one-title" data-i18n="calendar.oneTitle">Single day file</h2>
         <div class="card placeholder-card">
-          <p>Placeholder: download one week as an .ics file for a one-off import.</p>
+          <p data-i18n="calendar.oneText">Placeholder: download one week as an .ics file for a one-off import.</p>
           <div class="card__actions">
-            <button class="btn btn-ghost btn-small" type="button" data-placeholder-action="Placeholder: .ics download comes with the backend">Download this week (.ics)</button>
+            <button class="btn btn-ghost btn-small" type="button" data-placeholder-action="placeholder.icsDownload" data-i18n="calendar.download">Download this week (.ics)</button>
           </div>
         </div>
       </section>
