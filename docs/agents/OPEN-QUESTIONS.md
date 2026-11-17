@@ -13,7 +13,7 @@
 - Q-002 · Which branches and version scheme does the release use?
 - Q-003 · How are UI screenshots taken for review?
 - Q-004 · Is there a design board (Claude Design) or Figma for the UI?
-- Q-005 · Where and how is the platform deployed?
+- Q-005 · Where and how is the platform deployed? · _answered_
 - Q-007 · How do users sign in (university account, password, or both)? · _investigating_
 - Q-006 · Which lint and type-check tools should run?
 - Q-008 · How is the semester customized (holidays, breaks, inverted-parity weeks)?
@@ -44,7 +44,8 @@
 - **Who answers:** the user
 
 ## Q-005 · Where and how is the platform deployed?
-- **Status:** open
+- **Status:** answered
+- **Answer:** Oracle Cloud (the user, 2026-11-17; replaces the earlier Vercel answer). A VM there can run the Compose stack as it is. The deploy plan still needs a domain, HTTPS, the Google redirect URI for production, and backups.
 - **Blocks:** a production compose setup, secrets handling in production, and the deploy steps in AGENTS.md section 5.
 - **Who answers:** the user
 
