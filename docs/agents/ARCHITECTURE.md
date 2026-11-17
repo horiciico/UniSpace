@@ -24,14 +24,74 @@ browser ──> frontend (nginx :8080) ──> backend (FastAPI :8000) ──> d
 | Routers | `backend/app/routers/` | one module per endpoint group | `main.py` |
 | Database layer | `backend/app/db.py` | engine, session, base model | PostgreSQL |
 | Migrations | `backend/alembic/` | schema revisions | PostgreSQL |
-| Frontend pages | `frontend/*.html`, `frontend/rooms/`, `frontend/bookings/`, `frontend/admin/` | placeholder pages, one per route | nginx (routes), `css/`, `js/` |
-| Frontend styles | `frontend/css/tokens.css`, `frontend/css/base.css` | design tokens, components | the pages |
-| Frontend scripts | `frontend/js/layout.js`, `frontend/js/timetable.js` | shared header and footer, theme, placeholder actions, sample timetable | the pages |
+| Frontend pages | `frontend/pages/<role>/` | one HTML file per screen, grouped by role | nginx (clean URLs), `components/`, `styles/` |
+| Frontend components | `frontend/components/` | page template and the shared chrome (header, footer, toggles, toast) | the pages |
+| Frontend styles | `frontend/styles/` | design tokens, base, one CSS file per component | the pages and components |
+| Frontend scripts | `frontend/js/`, `frontend/i18n/` | session service, single-page scripts, i18n runtime and dictionaries | the pages and components |
 | Web routing | `infra/nginx/default.conf` | clean URLs, 404 page, proxy of `/health` and `/api/` to the backend | nginx, backend |
 | Stack | `docker-compose.yml` | runs db, backend, frontend | Docker |
 
+## Frontend structure
+Static HTML, CSS and JS, served by nginx from `frontend/`. Nothing is compiled: pages
+pull the shared head in with an nginx server-side include (SSI). This section is the map.
+
+```text
+frontend/
+  pages/
+    shared/        home (index.html), login.html, 404.html: every role sees them
+    student/       timetable, calendar, changes, rooms/ (index, detail, free), bookings/
+    professor/     announcements.html
+    admin/         index.html: the approval queue (ADMIN only)
+  components/      reusable parts, loaded by every page
+    head.html      the page template's <head>: styles and scripts, in order (SSI)
+    app.js         entry point: waits for the session, builds header and footer
+    ui.js          shared helpers (escape HTML, normalise a path)
+    header.js      site header, navigation, user chip, log out, greeting
+    language-toggle.js   the RO | EN switch
+    theme-toggle.js      the auto / light / dark button
+    footer.js      site footer
+    toast.js       toast messages and the placeholder actions of the pages
+  styles/
+    tokens.css     design tokens: the only source of colours, sizes and spaces
+    base.css       reset, typography, page layout, skip link
+    components/    one CSS file per component (buttons, cards, pills, forms, ...)
+    utilities.css  spacing and alignment helpers (my-5, mt-3, justify-center, ...)
+    motion.css     reduced-motion overrides, loaded last
+  js/
+    auth.js        session service: reads /auth/me for the header; not a security check
+    pages/         scripts of single pages (login.js, timetable.js)
+  i18n/            i18n.js runtime; ro.js and en.js dictionaries (D-011)
+```
+
+**Access.** Everything under `pages/` is gated by nginx (`auth_request`, C-002, D-010).
+Public: `pages/shared/login.html`, `styles/`, `components/`, `js/`, `i18n/`. The URL →
+file mapping is in `infra/nginx/default.conf`: each clean URL has its own gated location.
+
+**Load order.** `components/head.html` loads the styles in cascade order (tokens, base,
+components, utilities, motion) and the scripts in dependency order (i18n, session, UI
+helpers, components, `app.js` last). A page adds only its own `<title>` and its page
+script, after the include.
+
+**Adding a page.**
+1. Create `pages/<role>/<name>.html`: `<!--#include virtual="/components/head.html" -->` in
+   the `<head>`, a `data-i18n` title, the body, and any page script under `js/pages/`.
+2. Add a gated clean-URL location to `infra/nginx/default.conf` (copy an existing one).
+3. Add its keys to `i18n/ro.js` and `i18n/en.js` (the key test in `backend/tests/test_i18n.py` fails otherwise).
+4. Add a `DS-` entry in `docs/design/registry.yaml`.
+
+**Adding a component.**
+1. The behaviour goes in `components/<name>.js`, registered on `window.UniSpaceUI`. If the
+   header or footer uses it, call it from `header.js`, `footer.js` or `app.js`.
+2. Its styles go in `styles/components/<name>.css`, using tokens only.
+3. Add the `<script>` and `<link>` to `components/head.html`, in order.
+4. Add a `DS-` entry in `docs/design/registry.yaml`.
+
+**Styling rules.** No `style=""` attributes in pages (a test enforces it). Use a component
+class, or a utility when the change is only spacing or alignment. The timetable sets grid
+positions from JavaScript, the one allowed exception.
+
 ## Data flow
-1. Browser requests a page → nginx serves `frontend/` files. Clean URLs map to files: `/timetable` → `timetable.html`, `/rooms/` → `rooms/index.html`. Unknown paths → `404.html`.
+1. Browser requests a page → nginx checks the session, then serves the page file. Clean URLs map to files explicitly in `infra/nginx/default.conf`: `/timetable` → `pages/student/timetable.html`, `/rooms/` → `pages/student/rooms/index.html`. Unknown paths → `pages/shared/404.html`.
 2. Browser calls the API → FastAPI route → `get_db` session → PostgreSQL → JSON response.
 3. Schema change → new Alembic revision → `alembic upgrade head` applies it to PostgreSQL.
 
@@ -58,7 +118,7 @@ Local only so far. Deploy is not defined (Q-005). See AGENTS.md sections 2 and 5
 - Sign-in is Google OAuth with a session cookie (C-002, D-009). Q-007 awaits confirmation.
 - Pages are gated by nginx: `auth_request` asks the backend (`/auth/me`, `/auth/admin` for
   `/admin/`) before any page is served, so a typed URL does not get around it (D-010).
-  Public: `/login`, `/css/`, `/js/`, `/health`, `/auth/`. The API routes under `/api/` and
-  the other backend routes are not gated by nginx.
+  Public: `/login` (its page `pages/shared/login.html`), `/styles/`, `/components/`, `/js/`,
+  `/i18n/`, `/health`, `/auth/`. The API routes under `/api/` are not gated by nginx.
 - `frontend/js/auth.js` only reads the signed-in user for the header; it is not a security check.
 - Contracts: docs/agents/CONTRACTS.md.

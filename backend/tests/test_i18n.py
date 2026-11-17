@@ -1,5 +1,6 @@
 """i18n checks for the frontend: both languages have every key, and every key the pages and
-scripts use exists. Reads the frontend folder, mounted read-only at /frontend in compose
+scripts use exists. Also checks the page template (components/head.html) and that no page
+has inline styles. Reads the frontend folder, mounted read-only at /frontend in compose
 (FRONTEND_DIR overrides the location)."""
 import json
 import os
@@ -29,11 +30,13 @@ def load_dictionary(language: str) -> dict:
 
 
 def html_pages() -> list[Path]:
-    return sorted(FRONTEND.rglob("*.html"))
+    # The pages live under pages/; components/head.html is an include, not a page.
+    return sorted((FRONTEND / "pages").rglob("*.html"))
 
 
 def script_files() -> list[Path]:
-    return sorted((FRONTEND / "js").glob("*.js"))
+    # Component scripts and page scripts both use keys.
+    return sorted(FRONTEND.glob("components/*.js")) + sorted((FRONTEND / "js").rglob("*.js"))
 
 
 def keys_used_in_html() -> set[str]:
@@ -96,11 +99,21 @@ def test_no_dictionary_key_is_unused(dictionaries: dict) -> None:
     assert unused == [], f"keys in the dictionaries that no page or script uses: {unused}"
 
 
-def test_every_page_loads_the_runtime_and_both_dictionaries() -> None:
+def test_every_page_includes_the_shared_head() -> None:
+    head = (FRONTEND / "components" / "head.html").read_text(encoding="utf-8")
+    for script in ("/i18n/i18n.js", "/i18n/ro.js", "/i18n/en.js"):
+        assert script in head, f"components/head.html does not load {script}"
+    assert head.index("/i18n/i18n.js") < head.index("/components/app.js"), "i18n must load before the components"
     for page in html_pages():
         text = page.read_text(encoding="utf-8")
-        for script in ("/i18n/i18n.js", "/i18n/ro.js", "/i18n/en.js"):
-            assert script in text, f"{page.relative_to(FRONTEND)} does not load {script}"
-        assert text.index("/i18n/i18n.js") < text.index("/js/layout.js") or "/js/layout.js" not in text, (
-            f"{page.relative_to(FRONTEND)}: i18n.js must load before layout.js"
+        assert '<!--#include virtual="/components/head.html" -->' in text, (
+            f"{page.relative_to(FRONTEND)} does not include components/head.html"
+        )
+
+
+def test_no_inline_styles_in_pages() -> None:
+    # Pages use classes (styles/); the timetable sets grid positions from JavaScript, which is allowed.
+    for page in html_pages():
+        assert 'style="' not in page.read_text(encoding="utf-8"), (
+            f"{page.relative_to(FRONTEND)} has an inline style attribute; move it to styles/"
         )

@@ -1,0 +1,17 @@
+/* Inline notices (info and error). */
+.notice {
+  margin-top: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-info-bg);
+  color: var(--color-info-text);
+}
+
+.notice--error {
+  background: var(--color-danger-bg);
+  color: var(--color-danger-text);
+}
+
+.notice--error strong {
+  display: block;
+}

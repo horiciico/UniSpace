@@ -48,7 +48,7 @@
 - **Rule:** The frontend is static HTML, CSS and JS in `frontend/`, served by nginx.
 - **Why:** The user chose the usual HTML, CSS and JS for the frontend.
 - **Rejected:** none stated
-- **Evidence:** frontend/index.html, docker-compose.yml (service `frontend`)
+- **Evidence:** frontend/pages/shared/index.html, docker-compose.yml (service `frontend`)
 - **Source:** user · confidence medium
 - **Owner note:** The user named no framework or bundler, so this entry assumes none. Confirm, or name the tool to add.
 
@@ -114,7 +114,7 @@
 ## D-010 · Pages are gated by nginx, not by JavaScript
 - **Status:** proposed
 - **Date:** 2026-11-16
-- **Rule:** nginx serves a frontend page only after `auth_request` to the backend (`/auth/me`; `/auth/admin` for `/admin/`) succeeds. Signed out goes to `/login`; a non-admin on `/admin/` goes to `/`. Public: `/login`, `/css/`, `/js/`, `/health`, `/auth/`. Client scripts never decide access.
+- **Rule:** nginx serves a frontend page only after `auth_request` to the backend (`/auth/me`; `/auth/admin` for `/admin/`) succeeds. Signed out goes to `/login`; a non-admin on `/admin/` goes to `/`. Public: `/login`, `/styles/`, `/components/`, `/js/`, `/i18n/`, `/health`, `/auth/`. Client scripts never decide access.
 - **Why:** The static files are public on the server, so a script gate is only cosmetic. The user wants the app reachable only when signed in, also by typing a URL.
 - **Rejected:** a JavaScript-only gate (the old localStorage dummy)
 - **Evidence:** infra/nginx/default.conf, frontend/js/auth.js
@@ -126,7 +126,7 @@
 - **Rule:** Every text the frontend shows is in `frontend/i18n/ro.js` and `frontend/i18n/en.js` under the same key, used through `data-i18n`, `data-i18n-attr` or `UniSpaceI18n.t()`. The first visit uses the browser language if it lists Romanian or English (the first of them listed), otherwise Romanian. A choice made with the RO | EN toggle is kept in `localStorage` (`unispace-lang`) and wins over the browser. Switching does not reload the page.
 - **Why:** The users are Romanian and the brief is in Romanian, and English is needed too. Keys in one place keep both languages complete.
 - **Rejected:** a translation library (a dependency with no need yet); JSON fetched at run time; a reload on switch
-- **Evidence:** frontend/i18n/i18n.js, frontend/i18n/ro.js, frontend/i18n/en.js, frontend/js/layout.js, backend/tests/test_i18n.py
+- **Evidence:** frontend/i18n/i18n.js, frontend/i18n/ro.js, frontend/i18n/en.js, frontend/components/app.js, frontend/components/header.js, backend/tests/test_i18n.py
 - **Source:** user · confidence high
 - **Confirmed:** 2026-11-17
 
@@ -136,6 +136,6 @@
 - **Rule:** Courses, rooms, teachers, times of real classes and other records that come from the backend are displayed as received. They are not put in the dictionaries. Labels the frontend defines (headings, buttons, fields, notices, status words such as Free or Cancelled, weekday names, role names) are translated. Sample rows in the placeholder pages are data and stay as they are.
 - **Why:** The user decided this: the data changes with the backend, so a copy in the frontend would go stale.
 - **Rejected:** translating course and room names in the frontend
-- **Evidence:** frontend/timetable.html, frontend/js/timetable.js, frontend/rooms/index.html
+- **Evidence:** frontend/pages/student/timetable.html, frontend/js/pages/timetable.js, frontend/pages/student/rooms/index.html
 - **Source:** user · confidence high
 - **Confirmed:** 2026-11-17

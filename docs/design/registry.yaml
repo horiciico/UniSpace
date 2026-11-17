@@ -9,91 +9,91 @@
 designs:
   - id: DS-unispace-tokens
     kind: foundation
-    source: frontend/css/tokens.css
+    source: frontend/styles/tokens.css
     screenshots: []
     design_ref: none
     status: implemented
 
   - id: DS-unispace-base
     kind: foundation
-    source: frontend/css/base.css
+    source: frontend/styles/base.css
     screenshots: []
     design_ref: none
     status: implemented
 
   - id: DS-unispace-site-header
     kind: component
-    source: frontend/js/layout.js
+    source: frontend/components/header.js
     screenshots: []
     design_ref: none
     status: implemented
 
   - id: DS-unispace-landing
     kind: screen
-    source: frontend/index.html
+    source: frontend/pages/shared/index.html
     screenshots: []
     design_ref: none
     status: implemented
 
   - id: DS-unispace-timetable
     kind: screen
-    source: frontend/timetable.html
+    source: frontend/pages/student/timetable.html
     screenshots: []
     design_ref: none
     status: implemented
 
   - id: DS-unispace-rooms
     kind: screen
-    source: frontend/rooms/index.html
+    source: frontend/pages/student/rooms/index.html
     screenshots: []
     design_ref: none
     status: implemented
 
   - id: DS-unispace-room-detail
     kind: screen
-    source: frontend/rooms/detail.html
+    source: frontend/pages/student/rooms/detail.html
     screenshots: []
     design_ref: none
     status: implemented
 
   - id: DS-unispace-free-rooms
     kind: screen
-    source: frontend/rooms/free.html
+    source: frontend/pages/student/rooms/free.html
     screenshots: []
     design_ref: none
     status: implemented
 
   - id: DS-unispace-bookings
     kind: screen
-    source: frontend/bookings/index.html
+    source: frontend/pages/student/bookings/index.html
     screenshots: []
     design_ref: none
     status: implemented
 
   - id: DS-unispace-announcements
     kind: screen
-    source: frontend/announcements.html
+    source: frontend/pages/professor/announcements.html
     screenshots: []
     design_ref: none
     status: implemented
 
   - id: DS-unispace-changes
     kind: screen
-    source: frontend/changes.html
+    source: frontend/pages/student/changes.html
     screenshots: []
     design_ref: none
     status: implemented
 
   - id: DS-unispace-calendar
     kind: screen
-    source: frontend/calendar.html
+    source: frontend/pages/student/calendar.html
     screenshots: []
     design_ref: none
     status: implemented
 
   - id: DS-unispace-login
     kind: screen
-    source: frontend/login.html
+    source: frontend/pages/shared/login.html
     screenshots:
       - docs/design/screens/DS-unispace-login.light.png
       - docs/design/screens/DS-unispace-login.dark.png
@@ -102,22 +102,50 @@ designs:
 
   - id: DS-unispace-admin
     kind: screen
-    source: frontend/admin/index.html
+    source: frontend/pages/admin/index.html
     screenshots: []
     design_ref: none
     status: implemented
 
   - id: DS-unispace-not-found
     kind: screen
-    source: frontend/404.html
+    source: frontend/pages/shared/404.html
     screenshots: []
     design_ref: none
     status: implemented
 
   - id: DS-unispace-lang-toggle
     kind: component
-    source: frontend/js/layout.js (buildLanguageToggle), frontend/css/base.css (.lang-toggle)
+    source: frontend/components/language-toggle.js, frontend/styles/components/lang-toggle.css
     screenshots:
     screenshots: []
     design_ref: none
     status: implemented  # built without a mock at the user's request (2026-11-17); appearance to be adjusted
+
+  - id: DS-unispace-page-template
+    kind: component
+    source: frontend/components/head.html (included by every page with a server-side include)
+    screenshots: []
+    design_ref: none
+    status: implemented
+
+  - id: DS-unispace-footer
+    kind: component
+    source: frontend/components/footer.js
+    screenshots: []
+    design_ref: none
+    status: implemented
+
+  - id: DS-unispace-toast
+    kind: component
+    source: frontend/components/toast.js, frontend/styles/components/toast.css
+    screenshots: []
+    design_ref: none
+    status: implemented
+
+  - id: DS-unispace-theme-toggle
+    kind: component
+    source: frontend/components/theme-toggle.js
+    screenshots: []
+    design_ref: none
+    status: implemented

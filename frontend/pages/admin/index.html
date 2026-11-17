@@ -1,17 +1,8 @@
 <!DOCTYPE html>
 <html lang="ro">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--#include virtual="/components/head.html" -->
     <title data-i18n="admin.title">Admin · UniSpace</title>
-    <link rel="stylesheet" href="/css/tokens.css" />
-    <link rel="stylesheet" href="/css/base.css" />
-    <meta name="theme-color" content="#263EC9" />
-    <script src="/i18n/i18n.js"></script>
-    <script src="/i18n/ro.js"></script>
-    <script src="/i18n/en.js"></script>
-    <script src="/js/auth.js"></script>
-    <script src="/js/layout.js" defer></script>
   </head>
   <body>
     <main id="main" class="container">
@@ -19,7 +10,7 @@
       <h1 data-i18n="admin.heading">Approval queue</h1>
       <p class="muted" data-i18n="admin.intro">Review requests, handle bumps and keep the semester setup right.</p>
 
-      <div class="stat-grid" style="margin: var(--space-5) 0" data-i18n-attr="aria-label:admin.statsAria" aria-label="Queue sample numbers">
+      <div class="stat-grid my-5" data-i18n-attr="aria-label:admin.statsAria" aria-label="Queue sample numbers">
         <div class="stat"><div class="stat__value">4</div><div class="stat__label" data-i18n="admin.statWaiting">waiting for approval</div></div>
         <div class="stat"><div class="stat__value">2</div><div class="stat__label" data-i18n="admin.statBumps">bumps, reply pending</div></div>
         <div class="stat"><div class="stat__value">1</div><div class="stat__label" data-i18n="admin.statConflict">conflict to resolve</div></div>

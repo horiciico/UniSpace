@@ -1,0 +1,15 @@
+/* 404 error page. */
+/* ---------- Error page ---------- */
+
+.error-page {
+  text-align: center;
+  padding: var(--space-8) 0;
+}
+
+.error-page__code {
+  font-size: 5rem;
+  font-weight: 800;
+  color: var(--color-link);
+  line-height: 1;
+  margin-bottom: var(--space-3);
+}

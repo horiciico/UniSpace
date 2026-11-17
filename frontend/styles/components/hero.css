@@ -1,0 +1,64 @@
+/* Page hero, eyebrow text and the statistics grid. */
+/* ---------- Hero and stats ---------- */
+
+.hero {
+  display: grid;
+  gap: var(--space-5);
+  padding: var(--space-7) 0 var(--space-5);
+}
+
+.hero h1 {
+  font-size: var(--text-3xl);
+  letter-spacing: -0.02em;
+  max-width: 18ch;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-link);
+  margin-bottom: var(--space-2);
+}
+
+.hero__lead {
+  font-size: var(--text-lg);
+  color: var(--color-muted);
+  max-width: 60ch;
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3);
+}
+
+.stat {
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.stat__value {
+  font-size: var(--text-2xl);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat__label {
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+}
+
+@media (min-width: 640px) {
+  .hero {
+    grid-template-columns: 1.4fr 1fr;
+    align-items: center;
+  }
+
+  .stat-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}

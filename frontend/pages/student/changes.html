@@ -1,17 +1,8 @@
 <!DOCTYPE html>
 <html lang="ro">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--#include virtual="/components/head.html" -->
     <title data-i18n="changes.title">Changes · UniSpace</title>
-    <link rel="stylesheet" href="/css/tokens.css" />
-    <link rel="stylesheet" href="/css/base.css" />
-    <meta name="theme-color" content="#263EC9" />
-    <script src="/i18n/i18n.js"></script>
-    <script src="/i18n/ro.js"></script>
-    <script src="/i18n/en.js"></script>
-    <script src="/js/auth.js"></script>
-    <script src="/js/layout.js" defer></script>
   </head>
   <body>
     <main id="main" class="container">
@@ -19,9 +10,9 @@
       <h1 data-i18n="changes.heading">One-off changes</h1>
       <p class="muted" data-i18n="changes.intro">Every class moved or cancelled for a single week, kept with its history. Placeholder rows.</p>
 
-      <div class="table-wrap section" style="margin-top: var(--space-5)">
+      <div class="table-wrap section mt-5">
         <table>
-          <caption class="muted" style="caption-side: top; text-align: left; padding: var(--space-3) var(--space-4)" data-i18n="changes.caption" data-i18n-vars="name:CS-2A">Changes for group CS-2A</caption>
+          <caption class="muted table-caption" data-i18n="changes.caption" data-i18n-vars="name:CS-2A">Changes for group CS-2A</caption>
           <thead>
             <tr>
               <th scope="col" data-i18n="changes.colWeek">Week</th>
@@ -61,7 +52,7 @@
         </table>
       </div>
 
-      <p class="muted" style="margin-top: var(--space-4)" data-i18n="changes.footnote">
+      <p class="muted mt-4" data-i18n="changes.footnote">
         Placeholder: each row keeps its history. Students who subscribed to the group get an email for each change.
       </p>
     </main>
