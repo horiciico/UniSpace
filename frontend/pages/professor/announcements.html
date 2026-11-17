@@ -1,17 +1,8 @@
 <!DOCTYPE html>
 <html lang="ro">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--#include virtual="/components/head.html" -->
     <title data-i18n="announce.title">Announcements · UniSpace</title>
-    <link rel="stylesheet" href="/css/tokens.css" />
-    <link rel="stylesheet" href="/css/base.css" />
-    <meta name="theme-color" content="#263EC9" />
-    <script src="/i18n/i18n.js"></script>
-    <script src="/i18n/ro.js"></script>
-    <script src="/i18n/en.js"></script>
-    <script src="/js/auth.js"></script>
-    <script src="/js/layout.js" defer></script>
   </head>
   <body>
     <main id="main" class="container">
@@ -19,7 +10,7 @@
       <h1 data-i18n="announce.heading">What changed</h1>
       <p class="muted" data-i18n="announce.intro">Cancellations, room changes and notes from teachers, per discipline or group.</p>
 
-      <div class="chips" style="margin: var(--space-5) 0" data-i18n-attr="aria-label:announce.filterAria" aria-label="Filter announcements">
+      <div class="chips my-5" data-i18n-attr="aria-label:announce.filterAria" aria-label="Filter announcements">
         <button class="chip" type="button" aria-pressed="true" data-i18n="announce.filterAll">All</button>
         <button class="chip" type="button" aria-pressed="false" data-i18n="announce.filterMine">My groups</button>
         <button class="chip" type="button" aria-pressed="false" data-i18n="status.cancelled">Cancelled</button>
@@ -67,7 +58,7 @@
       <section class="section" aria-labelledby="new-ann-title">
         <h2 id="new-ann-title" data-i18n="announce.postTitle">Post an announcement</h2>
         <p class="muted" data-i18n="announce.postIntro">For teachers. Placeholder form: posting comes with the backend and sends an email to the group.</p>
-        <form class="card form-card" data-placeholder style="margin-top: var(--space-3)">
+        <form class="card form-card mt-3" data-placeholder>
           <div class="form-grid form-grid--2">
             <div class="field">
               <label for="a-discipline" data-i18n="announce.discipline">Discipline</label>

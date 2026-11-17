@@ -1,17 +1,8 @@
 <!DOCTYPE html>
 <html lang="ro">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--#include virtual="/components/head.html" -->
     <title data-i18n="bookings.title">Bookings · UniSpace</title>
-    <link rel="stylesheet" href="/css/tokens.css" />
-    <link rel="stylesheet" href="/css/base.css" />
-    <meta name="theme-color" content="#263EC9" />
-    <script src="/i18n/i18n.js"></script>
-    <script src="/i18n/ro.js"></script>
-    <script src="/i18n/en.js"></script>
-    <script src="/js/auth.js"></script>
-    <script src="/js/layout.js" defer></script>
   </head>
   <body>
     <main id="main" class="container">
@@ -19,7 +10,7 @@
       <h1 data-i18n="bookings.heading">Room requests</h1>
       <p class="muted" data-i18n="bookings.intro">Student organizations request rooms here. An admin approves each one.</p>
 
-      <div class="card-grid card-grid--2" style="margin-top: var(--space-5)">
+      <div class="card-grid card-grid--2 mt-5">
         <section class="card" aria-labelledby="mine-title">
           <h2 id="mine-title" data-i18n="bookings.mineTitle">Your requests</h2>
           <ul class="list">
@@ -36,7 +27,7 @@
               <span class="pill pill--bumped" data-i18n="bookings.bumpedReply">Bumped · reply by Wed</span>
             </li>
           </ul>
-          <p class="muted" style="margin-top: var(--space-3)" data-i18n="bookings.placeholderRows">Placeholder rows. Real data comes with the backend.</p>
+          <p class="muted mt-3" data-i18n="bookings.placeholderRows">Placeholder rows. Real data comes with the backend.</p>
         </section>
 
         <section class="card" aria-labelledby="new-title">
@@ -73,12 +64,12 @@
                 <option>L1 · 24 workstations</option>
               </select>
             </div>
-            <fieldset class="field" style="border: 0; padding: 0; margin: 0">
+            <fieldset class="field fieldset-reset">
               <legend class="field__label" data-i18n="bookings.equipment">Equipment needed</legend>
               <div class="chips">
-                <label class="chip"><input type="checkbox" style="accent-color: var(--color-primary)" /> <span data-i18n="bookings.projector">Projector</span></label>
-                <label class="chip"><input type="checkbox" style="accent-color: var(--color-primary)" /> <span data-i18n="bookings.sound">Sound</span></label>
-                <label class="chip"><input type="checkbox" style="accent-color: var(--color-primary)" /> <span data-i18n="bookings.outlets">Power outlets</span></label>
+                <label class="chip"><input type="checkbox" /> <span data-i18n="bookings.projector">Projector</span></label>
+                <label class="chip"><input type="checkbox" /> <span data-i18n="bookings.sound">Sound</span></label>
+                <label class="chip"><input type="checkbox" /> <span data-i18n="bookings.outlets">Power outlets</span></label>
               </div>
             </fieldset>
             <div class="field">
@@ -87,7 +78,7 @@
             </div>
             <div class="btn-group">
               <button class="btn btn-primary" type="submit" data-i18n="bookings.send">Send request</button>
-              <p class="muted" style="align-self: center; margin: 0" data-i18n="bookings.conflictsNote">Conflicts are checked when you send.</p>
+              <p class="muted self-center m-0" data-i18n="bookings.conflictsNote">Conflicts are checked when you send.</p>
             </div>
           </form>
         </section>

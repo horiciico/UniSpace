@@ -83,7 +83,7 @@ DS- IDs are for the tools (registry, mocks, board, Figma frames).
 ## Source
 - Design board: none yet (Q-004)
 - Figma: none
-- Token source in code: `frontend/css/tokens.css`. The values below match that file; change both together.
+- Token source in code: `frontend/styles/tokens.css`. The values below match that file; change both together.
 
 ## Tokens
 
@@ -161,6 +161,12 @@ literally in `base.css`. They are listed below as findings.
 Found at the first UI scaffold (2026-11-11). Not fixed yet; each is a finding, not a
 design decision. The media-query breakpoints above are expected and are not listed.
 
+> The line numbers below are from `css/base.css` before the split on 2026-11-17. The
+> rules now live in `styles/base.css` (lines 1–92), `styles/components/*.css` and
+> `styles/motion.css` (lines 834 on), in the same order. Find a rule by its selector.
+> The inline `style="…"` attributes are gone: they moved to classes in `styles/utilities.css`
+> and the component files (done 2026-11-17).
+
 | path:line | Value | Should be |
 |---|---|---|
 | frontend/css/base.css:54 | `text-underline-offset: 3px` | token `--space-1` (4px) or a new `--underline-offset` |
@@ -178,4 +184,4 @@ design decision. The media-query breakpoints above are expected and are not list
 | frontend/css/base.css:676–683 | timetable grid: `4.5rem`, `3.25rem` rows, `2px` gap, `620px` min width | timetable tokens (new) |
 | frontend/css/base.css:709, 728, 759–763 | `2px` margin, `0.8125rem` text, `12px` legend swatch, `3px` radius, `-1px` offset | tokens or removal |
 | frontend/css/base.css:784 | `5rem` error code | new `--text-display` |
-| 41 `style="…"` attributes in 11 pages (e.g. `frontend/timetable.html`, `frontend/rooms/index.html`, `frontend/bookings/index.html`) | inline colours, margins and widths | CSS classes using tokens (move every inline style into base.css) |
+| ~~41 `style="…"` attributes in 11 pages~~ | done 2026-11-17: classes in `styles/utilities.css` and the component files. The timetable still sets grid positions from JavaScript (the only remaining inline positions). | — |

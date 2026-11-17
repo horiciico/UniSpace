@@ -104,7 +104,7 @@ Not set up yet: lint and type-check (Q-006); screenshots (Q-003).
 
 ## 3. Layout
 - `backend/` — FastAPI app (`app/`), Alembic migrations (`alembic/`), tests (`tests/`), Dockerfile.
-- `frontend/` — static HTML, CSS and JS, served by nginx. Pages are plain files: `timetable.html`, `rooms/index.html`, and so on. Shared chrome in `js/layout.js`; tokens in `css/tokens.css`.
+- `frontend/` — static HTML, CSS and JS, served by nginx. `pages/<role>/` (shared, student, professor, admin), `components/` (page template and shared chrome), `styles/` (tokens, base, one CSS file per component, utilities), `js/` (session service, page scripts), `i18n/` (dictionaries). The full map and the steps to add a page or a component: `docs/agents/ARCHITECTURE.md` → Frontend structure.
 - `infra/nginx/` — nginx routing for the frontend (clean URLs, 404, backend proxy).
 - `docker-compose.yml`, `.env.example` — the local stack.
 - `docs/agents/` — the ledger, this setup's guide and tools. `docs/design/` — UI guardrails.

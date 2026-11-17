@@ -1,18 +1,9 @@
 <!DOCTYPE html>
 <html lang="ro">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--#include virtual="/components/head.html" -->
     <title data-i18n="timetable.title">Timetable · UniSpace</title>
-    <link rel="stylesheet" href="/css/tokens.css" />
-    <link rel="stylesheet" href="/css/base.css" />
-    <meta name="theme-color" content="#263EC9" />
-    <script src="/i18n/i18n.js"></script>
-    <script src="/i18n/ro.js"></script>
-    <script src="/i18n/en.js"></script>
-    <script src="/js/auth.js"></script>
-    <script src="/js/layout.js" defer></script>
-    <script src="/js/timetable.js" defer></script>
+    <script src="/js/pages/timetable.js" defer></script>
   </head>
   <body>
     <main id="main" class="container">
@@ -20,7 +11,7 @@
       <h1 data-i18n="timetable.heading">This week</h1>
       <p class="muted" data-i18n="timetable.intro">Week 14 · odd week (sample). The parity and the week number come from the semester setup.</p>
 
-      <div class="card__meta" style="margin: var(--space-5) 0">
+      <div class="card__meta my-5">
         <div class="tabs" role="tablist" data-i18n-attr="aria-label:timetable.viewBy" aria-label="View by">
           <button class="tab" role="tab" type="button" data-view="group" aria-selected="true" data-i18n="timetable.tabGroup">Group</button>
           <button class="tab" role="tab" type="button" data-view="teacher" aria-selected="false" data-i18n="timetable.tabTeacher">Teacher</button>
@@ -35,13 +26,13 @@
 
       <p><strong id="tt-view-label" data-i18n="timetable.viewGroup" data-i18n-vars="name:CS-2A">Group CS-2A (sample)</strong></p>
 
-      <div class="legend" style="margin-bottom: var(--space-3)">
-        <span><span class="legend__swatch" style="background: var(--color-primary)"></span><span data-i18n="kind.course">Course</span></span>
-        <span><span class="legend__swatch" style="background: var(--color-success-text)"></span><span data-i18n="kind.seminar">Seminar</span></span>
-        <span><span class="legend__swatch" style="background: var(--color-warning-text)"></span><span data-i18n="kind.lab">Lab</span></span>
+      <div class="legend mb-3">
+        <span><span class="legend__swatch legend__swatch--course"></span><span data-i18n="kind.course">Course</span></span>
+        <span><span class="legend__swatch legend__swatch--seminar"></span><span data-i18n="kind.seminar">Seminar</span></span>
+        <span><span class="legend__swatch legend__swatch--lab"></span><span data-i18n="kind.lab">Lab</span></span>
       </div>
 
-      <div class="table-wrap" style="overflow-x: auto; background: transparent; border: 0">
+      <div class="table-wrap tt-scroll">
         <div class="tt-grid" id="tt-grid" role="grid" data-i18n-attr="aria-label:timetable.gridAria" aria-label="Weekly timetable (sample)"></div>
       </div>
 

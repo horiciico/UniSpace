@@ -1,0 +1,82 @@
+/* Cards, card grids, room icon and placeholder cards. */
+/* ---------- Cards and grids ---------- */
+
+.card-grid {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: 1fr;
+}
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.card--link {
+  text-decoration: none;
+  color: inherit;
+  transition: transform var(--duration-base), border-color var(--duration-base);
+}
+
+.card--link:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-primary);
+}
+
+.card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card__actions {
+  margin-top: auto;
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.placeholder-card {
+  border-style: dashed;
+  box-shadow: none;
+  background: transparent;
+  color: var(--color-muted);
+  min-height: 140px;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.room-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background: var(--color-info-bg);
+  color: var(--color-info-text);
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+}
+
+@media (min-width: 640px) {
+  .card-grid--2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .card-grid--3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 960px) {
+  .card-grid--4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}

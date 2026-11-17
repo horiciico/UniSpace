@@ -1,17 +1,8 @@
 <!DOCTYPE html>
 <html lang="ro">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--#include virtual="/components/head.html" -->
     <title data-i18n="calendar.title">Calendar · UniSpace</title>
-    <link rel="stylesheet" href="/css/tokens.css" />
-    <link rel="stylesheet" href="/css/base.css" />
-    <meta name="theme-color" content="#263EC9" />
-    <script src="/i18n/i18n.js"></script>
-    <script src="/i18n/ro.js"></script>
-    <script src="/i18n/en.js"></script>
-    <script src="/js/auth.js"></script>
-    <script src="/js/layout.js" defer></script>
   </head>
   <body>
     <main id="main" class="container">
@@ -19,7 +10,7 @@
       <h1 data-i18n="calendar.heading">Keep your timetable in your calendar</h1>
       <p class="muted" data-i18n="calendar.intro">Subscribe once. Google Calendar and Apple Calendar update on their own when the timetable changes.</p>
 
-      <div class="card-grid card-grid--2" style="margin-top: var(--space-5)">
+      <div class="card-grid card-grid--2 mt-5">
         <section class="card" aria-labelledby="sub-title">
           <h2 id="sub-title" data-i18n="calendar.subTitle">Your subscription link</h2>
           <form class="form-grid" data-placeholder>
@@ -35,7 +26,7 @@
               <button class="btn btn-small" type="button" data-copy="#cal-url" data-i18n="calendar.copy">Copy</button>
             </div>
           </div>
-          <p class="muted" style="margin-top: var(--space-3)" data-i18n="calendar.urlNote">Placeholder address. The real link is created per group.</p>
+          <p class="muted mt-3" data-i18n="calendar.urlNote">Placeholder address. The real link is created per group.</p>
         </section>
 
         <section class="card" aria-labelledby="how-cal-title">
