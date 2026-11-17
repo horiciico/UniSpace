@@ -1,40 +1,43 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ro">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Admin · UniSpace</title>
+    <title data-i18n="admin.title">Admin · UniSpace</title>
     <link rel="stylesheet" href="/css/tokens.css" />
     <link rel="stylesheet" href="/css/base.css" />
     <meta name="theme-color" content="#263EC9" />
+    <script src="/i18n/i18n.js"></script>
+    <script src="/i18n/ro.js"></script>
+    <script src="/i18n/en.js"></script>
     <script src="/js/auth.js"></script>
     <script src="/js/layout.js" defer></script>
   </head>
   <body>
     <main id="main" class="container">
-      <p class="eyebrow">Admin</p>
-      <h1>Approval queue</h1>
-      <p class="muted">Review requests, handle bumps and keep the semester setup right.</p>
+      <p class="eyebrow" data-i18n="admin.eyebrow">Admin</p>
+      <h1 data-i18n="admin.heading">Approval queue</h1>
+      <p class="muted" data-i18n="admin.intro">Review requests, handle bumps and keep the semester setup right.</p>
 
-      <div class="stat-grid" style="margin: var(--space-5) 0" aria-label="Queue sample numbers">
-        <div class="stat"><div class="stat__value">4</div><div class="stat__label">waiting for approval</div></div>
-        <div class="stat"><div class="stat__value">2</div><div class="stat__label">bumps, reply pending</div></div>
-        <div class="stat"><div class="stat__value">1</div><div class="stat__label">conflict to resolve</div></div>
-        <div class="stat"><div class="stat__value">Wk 14</div><div class="stat__label">current week (odd)</div></div>
+      <div class="stat-grid" style="margin: var(--space-5) 0" data-i18n-attr="aria-label:admin.statsAria" aria-label="Queue sample numbers">
+        <div class="stat"><div class="stat__value">4</div><div class="stat__label" data-i18n="admin.statWaiting">waiting for approval</div></div>
+        <div class="stat"><div class="stat__value">2</div><div class="stat__label" data-i18n="admin.statBumps">bumps, reply pending</div></div>
+        <div class="stat"><div class="stat__value">1</div><div class="stat__label" data-i18n="admin.statConflict">conflict to resolve</div></div>
+        <div class="stat"><div class="stat__value">Wk 14</div><div class="stat__label" data-i18n="admin.statWeek">current week (odd)</div></div>
       </div>
 
       <section aria-labelledby="queue-title">
-        <h2 id="queue-title">Waiting for approval</h2>
+        <h2 id="queue-title" data-i18n="admin.queueTitle">Waiting for approval</h2>
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
-                <th scope="col">Organization</th>
-                <th scope="col">Activity</th>
-                <th scope="col">Room</th>
-                <th scope="col">When</th>
-                <th scope="col">Priority</th>
-                <th scope="col"><span class="muted">Decision</span></th>
+                <th scope="col" data-i18n="admin.colOrg">Organization</th>
+                <th scope="col" data-i18n="admin.colActivity">Activity</th>
+                <th scope="col" data-i18n="admin.colRoom">Room</th>
+                <th scope="col" data-i18n="admin.colWhen">When</th>
+                <th scope="col" data-i18n="admin.colPriority">Priority</th>
+                <th scope="col"><span class="muted" data-i18n="admin.colDecision">Decision</span></th>
               </tr>
             </thead>
             <tbody>
@@ -46,8 +49,8 @@
                 <td><span class="tag">Student organization</span></td>
                 <td>
                   <div class="btn-group">
-                    <button class="btn btn-primary btn-small" type="button" data-placeholder-action="Placeholder: approved (nothing saved yet)">Approve</button>
-                    <button class="btn btn-small" type="button" data-placeholder-action="Placeholder: rejected (nothing saved yet)">Reject</button>
+                    <button class="btn btn-primary btn-small" type="button" data-placeholder-action="placeholder.approved" data-i18n="admin.approve">Approve</button>
+                    <button class="btn btn-small" type="button" data-placeholder-action="placeholder.rejected" data-i18n="admin.reject">Reject</button>
                   </div>
                 </td>
               </tr>
@@ -59,8 +62,8 @@
                 <td><span class="tag">Student organization</span></td>
                 <td>
                   <div class="btn-group">
-                    <button class="btn btn-primary btn-small" type="button" data-placeholder-action="Placeholder: approved (nothing saved yet)">Approve</button>
-                    <button class="btn btn-small" type="button" data-placeholder-action="Placeholder: rejected (nothing saved yet)">Reject</button>
+                    <button class="btn btn-primary btn-small" type="button" data-placeholder-action="placeholder.approved" data-i18n="admin.approve">Approve</button>
+                    <button class="btn btn-small" type="button" data-placeholder-action="placeholder.rejected" data-i18n="admin.reject">Reject</button>
                   </div>
                 </td>
               </tr>
@@ -72,7 +75,7 @@
                 <td><span class="tag">Exam · bumps lower priorities</span></td>
                 <td>
                   <div class="btn-group">
-                    <button class="btn btn-primary btn-small" type="button" data-placeholder-action="Placeholder: bump proposal (nothing saved yet)">Approve and bump</button>
+                    <button class="btn btn-primary btn-small" type="button" data-placeholder-action="placeholder.bumpProposal" data-i18n="admin.approveAndBump">Approve and bump</button>
                   </div>
                 </td>
               </tr>
@@ -82,7 +85,7 @@
       </section>
 
       <section class="section" aria-labelledby="bump-title">
-        <h2 id="bump-title">Bumps waiting for a reply</h2>
+        <h2 id="bump-title" data-i18n="admin.bumpsTitle">Bumps waiting for a reply</h2>
         <ul class="list">
           <li>
             <span><strong>Board game evening</strong> · B110 → B204 proposed · 60 seats, projector</span>
@@ -97,20 +100,20 @@
 
       <section class="section" aria-labelledby="setup-title">
         <div class="card__meta">
-          <h2 id="setup-title">Semester setup</h2>
+          <h2 id="setup-title" data-i18n="admin.setupTitle">Semester setup</h2>
         </div>
         <div class="card-grid card-grid--3">
           <div class="card placeholder-card">
-            <h3>First week</h3>
-            <p>Placeholder: 2026-09-28 · parity is set from here.</p>
+            <h3 data-i18n="admin.setupFirstWeek">First week</h3>
+            <p data-i18n="admin.setupFirstWeekText">Placeholder: 2026-09-28 · parity is set from here.</p>
           </div>
           <div class="card placeholder-card">
-            <h3>Holidays and session</h3>
-            <p>Placeholder: list of breaks and exam weeks.</p>
+            <h3 data-i18n="admin.setupHolidays">Holidays and session</h3>
+            <p data-i18n="admin.setupHolidaysText">Placeholder: list of breaks and exam weeks.</p>
           </div>
           <div class="card placeholder-card">
-            <h3>Inverted weeks</h3>
-            <p>Placeholder: weeks where parity is swapped.</p>
+            <h3 data-i18n="admin.setupInverted">Inverted weeks</h3>
+            <p data-i18n="admin.setupInvertedText">Placeholder: weeks where parity is swapped.</p>
           </div>
         </div>
       </section>

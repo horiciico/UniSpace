@@ -13,6 +13,7 @@
 - PATTERN-005 · Database tests run the real migration and roll back · candidate
 - PATTERN-006 · Mock the identity provider at the authlib client, keep the database real · candidate
 - PATTERN-007 · Check the signed-in UI in headless Chrome over the DevTools protocol · candidate
+- PATTERN-008 · Keep the translation dictionaries complete with a test that reads the pages · candidate
 
 ---
 
@@ -71,3 +72,11 @@
 - **Example:** none in the repo (the script was a throwaway in the temp folder)
 - **Why:** Real browser, real cookies, no new dependency.
 - **Source:** code · confidence low
+
+## PATTERN-008 · Keep the translation dictionaries complete with a test that reads the pages
+- **Status:** candidate
+- **Use when:** a dictionary is kept per language and pages or scripts refer to keys by name.
+- **How:** A pytest reads the HTML and JS files (mounted read-only into the test container) and checks that every key used exists in every dictionary, that the dictionaries have the same keys, and that no key is unused. Dictionaries are plain `register("lang", {...})` calls whose body is JSON, so the test can parse them without running JavaScript. Keys built at run time are listed explicitly.
+- **Example:** backend/tests/test_i18n.py
+- **Why:** A key missing in one language is caught before it reaches the browser, without a browser.
+- **Source:** code · confidence medium
