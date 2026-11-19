@@ -66,6 +66,14 @@ services:
       db:
         condition: service_healthy
 
+  # ETL pipeline (etl/). Off unless started with the profile:
+  #   docker compose --profile etl run --rm etl
+  etl:
+    build:
+      context: ./etl
+    profiles: ["etl"]
+    restart: "no"
+
 volumes:
   pgdata:
   pgadmin-data:

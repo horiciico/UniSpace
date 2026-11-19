@@ -16,6 +16,36 @@ What I did with it: <kept, changed, rejected, merged; where it went>
 
 ---
 
+## 2026-11-19 · Schema for planning units, ETL binding, exceptions and change requests
+Tool: Claude Code (Haiku 5.5), free prompt
+What I asked: the user approved the four decisions (D-014 to D-017) with "ok".
+What I got: decisions added to DECISIONS.md (approved, confirmed 2026-11-19). Alembic revision 6a3817a9edb2: tables `faculties`, `planning_time_units`, `rule_change_requests`; `classrooms` gets `faculty_id`, `external_id`; `activities` gets `planning_time_unit_id`, `external_id`, `is_manually_modified`, `specific_date`, `professor_name`, with a unique (unit, external_id) and a weekday CHECK; `event_exceptions` renamed to `activity_exceptions` and given new times, reason and author. Models updated, `event_exception.py` removed, `activity_exception.py` added. New tests in `backend/tests/test_planning.py` (11 tests).
+What I did with it: `off_limits` is NOT built (Q-014 open). `test_models.py` is not updated, so it fails at import (the old `EventException` name) and its table-set assertion is stale. Needs the user's OK. Checks: new tests pass; the migration downgrades and re-upgrades. `test_auth.py::test_second_login_does_not_duplicate` was already failing and is not investigated. Not committed.
+
+## 2026-11-19 · Open questions answered in detail; index rebuilt
+Tool: Claude Code (Haiku 5.5), free prompt
+What I asked: the user answered the open questions in detail (parity mapping, API format, id types, off-limits marks, faculty scope, permanent changes, sign-in, roles, design board).
+What I got: `OPEN-QUESTIONS.md` updated. Answered: Q-001, Q-004, Q-007, Q-009, Q-010, Q-011, Q-012. Parity mapping recorded in Q-013 (0 = ALL, 1 = ODD, 2 = EVEN). New open questions: Q-013 (ULBS JSON format, to be discovered together), Q-014 (scope of a day-level off-limits mark). Q-002 has a rephrased version because the user did not understand it. Lint passes.
+What I did with it: ledger only. The decision proposals (parity, ETL sync, one-off and permanent changes, off-limits table) wait for the user's OK. Not committed.
+
+## 2026-11-19 · Schema questions answered; ledger updated
+Tool: Claude Code (Haiku 5.5), free prompt
+What I asked: (answers to the schema questions) keep `activities`, add planning unit link, external_id, is_manually_modified, specific_date; rename `event_exceptions` to `activity_exceptions`; keep day_of_week 1-7 and the status names; parity explained by week (ODD/EVEN/ALL); the API returns room capacity; add a faculties table; one-off changes by the professor, permanent ones by an admin request; the API gives the active period, and the admin can mark days or rooms off limits.
+What I got: `OPEN-QUESTIONS.md`: Q-008 has the answer (partly: the active period and parity; holidays and inverted weeks still open); new Q-010 (off-limits model), Q-011 (all nine faculties or only dre), Q-012 (request table or direct edit). Ledger lint passes.
+What I did with it: ledger only, no code or migration yet. Decision PROPOSALS for parity, ETL sync and one-off or permanent changes are waiting for the user's OK. Not committed.
+
+## 2026-11-19 · ETL runs as an opt-in container (profile etl)
+Tool: Claude Code (Haiku 5.5), free prompt
+What I asked: a way to start the ETL pipeline, for now only the faculties part, without it starting on every `docker compose up`.
+What I got: `etl/Dockerfile` (python:3.12-slim, httpx, runs `python -m etl.downloader`) and an `etl` service in `docker-compose.yml` with `profiles: ["etl"]`. Run with `docker compose --profile etl run --rm etl`.
+What I did with it: `docker compose config` passes. The default service list is unchanged (db, backend, frontend, pgadmin). The container run printed 9 faculties. Not committed.
+
+## 2026-11-19 · ETL step 1: fetch and check the faculties endpoint
+Tool: Claude Code (Haiku 5.5), free prompt
+What I asked: create branch for the ETL downloader; add etl/downloader.py with an async fetch_faculties() (httpx, 30s timeout, raise_for_status) and a __main__ block that prints the top-level keys, the count and the first faculty; show the list of faculties with their ids.
+What I got: GET https://schedule.ulbsibiu.ro/api/faculties returns {"success", "message", "data"} with 9 faculties; each has id (e.g. "dre"), name, connection ("faculty_dre"), dean, dean_email. httpx is already in backend/requirements.txt (>=0.27), so no dependency was added.
+What I did with it: branch feat/etl-faculties (from main). Added etl/__init__.py, etl/downloader.py and etl/tests/test_downloader.py (4 tests with httpx.MockTransport; pass in a python:3.12-slim container). The ETL is not in the backend image, so it is not covered by `docker compose run --rm backend pytest`. Not committed.
+
 ## 2026-11-17 · Database password required; deploy moved to Oracle Cloud; project brief saved
 Tool: Claude Code (Haiku 5.5), free prompt
 What I asked: make the Postgres password required in compose; change the deploy answer from Vercel to Oracle Cloud; save the course description in the context file.

@@ -2,6 +2,7 @@ import uuid
 from datetime import date, datetime, time
 
 from sqlalchemy import (
+    Boolean,
     CheckConstraint,
     Computed,
     Date,
@@ -12,6 +13,7 @@ from sqlalchemy import (
     SmallInteger,
     String,
     Time,
+    UniqueConstraint,
     text,
 )
 from sqlalchemy.dialects.postgresql import INT4RANGE, Range
@@ -38,6 +40,13 @@ class Activity(Base):
         CheckConstraint("end_time > start_time", name="ck_activity_time_order"),
         # CUSTOM parity needs a weeks list; left unusable until the customization flow exists.
         CheckConstraint("parity <> 'CUSTOM'", name="ck_activity_parity_custom_unusable"),
+        # A one-off row (specific_date set) must fall on the weekday it claims (ISO, D-008).
+        CheckConstraint(
+            "specific_date IS NULL OR extract(isodow from specific_date)::int = day_of_week",
+            name="ck_activity_specific_date_weekday",
+        ),
+        # One imported row per ULBS id within a planning unit (D-015).
+        UniqueConstraint("planning_time_unit_id", "external_id", name="uq_activity_unit_external"),
         Index("ix_activity_room_day_start_end", "classroom_id", "day_of_week", "start_time", "end_time"),
         Index("ix_activity_group_day", "group_id", "day_of_week"),
         Index("ix_activity_day_parity", "day_of_week", "parity"),
@@ -69,12 +78,24 @@ class Activity(Base):
     bumped_date: Mapped[date | None] = mapped_column(Date)  # which occurrence was bumped
     bump_decision_deadline: Mapped[datetime | None] = mapped_column(DateTime)
 
+    # Imported rows (D-015): the planning unit and the ULBS id; the ETL skips manual rows.
+    planning_time_unit_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("planning_time_units.id", ondelete="RESTRICT")
+    )
+    external_id: Mapped[str | None] = mapped_column(String(50))
+    is_manually_modified: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default=text("false")
+    )
+    specific_date: Mapped[date | None] = mapped_column(Date)  # set = a one-off row, NULL = weekly rule
+    professor_name: Mapped[str | None] = mapped_column(String(255))
+
     user: Mapped["User | None"] = relationship(back_populates="activities")  # noqa: F821
     group: Mapped["StudentGroup | None"] = relationship(back_populates="activities")  # noqa: F821
     classroom: Mapped["Classroom"] = relationship(  # noqa: F821
         back_populates="activities", foreign_keys=[classroom_id]
     )
     alt_classroom: Mapped["Classroom | None"] = relationship(foreign_keys=[alt_classroom_id])  # noqa: F821
-    exceptions: Mapped[list["EventException"]] = relationship(  # noqa: F821
+    exceptions: Mapped[list["ActivityException"]] = relationship(  # noqa: F821
         back_populates="activity", cascade="all, delete-orphan"
     )
+    planning_time_unit: Mapped["PlanningTimeUnit | None"] = relationship()  # noqa: F821

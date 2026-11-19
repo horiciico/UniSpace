@@ -29,6 +29,17 @@ class Status(str, enum.Enum):
     CANCELLED = "CANCELLED"
 
 
+class PlanningUnitType(str, enum.Enum):
+    SEMESTER = "SEMESTER"
+    MODULE = "MODULE"
+
+
+class RequestStatus(str, enum.Enum):
+    PENDING = "PENDING"
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"
+
+
 class Priority(enum.IntEnum):
     """Higher number wins a bump: course > exam > official faculty > student org > student."""
 

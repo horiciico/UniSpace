@@ -20,6 +20,10 @@
 - D-011 · The interface is in Romanian and English, from one dictionary per language
 - D-012 · Records from the backend are shown as they arrive, not translated in the frontend
 - D-013 · Sign-in is Google only; the app stores no passwords
+- D-014 · Parity is by week number: 0 ALL, 1 ODD, 2 EVEN
+- D-015 · Imported activities are bound to a planning unit; the ETL skips manually modified rows
+- D-016 · One-off changes are exceptions; permanent changes go through an admin request
+- D-017 · Admin off-limits marks are stored in an off_limits table
 
 ---
 
@@ -150,3 +154,43 @@
 - **Evidence:** backend/app/auth.py, backend/app/routers/auth.py, docs/agents/CONTRACTS.md (C-002)
 - **Source:** user · confidence high
 - **Confirmed:** 2026-11-17
+
+## D-014 · Parity is by week number: 0 ALL, 1 ODD, 2 EVEN
+- **Status:** approved
+- **Date:** 2026-11-19
+- **Rule:** A recurring activity runs in every week (`ALL`, API value 0), only in odd-numbered weeks (`ODD`, API value 1), or only in even-numbered weeks (`EVEN`, API value 2). Week 1 is the first week of the academic year, so it is odd. The ETL maps the API integer to the `Parity` enum (`ALL`, `ODD`, `EVEN`).
+- **Why:** Courses run every second week. The user defined the mapping.
+- **Rejected:** none stated
+- **Evidence:** backend/app/models/enums.py:Parity, docs/agents/OPEN-QUESTIONS.md (Q-013)
+- **Source:** user · confidence high
+- **Confirmed:** 2026-11-19
+
+## D-015 · Imported activities are bound to a planning unit; the ETL skips manually modified rows
+- **Status:** approved
+- **Date:** 2026-11-19
+- **Rule:** Each imported activity links to its planning time unit (`planning_time_unit_id`) and has an `external_id` that is unique within that unit. The ETL updates rows with `is_manually_modified = false` and skips rows with `is_manually_modified = true`. Rows created by bookings have no `external_id`.
+- **Why:** The ETL can re-run without duplicates, and admin edits are not overwritten.
+- **Rejected:** none stated
+- **Evidence:** backend/app/models/activity.py (planned columns), docs/agents/OPEN-QUESTIONS.md (Q-013)
+- **Source:** user · confidence high
+- **Confirmed:** 2026-11-19
+
+## D-016 · One-off changes are exceptions; permanent changes go through an admin request
+- **Status:** approved
+- **Date:** 2026-11-19
+- **Rule:** A professor can move or cancel one occurrence of a course. That is an `activity_exceptions` row (renamed from `event_exceptions`). A permanent change is a `rule_change_requests` row; an admin reviews it and applies it, which sets `is_manually_modified = true` on the activity.
+- **Why:** The user decided professors change single occurrences themselves, and permanent changes need an admin.
+- **Rejected:** none stated
+- **Evidence:** docs/agents/OPEN-QUESTIONS.md (Q-012)
+- **Source:** user · confidence high
+- **Confirmed:** 2026-11-19
+
+## D-017 · Admin off-limits marks are stored in an off_limits table
+- **Status:** approved
+- **Date:** 2026-11-19
+- **Rule:** An admin can mark one or more days as off limits, for the whole period or a set period. An admin can mark a room as off limits for one or more days, or for a time window within a day. These marks live in an `off_limits` table. The scope of a day mark (whole university or one faculty) is open in Q-014.
+- **Why:** The user described these rules. A table keeps the marks separate from the imported schedule.
+- **Rejected:** none stated
+- **Evidence:** docs/agents/OPEN-QUESTIONS.md (Q-010, Q-014)
+- **Source:** user · confidence high
+- **Confirmed:** 2026-11-19
