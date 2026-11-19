@@ -70,9 +70,16 @@ services:
   #   docker compose --profile etl run --rm etl
   etl:
     build:
-      context: ./etl
+      context: .
+      dockerfile: etl/Dockerfile
     profiles: ["etl"]
     restart: "no"
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-unispace}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@db:5432/${POSTGRES_DB:-unispace}
+    depends_on:
+      db:
+        condition: service_healthy
 
 volumes:
   pgdata:

@@ -16,6 +16,12 @@ What I did with it: <kept, changed, rejected, merged; where it went>
 
 ---
 
+## 2026-11-19 · ETL stores faculties in the database
+Tool: Claude Code (Haiku 5.5), free prompt
+What I asked: make sure the faculties GET in the ETL populates the faculties table.
+What I got: `etl/downloader.py` maps each API faculty (`id` -> `code`, `name`) and upserts into `faculties` by code (`upsert_faculties`). The ETL image now builds from the repo root with the backend code and requirements, runs `alembic upgrade head`, then the pipeline. The compose `etl` service gets `.env` and `DATABASE_URL`, and waits for `db`.
+What I did with it: tests in `etl/tests/test_faculties_db.py` (3 DB tests rolled back, plus the mapping test) and the 4 fetch tests: 7 pass in the etl image. The live run stored 9 faculties; a second run left 9 rows. Not committed. Note: `docker compose run` does not rebuild the image, so run `docker compose --profile etl build etl` after ETL changes.
+
 ## 2026-11-19 · Schema for planning units, ETL binding, exceptions and change requests
 Tool: Claude Code (Haiku 5.5), free prompt
 What I asked: the user approved the four decisions (D-014 to D-017) with "ok".

@@ -1,12 +1,17 @@
 """ETL downloader for the ULBS schedule API.
 
-Step 1: fetch the faculties list and check its structure.
+Step 1: fetch GET /api/faculties and store every faculty in the `faculties` table.
+Run through the compose profile: `docker compose --profile etl run --rm etl`.
 """
 
 import asyncio
-import json
 
 import httpx
+from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.orm import Session
+
+from app.db import SessionLocal
+from app.models import Faculty
 
 FACULTIES_URL = "https://schedule.ulbsibiu.ro/api/faculties"
 TIMEOUT_SECONDS = 30.0
@@ -15,7 +20,7 @@ TIMEOUT_SECONDS = 30.0
 async def fetch_faculties(client: httpx.AsyncClient | None = None) -> object:
     """Return the decoded JSON body of GET /api/faculties.
 
-    The shape is not known yet (wrapped or raw list), so the raw JSON is returned.
+    The response is `{"success", "message", "data": [...]}`; `_faculty_list` reads `data`.
     Raises httpx.HTTPStatusError on a non-2xx response.
     """
     if client is not None:
@@ -39,18 +44,35 @@ def _faculty_list(payload: object) -> list:
     return []
 
 
+def faculty_rows(payload: object) -> list[dict]:
+    """Map the API faculties to `faculties` rows: the API `id` is our `code`."""
+    return [{"code": f["id"], "name": f["name"]} for f in _faculty_list(payload)]
+
+
+def upsert_faculties(db: Session, payload: object) -> list[str]:
+    """Insert or update every faculty by code. Returns the codes stored.
+
+    Re-running the pipeline updates names and creates no duplicates.
+    """
+    rows = faculty_rows(payload)
+    if not rows:
+        return []
+    stmt = insert(Faculty).values(rows)
+    stmt = stmt.on_conflict_do_update(
+        index_elements=[Faculty.code],
+        set_={"name": stmt.excluded.name},
+    )
+    db.execute(stmt)
+    db.commit()
+    return [row["code"] for row in rows]
+
+
 async def _main() -> None:
     payload = await fetch_faculties()
-    if isinstance(payload, dict):
-        print("Top-level keys:", list(payload.keys()))
-    else:
-        print("Top-level type:", type(payload).__name__, "(raw list)")
-
-    faculties = _faculty_list(payload)
-    print("Number of faculties:", len(faculties))
-    if faculties:
-        print("First faculty:")
-        print(json.dumps(faculties[0], indent=2, ensure_ascii=False))
+    with SessionLocal() as db:
+        codes = upsert_faculties(db, payload)
+    print("Faculties stored:", len(codes))
+    print("Codes:", ", ".join(codes))
 
 
 if __name__ == "__main__":

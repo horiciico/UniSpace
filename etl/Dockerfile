@@ -6,10 +6,13 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# The pipeline needs only httpx (also pinned in backend/requirements.txt).
-RUN pip install "httpx>=0.27"
+# The ETL uses the backend's models and database settings, so it is built from the
+# repo root (context ".") with the backend code and requirements copied in.
+COPY backend/requirements.txt backend/requirements-dev.txt ./
+RUN pip install -r requirements-dev.txt
 
-COPY . ./etl
+COPY backend/ ./
+COPY etl/ ./etl/
 
-# Run only when started with the "etl" profile (see docker-compose.yml).
-CMD ["python", "-m", "etl.downloader"]
+# Migrations first (D-002), then the pipeline. Run only with the "etl" profile.
+CMD ["sh", "-c", "alembic upgrade head && python -m etl.downloader"]
