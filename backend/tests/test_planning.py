@@ -2,6 +2,7 @@
 
 DB tests: they need PostgreSQL (compose `db`); see conftest.py.
 """
+import uuid
 from datetime import date, time
 
 import pytest
@@ -25,16 +26,21 @@ from app.models import (
 )
 
 
-def make_faculty(db: Session, code: str = "dre") -> Faculty:
-    faculty = Faculty(code=code, name="Facultatea de Drept")
+def unique_code() -> str:
+    """A faculty code no other row has. Real faculties (e.g. "dre") live in the database too."""
+    return f"t{uuid.uuid4().hex[:8]}"
+
+
+def make_faculty(db: Session, code: str | None = None) -> Faculty:
+    faculty = Faculty(code=code or unique_code(), name="Facultatea de Test")
     db.add(faculty)
     db.flush()
     return faculty
 
 
-def make_unit(db: Session, faculty: Faculty, external_id: str = "12", **kw) -> PlanningTimeUnit:
+def make_unit(db: Session, faculty: Faculty, external_id: int = 12, **kw) -> PlanningTimeUnit:
     values = dict(
-        faculty_id=faculty.id, external_id=external_id, name="Modul 1",
+        faculty_id=faculty.id, external_id=external_id, year=2026, name="Modul 1",
         type=PlanningUnitType.MODULE, start_date=date(2026, 10, 1), end_date=date(2026, 12, 20),
     )
     values.update(kw)
@@ -64,10 +70,11 @@ def make_activity(db: Session, room: Classroom, **kw) -> Activity:
 
 
 def test_faculty_code_is_unique(db: Session) -> None:
-    make_faculty(db, "dre")
+    code = unique_code()
+    make_faculty(db, code)
     with pytest.raises(IntegrityError):
         with db.begin_nested():
-            make_faculty(db, "dre")
+            make_faculty(db, code)
 
 
 def test_planning_unit_end_must_not_precede_start(db: Session) -> None:
@@ -79,10 +86,10 @@ def test_planning_unit_end_must_not_precede_start(db: Session) -> None:
 
 def test_planning_unit_external_id_is_unique_per_faculty(db: Session) -> None:
     faculty = make_faculty(db)
-    make_unit(db, faculty, external_id="12")
+    make_unit(db, faculty, external_id=12)
     with pytest.raises(IntegrityError):
         with db.begin_nested():
-            make_unit(db, faculty, external_id="12")
+            make_unit(db, faculty, external_id=12)
 
 
 def test_imported_external_id_is_unique_within_a_unit(db: Session) -> None:

@@ -3,7 +3,7 @@ import asyncio
 import httpx
 import pytest
 
-from etl.downloader import FACULTIES_URL, _faculty_list, fetch_faculties
+from etl.downloader import FACULTIES_URL, _data_list, fetch_faculties
 
 SAMPLE = {
     "success": True,
@@ -29,7 +29,7 @@ def test_returns_decoded_body_on_200():
     payload = _fetch_with(handler)
 
     assert payload == SAMPLE
-    assert _faculty_list(payload) == SAMPLE["data"]
+    assert _data_list(payload) == SAMPLE["data"]
 
 
 def test_raises_on_server_error():
@@ -40,10 +40,10 @@ def test_raises_on_server_error():
         _fetch_with(handler)
 
 
-def test_faculty_list_accepts_raw_list():
+def test_data_list_accepts_raw_list():
     raw = [{"id": "dre"}]
-    assert _faculty_list(raw) == raw
+    assert _data_list(raw) == raw
 
 
-def test_faculty_list_returns_empty_for_unknown_shape():
-    assert _faculty_list({"unexpected": 1}) == []
+def test_data_list_returns_empty_for_unknown_shape():
+    assert _data_list({"unexpected": 1}) == []

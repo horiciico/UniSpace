@@ -14,5 +14,6 @@ RUN pip install -r requirements-dev.txt
 COPY backend/ ./
 COPY etl/ ./etl/
 
-# Migrations first (D-002), then the pipeline. Run only with the "etl" profile.
-CMD ["sh", "-c", "alembic upgrade head && python -m etl.downloader"]
+# Migrations first (D-002), then the pipeline. Extra arguments (for example
+# `--faculty sti`) are passed to the pipeline. Run only with the "etl" profile.
+ENTRYPOINT ["sh", "-c", "alembic upgrade head && python -m etl.downloader \"$@\"", "etl"]

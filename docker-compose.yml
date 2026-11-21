@@ -77,6 +77,9 @@ services:
     env_file: .env
     environment:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-unispace}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@db:5432/${POSTGRES_DB:-unispace}
+    volumes:
+      # The weekly schedule files (step 3) land in data/schedules/ on the host.
+      - ./data:/app/data
     depends_on:
       db:
         condition: service_healthy
