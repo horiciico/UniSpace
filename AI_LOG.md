@@ -16,6 +16,12 @@ What I did with it: <kept, changed, rejected, merged; where it went>
 
 ---
 
+## 2026-11-22 · ETL step 4: loader writes schedules to the database
+Tool: Claude Code (Haiku 5.5), free prompt
+What I asked: step 4: load the schedule files into classrooms, student groups and activities, idempotently, with the rules from the answers: one row per (room, day, parity, start, end); name "Didactic Activity"; priority 5; capacity null when unknown; entries without a room (and online entries) not stored; admin-edited rows never changed.
+What I got: migration bc1469b9b255 (classrooms.capacity nullable; classrooms.external_id unique on its own; student_groups.external_id unique). Models updated. `etl/loader.py`: parse, merge contiguous time slots, group, room fetch (unfiltered list plus `?faculty=` per faculty, paginated: 565 rooms), upserts, stale-row removal (kept if an exception or change request points at the row), report. Wired into the downloader as `--step load`; `--step all` now runs steps 1 to 4.
+What I did with it: ETL tests 60 passed (loader rules and database behaviour). Full load: 9 files, 6,917 entries, 6,138 activities stored (all priority 5, none admin-edited), 374 classrooms (113 with unknown capacity, 7 rooms taken from the schedule because the rooms list does not have them), 855 student groups. A second run inserted and deleted nothing (6,138 unchanged). Unparsed: 42 entries with no study formation id, 21 with no usable time, 8 with an activity type outside the mapping. Backend: 42 passed; test_auth fails as before; test_models does not import. Not committed.
+
 ## 2026-11-21 · One command runs the whole ETL pipeline
 Tool: Claude Code (Haiku 5.5), free prompt
 What I asked: a single command that starts the pipeline for all faculties.
