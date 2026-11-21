@@ -15,3 +15,5 @@ __pycache__/
 
 # The setup skill's source copy, not part of the platform
 Graffino-Agentic-Coding-Setup-Skill-develop/
+
+data/

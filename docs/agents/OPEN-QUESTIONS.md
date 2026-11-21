@@ -9,28 +9,34 @@
 <!-- graffino-agentic:end -->
 
 ## Index
-- Q-001 · What does UniSpace do, and who uses it? · _investigating_
+- Q-001 · What does UniSpace do, and who uses it? · _answered_
 - Q-002 · Which branches and version scheme does the release use?
 - Q-003 · How are UI screenshots taken for review?
-- Q-004 · Is there a design board (Claude Design) or Figma for the UI?
+- Q-004 · Is there a design board (Claude Design) or Figma for the UI? · _answered_
 - Q-005 · Where and how is the platform deployed? · _answered_
-- Q-007 · How do users sign in (university account, password, or both)? · _investigating_
 - Q-006 · Which lint and type-check tools should run?
+- Q-007 · How do users sign in (university account, password, or both)? · _answered_
 - Q-008 · How is the semester customized (holidays, breaks, inverted-parity weeks)?
-- Q-009 · How does a university (@ulbsibiu.ro) user get a role above STUDENT?
+- Q-009 · How does a university (@ulbsibiu.ro) user get a role above STUDENT? · _answered_
+- Q-010 · Which days and rooms can an admin mark as off limits, and how is that stored? · _answered_
+- Q-011 · Does the app store all nine faculties, or only `dre`? · _answered_
+- Q-012 · Does a permanent rule change go through a request table, or does the admin edit directly? · _answered_
+- Q-013 · What does the ULBS schedule JSON look like (row per course or per occurrence, id types)?
+- Q-014 · Is a day-level off-limits mark for the whole university or for one faculty?
 
 ---
 
 ## Q-001 · What does UniSpace do, and who uses it?
-- **Status:** investigating
+- **Status:** answered
+- **Answer (user, 2026-11-19):** The description in `CONTEXT.md` (the project brief, Romanian, verbatim from the course) is the definition. Its summary: a timetable and room-booking platform for the faculty, with priority-based bumping (course > exam > official faculty activity > student organization > student).
 - **Blocks:** the domain models and the first feature, the terms in CONTEXT.md, and any user-facing screen.
 - **Who answers:** the user (product owner)
-- **Proposed answer:** A faculty timetable and room-booking platform with priority-based bumping (course > exam > official faculty > student org > student), per the product brief of 2026-11-11. Not confirmed.
 
 ## Q-002 · Which branches and version scheme does the release use?
 - **Status:** open
 - **Blocks:** AGENTS.md section 5 (release), the base branch in /build, and the version source.
 - **Who answers:** the user
+- **Note (2026-11-19):** the user did not understand this question. To rephrase: (a) which branch is the one that gets released (for example `main`, or a separate `release` branch)? (b) Do releases get version numbers, and if so, like `1.0.0`, or by date?
 
 ## Q-003 · How are UI screenshots taken for review?
 - **Status:** open
@@ -39,7 +45,8 @@
 - **Proposed answer:** A headless browser (for example Playwright) run in a container against the nginx frontend. Not confirmed: no tool is set up yet.
 
 ## Q-004 · Is there a design board (Claude Design) or Figma for the UI?
-- **Status:** open
+- **Status:** answered
+- **Answer (user, 2026-11-19):** No design board and no Figma. The UI is designed freely (the user says "we are freestyling").
 - **Blocks:** the design source in docs/design/DESIGN.md and confirmation of new screens.
 - **Who answers:** the user
 
@@ -49,24 +56,55 @@
 - **Blocks:** a production compose setup, secrets handling in production, and the deploy steps in AGENTS.md section 5.
 - **Who answers:** the user
 
-## Q-007 · How do users sign in (university account, password, or both)?
-- **Status:** investigating
-- **Blocks:** confirming the sign-in method. Google sign-in and the nginx page gate are built (C-002, D-009, D-010); the old dummy login is gone.
-- **Who answers:** the user
-- **Proposed answer:** Google OAuth only: `@ulbsibiu.ro` accounts are auto-provisioned as STUDENT; other accounts need an invitation (built in this change, C-002). No passwords. Not confirmed.
-
 ## Q-006 · Which lint and type-check tools should run?
 - **Status:** open
 - **Blocks:** the lint and type-check lines in AGENTS.md sections 2 and 6.
+- **Who answers:** the user
+- **Note (user, 2026-11-19):** will be configured in the future. Stays open until then.
+
+## Q-007 · How do users sign in (university account, password, or both)?
+- **Status:** answered
+- **Answer (user, 2026-11-19):** Google sign-in only, already implemented. Accounts on the `@ulbsibiu.ro` domain sign in and are created as STUDENT. Accounts outside that domain need an invitation (the `invitations` table). No passwords.
+- **Blocks:** confirming the sign-in method. Google sign-in and the nginx page gate are built (C-002, D-009, D-010); the old dummy login is gone.
 - **Who answers:** the user
 
 ## Q-008 · How is the semester customized (holidays, breaks, inverted-parity weeks)?
 - **Status:** open
 - **Blocks:** `CUSTOM` parity (a CHECK keeps it unusable), a weeks list on `activity`, and any `valid_from` / `valid_to` or semester table.
-- **Who answers:** the user (decided once there is a concrete customization flow)
+- **Who answers:** the user (the user will answer later; the rest is still open)
+- **Answer (user, 2026-11-19, partly):** The active period (start and end) comes from the ULBS API, per planning unit (`planning_time_units`). Parity works by week, and the mapping is in Q-013. Still open: holidays, breaks, and inverted-parity weeks; and whether the CUSTOM parity and a weeks list are needed.
 
 ## Q-009 · How does a university (@ulbsibiu.ro) user get a role above STUDENT?
-- **Status:** open
+- **Status:** answered
+- **Answer (user, 2026-11-19):** Everyone starts as STUDENT. An admin raises the role by hand.
 - **Blocks:** professors and student-organization leaders with a university address getting their role without an admin changing the `user.role` column by hand. An unused invitation for a university email is ignored today.
 - **Who answers:** the user
-- **Proposed answer:** For now (decided 2026-11-16): everyone is STUDENT, an admin elevates. Later, perhaps read roles from the imported timetable (teachers appear there). Alternatives: an invitation sets the role at first login, or also later.
+
+## Q-010 · Which days and rooms can an admin mark as off limits, and how is that stored?
+- **Status:** answered
+- **Answer (user, 2026-11-19):** Days: an admin marks one or more days, for the whole duration or for a certain period. Rooms: an admin marks a room for one or more days, or for a time period within a day. Stored in an `off_limits` table.
+- **Blocks:** the admin off-limits feature. The scope of a day-level mark is open in Q-014.
+- **Who answers:** the user
+
+## Q-011 · Does the app store all nine faculties, or only `dre`?
+- **Status:** answered
+- **Answer (user, 2026-11-19):** Build it at university level. The frontend lets the user choose the faculty whose schedule they want to see.
+- **Blocks:** the `faculties` table, and the `faculty_code` on rows that belong to a faculty.
+- **Who answers:** the user
+
+## Q-012 · Does a permanent rule change go through a request table, or does the admin edit directly?
+- **Status:** answered
+- **Answer (user, 2026-11-19):** Build the table (`rule_change_requests`).
+- **Blocks:** the request flow for permanent changes.
+- **Who answers:** the user
+
+## Q-013 · What does the ULBS schedule JSON look like (row per course or per occurrence, id types)?
+- **Status:** open
+- **Parity mapping (user, 2026-11-19, confirmed):** `parity` 0 = ALL (every week), 1 = ODD (odd weeks only; week 1 of the academic year is odd), 2 = EVEN (even weeks only).
+- **Blocks:** the parser, the unique constraint on `external_id`, and the types of `external_id`. The structure is to be discovered from the schedule JSON files in Step 2.
+- **Who answers:** the user, together with the JSON files. The user said: "we will discover together."
+
+## Q-014 · Is a day-level off-limits mark for the whole university or for one faculty?
+- **Status:** open
+- **Blocks:** the scope column on `off_limits`. Also: does "the whole duration" mean the whole semester, or the whole academic year?
+- **Who answers:** the user
