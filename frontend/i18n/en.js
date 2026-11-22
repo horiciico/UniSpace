@@ -239,7 +239,7 @@ window.UniSpaceI18n.register("en", {
   "free.eyebrow": "Free rooms",
   "free.heading": "Free now",
   "free.afterLast": "The last module ends at 21:10: no room can be booked after that.",
-  "free.checkedAt": "Checked at {time}",
+  "free.inModule": "In module {start}–{end}",
   "free.intro": "Bookable rooms free now or in a chosen interval. Pick a filter to narrow the list.",
   "free.modeAria": "Search mode",
   "free.modeNow": "Free now",

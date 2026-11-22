@@ -16,6 +16,12 @@ What I did with it: <kept, changed, rejected, merged; where it went>
 
 ---
 
+## 2026-11-22 · Free now lists the rooms free for the current module
+Tool: Claude Code (Haiku 5.5), free prompt
+What I asked: on load, with no time frame chosen, the free now page lists the faculty's rooms free in the current 1.5-hour module, and shows until when each is free.
+What I got: free now sends the current module's start and end (the next module during a break); the status line names it ("In module 14:40–16:10"); the list refreshes every 30 seconds when the module changes; the card shows the free-until time (next booking, or 21:10). `free.checkedAt` replaced by `free.inModule`. No backend change. Backend tests 75 passed. Browser check with the clock fixed at 15:00: 7 rooms for 14:40–16:10, sorted with 21:10 first, no console errors.
+What I did with it: not committed.
+
 ## 2026-11-22 · Free rooms page: a faculty must be chosen first
 Tool: Claude Code (Haiku 5.5), free prompt
 What I asked: on the free now page, no rooms until a faculty is selected, and prompt the user to select one.

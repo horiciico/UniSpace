@@ -240,7 +240,7 @@ window.UniSpaceI18n.register("ro", {
   "free.eyebrow": "Săli libere",
   "free.heading": "Libere acum",
   "free.afterLast": "Ultimul modul se termină la 21:10: după această oră nu mai pot fi rezervate săli.",
-  "free.checkedAt": "Verificat la {time}",
+  "free.inModule": "În modulul {start}–{end}",
   "free.intro": "Săli bookabile libere acum sau într-un interval ales. Alege un filtru ca să restrângi lista.",
   "free.modeAria": "Mod de căutare",
   "free.modeNow": "Liber acum",

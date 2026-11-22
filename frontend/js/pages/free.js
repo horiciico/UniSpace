@@ -26,7 +26,7 @@
 
   var mode = "now";
   var requestNumber = 0;
-  var checkedAt = "";
+  var shownModule = -1; // the module index the list was loaded for (free now)
 
   function pad(value) {
     return String(value).padStart(2, "0");
@@ -89,9 +89,12 @@
       values.start_time = from.start;
       values.end_time = to.end;
     } else {
+      // Free now: the rooms free for the whole current module (the next one during a break).
       var moment = now();
+      var current = modules.list[moduleIndexAt(moment.minutes)];
       values.date = moment.date;
-      values.start_time = moment.time;
+      values.start_time = current.start;
+      values.end_time = current.end;
     }
     return values;
   }
@@ -177,10 +180,10 @@
       return;
     }
     if (mode === "now") {
-      var moment = now();
-      checkedAt = moment.time;
+      var index = moduleIndexAt(now().minutes);
+      shownModule = index;
       // After the last module no room can be booked: say so, and do not ask.
-      if (moment.minutes >= modules.endMin) {
+      if (index < 0) {
         draw([], null);
         setStatus(t("free.afterLast"), true);
         return;
@@ -197,7 +200,12 @@
       if (current !== requestNumber) return;
       draw(rooms, values.date);
       var count = rooms.length ? t("free.count", { n: rooms.length }) : t("free.empty");
-      setStatus(mode === "now" ? count + " · " + t("free.checkedAt", { time: checkedAt }) : count);
+      if (mode === "now") {
+        var module = modules.list[shownModule];
+        setStatus(count + " · " + t("free.inModule", { start: module.start, end: module.end }));
+      } else {
+        setStatus(count);
+      }
     }).catch(function (error) {
       if (current !== requestNumber) return;
       draw([], null);
@@ -261,6 +269,10 @@
 
   var moment = now();
   var index = moduleIndexAt(moment.minutes);
+  // A module changes while the page is open: the free-now list follows it.
+  window.setInterval(function () {
+    if (mode === "now" && moduleIndexAt(now().minutes) !== shownModule) load();
+  }, 30000);
   dateInput.value = moment.date;
   fillModules(index < 0 ? 0 : index, index < 0 ? 0 : index);
   loadFaculties();
