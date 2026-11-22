@@ -44,7 +44,7 @@
     header.innerHTML =
       '<a class="skip-link" href="#main">' + esc(t("header.skip")) + "</a>" +
       '<div class="site-header__inner">' +
-      '<a class="brand" href="/"><span class="brand__mark" aria-hidden="true"></span>UniSpace</a>' +
+      '<a class="brand" href="/"><img class="brand__mark" src="/public/brand-mark.png" alt="" width="28" height="28" />UniSpace</a>' +
       (user
         ? '<button class="btn btn-ghost btn-small nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">' +
           esc(t("header.menu")) + "</button>" +
