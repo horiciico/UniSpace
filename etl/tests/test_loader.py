@@ -157,6 +157,15 @@ def test_group_is_taken_from_a_member_that_has_one() -> None:
     assert values["group_name"] == "GR9"
 
 
+def test_merged_row_keeps_every_group_of_the_slot() -> None:
+    members = parse_item(entry(id=1, studyFormation={"id": 9, "name": "GR9"})) + parse_item(
+        entry(id=2, studyFormation={"id": 8, "name": "B"})
+    )
+    values = activity_values(members)
+    assert values["groups"] == {9: "GR9", 8: "B"}
+    assert values["group_api_id"] == 8  # the row keeps the lowest id, as before
+
+
 def test_optional_type_is_stored_as_course() -> None:
     assert parse_item(entry(activityType={"name": "Optional"}))[0].activity_type == ActivityType.COURSE
 

@@ -2,50 +2,64 @@
 <html lang="ro">
   <head>
     <!--#include virtual="/components/head.html" -->
-    <title data-i18n="free.title">Free rooms · UniSpace</title>
+    <title data-i18n="free.title">Săli libere · UniSpace</title>
+    <script src="/js/api.js" defer></script>
+    <script src="/js/modules.js" defer></script>
+    <script src="/js/pages/free.js" defer></script>
   </head>
   <body>
     <main id="main" class="container">
-      <p class="eyebrow" data-i18n="free.eyebrow">Free rooms</p>
-      <h1 data-i18n="free.heading">Free right now</h1>
-      <p class="muted" data-i18n="free.intro">Tuesday, 16:00 (sample time). Pick a time window to look ahead.</p>
+      <p class="eyebrow" data-i18n="free.eyebrow">Săli libere</p>
+      <h1 data-i18n="free.heading">Libere acum</h1>
+      <p class="muted" data-i18n="free.intro">Săli bookabile libere acum sau într-un interval ales. Alege un filtru ca să restrângi lista.</p>
+
       <div class="card__meta my-5">
-        <div class="chips" data-i18n-attr="aria-label:free.windowsAria" aria-label="Quick windows">
-          <button class="chip" type="button" aria-pressed="true" data-i18n="free.now">Now</button>
-          <button class="chip" type="button" aria-pressed="false" data-i18n="free.nextHour">Next hour</button>
-          <button class="chip" type="button" aria-pressed="false" data-i18n="free.tomorrow">Tomorrow 09–11</button>
+        <div class="tabs" role="tablist" data-i18n-attr="aria-label:free.modeAria" aria-label="Mod de căutare">
+          <button class="tab" role="tab" type="button" data-free-mode="now" aria-selected="true" data-i18n="free.modeNow">Liber acum</button>
+          <button class="tab" role="tab" type="button" data-free-mode="custom" aria-selected="false" data-i18n="free.modeCustom">Interval personalizat</button>
         </div>
-        <form class="chips" data-placeholder data-i18n-attr="aria-label:free.filterAria" aria-label="Filter by time and equipment">
-          <label class="chip"><span data-i18n="free.minSeats">Min seats</span>
-            <select class="chip__select" data-i18n-attr="aria-label:rooms.minSeats" aria-label="Minimum seats">
-              <option data-i18n="rooms.any">Any</option><option>20+</option><option>40+</option><option>100+</option>
+
+        <div class="tt-filters">
+          <div id="free-custom" hidden>
+            <div class="tt-filters">
+              <label class="field">
+                <span class="field__label" data-i18n="free.date">Data</span>
+                <input id="free-date" type="date" />
+              </label>
+              <label class="field">
+                <span class="field__label" data-i18n="free.start">De la</span>
+                <select id="free-from"></select>
+              </label>
+              <label class="field">
+                <span class="field__label" data-i18n="free.end">Până la</span>
+                <select id="free-to"></select>
+              </label>
+            </div>
+          </div>
+          <label class="field">
+            <span class="field__label" data-i18n="free.faculty">Facultate</span>
+            <select id="free-faculty" required>
+              <option value="" data-i18n="free.chooseFaculty">Alege o facultate</option>
             </select>
           </label>
-          <label class="chip"><input type="checkbox" /> <span data-i18n="bookings.projector">Projector</span></label>
-          <button class="btn btn-small" type="submit" data-i18n="free.update">Update</button>
-        </form>
-      </div>
-      <div class="card-grid card-grid--2">
-        <div class="card">
-          <h2 data-i18n="free.freeNowTitle">Free now</h2>
-          <ul class="list">
-            <li><span><strong>A101</strong> · 120 seats · projector</span><span class="pill pill--free" data-i18n="status.free">Free</span></li>
-            <li><span><strong>B110</strong> · 40 seats</span><span class="pill pill--free" data-i18n="status.free">Free</span></li>
-            <li><span><strong>L1</strong> · 24 workstations</span><span class="pill pill--free" data-i18n="status.free">Free</span></li>
-          </ul>
-        </div>
-        <div class="card">
-          <h2 data-i18n="free.freeSoonTitle">Free soon</h2>
-          <ul class="list">
-            <li><span><strong>B204</strong> · free at 14:30 (already past, sample)</span><span class="pill pill--soon" data-i18n="status.soon">Soon</span></li>
-            <li><span><strong>C02</strong> · free at 17:00</span><span class="pill pill--soon" data-i18n="status.soon">Soon</span></li>
-          </ul>
-          <div class="card__actions">
-            <a class="btn btn-primary btn-small" href="/bookings/" data-i18n="free.requestFree">Request a free room</a>
-          </div>
+          <label class="field">
+            <span class="field__label" data-i18n="free.minCapacity">Capacitate minimă</span>
+            <input id="free-capacity" type="number" min="0" step="1" />
+          </label>
+          <label class="check">
+            <input id="free-projector" type="checkbox" />
+            <span data-i18n="free.projector">Proiector</span>
+          </label>
+          <label class="check">
+            <input id="free-verified" type="checkbox" />
+            <span data-i18n="free.verifiedOnly">Doar verificate pe teren</span>
+          </label>
         </div>
       </div>
-      <p class="muted mt-5" data-i18n="free.footnote">Placeholder: the list is computed from the timetable and the semester setup. Holidays count as free.</p>
+
+      <p class="muted" id="free-status" role="status" aria-live="polite"></p>
+      <ul class="room-grid" id="free-list" aria-live="polite"></ul>
+      <p class="muted mt-5" data-i18n="free.note">Sălile care nu sunt verificate pe teren au date estimate.</p>
     </main>
   </body>
 </html>

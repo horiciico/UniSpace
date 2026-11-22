@@ -16,6 +16,60 @@ What I did with it: <kept, changed, rejected, merged; where it went>
 
 ---
 
+## 2026-11-22 · Free now lists the rooms free for the current module
+Tool: Claude Code (Haiku 5.5), free prompt
+What I asked: on load, with no time frame chosen, the free now page lists the faculty's rooms free in the current 1.5-hour module, and shows until when each is free.
+What I got: free now sends the current module's start and end (the next module during a break); the status line names it ("In module 14:40–16:10"); the list refreshes every 30 seconds when the module changes; the card shows the free-until time (next booking, or 21:10). `free.checkedAt` replaced by `free.inModule`. No backend change. Backend tests 75 passed. Browser check with the clock fixed at 15:00: 7 rooms for 14:40–16:10, sorted with 21:10 first, no console errors.
+What I did with it: not committed.
+
+## 2026-11-22 · Free rooms page: a faculty must be chosen first
+Tool: Claude Code (Haiku 5.5), free prompt
+What I asked: on the free now page, no rooms until a faculty is selected, and prompt the user to select one.
+What I got: the faculty list starts on a placeholder ("Alege o facultate") and the "All faculties" option is removed; without a faculty no request is made, the list is empty and the status line asks for a faculty (`free.pickFaculty`). The select gets the focus on load. Dictionaries updated (`free.allFaculties` replaced by `free.chooseFaculty` and `free.pickFaculty`). Backend unchanged (faculty stays optional in the API). Backend tests 75 passed. Browser check: no faculty gives no cards and the prompt; a faculty with a custom interval gives 18 rooms; no console errors.
+What I did with it: not committed.
+
+## 2026-11-22 · The after-21:10 closure applies to the current day only
+Tool: Claude Code (Haiku 5.5), free prompt
+What I asked: clarify that no booking is closed after 21:10 for later days; only the free-now list for today is empty after 21:10.
+What I got: the backend refused any start-only search after 21:10, whatever the date. Now only the current day is refused (400); a later day returns no rooms for a start-only search at that time, and module intervals on any day work. Test added. Backend tests 75 passed. The frontend needed no change.
+What I did with it: not committed.
+
+## 2026-11-22 · Free now uses the exact local time; bookings are whole modules; nothing after 21:10
+Tool: Claude Code (Haiku 5.5), free prompt
+What I asked: free now calculates the exact local time on each visit; the last module ends at 21:10 and nothing is bookable after it; a room is booked for one or more whole 1.5-hour modules.
+What I got: planning.py: MODULES table, `booking_window` (no times: the module containing now, or the next during a break; a start only: the same from that time; start and end: must be module boundaries; after 21:10: refused). The free endpoint uses that window; `free_until` is never null (21:10 when nothing follows). frontend/js/modules.js shares the table with the grid. Free-now sends the exact local time on load, on tab entry and when the page is shown again; after 21:10 it shows a message and does not search. Custom intervals are chosen by module. Messages added to ro/en; `free.freeRestOfDay` removed. Tests: backend 74 passed. Browser check at 21:27 (after the last module): the message, the module pickers, the range message, a custom search; no console errors. Daytime behaviour checked by the backend tests only. C-003 updated (user request).
+What I did with it: not committed.
+
+## 2026-11-22 · Timetable follows the module schedule (08:00 to 21:10)
+Tool: Claude Code (Haiku 5.5), free prompt
+What I asked: the timetable follows the module convention: 90-minute modules with a 10-minute break, 08:00-09:30 up to 19:40-21:10.
+What I got: grid.js: 79 ten-minute rows, 08:00 to 21:10; the time column shows each module's range; day lines fall at module starts (every 100 minutes). Activities keep their real times. Real data: 5,673 activities start and end on the module grid; 479 (about 8%) do not (45 to 60 minute slots such as 08:10-09:00), and they are shown at their recorded times. Browser check: one group timetable, 14 blocks, eight module rows, Sunday column; no console errors checked on this page.
+What I did with it: not committed. The 479 off-grid activities are open: keep the recorded times or snap them to modules.
+
+## 2026-11-22 · Sunday column on the timetable
+Tool: Claude Code (Haiku 5.5), free prompt
+What I asked: add Sunday to the timetable.
+What I got: grid.js draws seven day columns (Monday to Sunday); the timetable CSS has seven columns; `day.sun` added to ro.js ("Dum") and en.js ("Sun"). The API already returned Sunday items, so no backend change. Backend tests 71 passed; both scripts pass a syntax check.
+What I did with it: not committed. Not re-checked in the browser.
+
+## 2026-11-22 · Timetable shows one planning unit per week
+Tool: Claude Code (Haiku 5.5), free prompt
+What I asked: the timetable page shows the schedule only for the corresponding planning unit.
+What I got: `/api/schedule` takes an optional `faculty_id`; with it, only that faculty's unit covering the week is drawn; without it, the unit most of the entity's recurring activities use in weeks covering this one. One-off rows are always shown. The week number comes from that unit only; the old fallback to any faculty's unit is removed. `timetable.js` sends the selected faculty (not `campus`). Real data: a room with activities from two faculties now shows 18 (ing) or 21 (sti) activities instead of a mix. Tests: backend 71 passed (3 new). C-003 updated (user request).
+What I did with it: not committed. Free rooms still consider every unit; not changed, as the request was about the timetable.
+
+## 2026-11-22 · /api/* gated by nginx; endpoints recorded as C-003
+Tool: Claude Code (Haiku 5.5), free prompt
+What I asked: record the endpoints, and gate the /api/* routes as well (signed in only).
+What I got: infra/nginx/default.conf: `location ^~ /api/` now runs auth_request on /auth/me (signed out: plain 401); `/health` stays a public exact location. Checked with curl: signed out 401 on /api/faculties and /api/schedule, signed in 200, /health 200; the temporary user was removed. CONTRACTS.md: C-003 (approved, confirmed 2026-11-22) lists every route, its parameters, response shape and errors. ARCHITECTURE.md: the boundary note now says /api/ is signed in only. frontend/js/api.js: a 401 sends the visitor to /login. Ledger lint passes.
+What I did with it: not committed. D-010 (proposed) already covers the gate; its promotion is left to the user.
+
+## 2026-11-22 · Liber acum and Orar: schema, API, both pages (branch feat/liber-acum-timetable)
+Tool: Claude Code (Haiku 5.5), free prompt
+What I asked: build the two pages, Liber acum (free rooms) and Orar (weekly timetable), with the endpoints from the spec, on a separate branch, with the i18n dictionaries.
+What I got: migration d41f7c2a9e10: `activity_groups` (every group of a merged activity; backfilled from `activities.group_id`), `classrooms.is_bookable` (default true) and `classrooms.is_field_verified` (default false). Endpoints: `GET /api/classrooms/free`, `GET /api/classrooms`, `GET /api/schedule`, `GET /api/faculties`, `GET /api/groups`, `GET /api/professors`. Week parity is counted per planning unit (D-014). The ETL loader links every study group of a merged slot. Frontend: `pages/student/rooms/free.html`, `pages/student/timetable.html`, `js/api.js`, `js/grid.js`, `js/pages/free.js`, `js/pages/timetable.js`, `styles/components/room-card.css`; ro/en keys added, 3 unused keys removed. Full ETL run against the ULBS API: 6,145 activities, 7,242 group links, 655 activities with several groups. Tests: backend 68 passed (new `test_timetable_api.py`), ETL 66 passed (new merged-group test). Browser check on the running stack (headless Edge over DevTools, temporary signed-in user, removed afterwards): both pages, both languages, no console errors.
+What I did with it: branch `feat/liber-acum-timetable` from `main`. Not committed. Open items are listed in the report: nginx does not gate `/api/`, and the iCal button is hidden.
+
 ## 2026-11-22 · Open questions answered (Q-002, Q-013, Q-014); Q-003, Q-006, Q-008 deferred
 Tool: Claude Code (Haiku 5.5), free prompt
 What I asked: address the open questions.

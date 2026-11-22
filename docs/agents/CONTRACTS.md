@@ -11,6 +11,7 @@
 ## Index
 - C-001 · GET /health · provided
 - C-002 · Auth routes (Google sign-in) · provided · _proposed_
+- C-003 · Timetable and free-room API (/api/*) · provided
 
 ---
 
@@ -33,6 +34,24 @@
 - **Rules:** `@ulbsibiu.ro` (hd claim and email both) is auto-provisioned as STUDENT; other domains need an unused `invitation` row for the email. Any other role for a university user is an admin change (Q-009).
 - **Evidence:** backend/app/routers/auth.py, backend/app/auth.py
 - **Source:** code · confidence high
+
+### C-003 · Timetable and free-room API (/api/*)
+- **Status:** approved
+- **Interface:** HTTP JSON on the backend, same origin, through nginx at `/api/`. Signed in only: nginx checks `/auth/me` first and answers a signed-out request with 401 (no redirect). Every route is `GET`.
+- **Consumers:** `frontend/js/api.js` (the only fetch wrapper); `frontend/js/pages/free.js` (Liber acum); `frontend/js/pages/timetable.js` (Orar); `infra/nginx/default.conf` (the gate).
+- **Shape:**
+  - `GET /api/faculties` → `[{id, code, name}]`, by name.
+  - `GET /api/groups?faculty_id=UUID` (required) → `[{id, name, faculty_id}]`: groups with an activity in a planning unit of the faculty.
+  - `GET /api/professors?faculty_id=UUID` (required) → `[{name}]`: professors named on the faculty's activities (a joint listing is split).
+  - `GET /api/classrooms?faculty_id=UUID|campus` (optional) → `[{id, name, faculty_id, capacity, is_bookable, is_field_verified}]`. `campus` means no owning faculty.
+  - `GET /api/classrooms/free?faculty_id&date=YYYY-MM-DD&start_time=HH:MM&end_time=HH:MM&min_capacity&has_projector=true&only_verified=true` → `[{id, name, faculty_id, faculty_name, capacity, has_projector, has_outlets, is_field_verified, free_until}]`. Only bookable rooms. Bookings are whole modules (08:00-09:30, 09:40-11:10, ... 19:40-21:10, see backend/app/planning.py MODULES): with `start_time` only, the module that contains that time (or the next one during a break) is searched, so an exact local time gives its module; with `end_time` too, `start_time` must be a module start and `end_time` a module end, and `end_time` after `start_time`. Without `start_time`, the current time in Europe/Bucharest is used. On the current day nothing is bookable after 21:10; later days are bookable by module, and a start-only search on a later day after 21:10 returns no rooms. `free_until` is the next start that day, or 21:10 when nothing follows. Sorted: verified first, then the latest `free_until`, then name.
+  - `GET /api/schedule` with exactly one of `group_id=UUID`, `professor=NAME`, `room_id=UUID`, plus optional `date=YYYY-MM-DD` and optional `faculty_id=UUID` → `{week_start, week_end, week_number, parity, entity_type, entity_label, items}`. The week is Monday to Sunday. Only one planning unit is drawn: the faculty's unit that covers the week when `faculty_id` is given (a faculty with no unit for the week shows no recurring activities and null week number); without it, the unit most of the entity's recurring activities use in weeks covering this one. One-off rows (no unit) are always included. `week_number` and `parity` are null when there is no unit. Each item: `{id, title, activity_type, priority, day_of_week, date, start_time, end_time, parity, room_id, room_name, professor, groups, is_recurring}`.
+- **Rules:** `day_of_week` is ISO (1 = Monday, D-008). Parity follows the week of each activity's own planning unit (D-014). `id` values are UUIDs; times are `HH:MM`. Errors: 400 for a missing or repeated entity, a bad `faculty_id`, a time that is not a module boundary, or a search on the current day at or after 21:10 (no module left); 401 when signed out; 404 for an unknown group or room; 422 for an invalid parameter (FastAPI).
+- **Evidence:** backend/app/routers/classrooms.py, backend/app/routers/lookups.py, backend/app/routers/schedule.py, backend/app/planning.py, backend/tests/test_timetable_api.py, infra/nginx/default.conf (`location ^~ /api/`)
+- **Change 2026-11-22:** `faculty_id` added to `/api/schedule`; the timetable shows one planning unit (user request). Consumer: `frontend/js/pages/timetable.js` sends it.
+- **Source:** user (asked for the endpoints and their gating, 2026-11-22) · code · confidence high
+- **Change 2026-11-22 (2):** free-room search uses whole modules; `free_until` is never null (21:10 when nothing follows); `/api/classrooms/free` refuses times that are not module boundaries and any search after 21:10. Consumers: `frontend/js/pages/free.js`, `frontend/js/modules.js`. (user request)
+- **Confirmed:** 2026-11-22
 
 ## Consumed
 

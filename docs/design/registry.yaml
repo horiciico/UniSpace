@@ -42,6 +42,20 @@ designs:
     design_ref: none
     status: implemented
 
+  - id: DS-unispace-timetable-grid
+    kind: component
+    source: frontend/js/grid.js
+    screenshots: []
+    design_ref: none
+    status: implemented
+
+  - id: DS-unispace-room-card
+    kind: component
+    source: frontend/styles/components/room-card.css
+    screenshots: []
+    design_ref: none
+    status: implemented
+
   - id: DS-unispace-rooms
     kind: screen
     source: frontend/pages/student/rooms/index.html

@@ -1,113 +1,395 @@
 /*
- * Timetable placeholder: draws a sample week and switches the view label.
- * The real timetable will come from the backend (group, teacher or room view).
- * Weekday names, the kind labels and the view labels are UI text (i18n); the course
- * titles and room codes are sample data and are shown as they are.
+ * Orar (timetable) page. The tabs choose what to show (group, professor or room), the
+ * faculty narrows the list, and the entity input (with a datalist) picks one. The week comes
+ * from /api/schedule and is drawn by grid.js. The selection is kept in the URL, so
+ * /timetable?mode=room&faculty_id=...&id=... opens a room (from the free-rooms page).
+ * Names and times from the backend are shown as they arrive (D-012).
  */
 (function () {
   "use strict";
 
-  var grid = document.getElementById("tt-grid");
-  if (!grid) return;
-
   var t = window.UniSpaceI18n.t;
-  var FIRST_HOUR = 8;
-  var LAST_HOUR = 20;
-  var DAY_KEYS = ["day.mon", "day.tue", "day.wed", "day.thu", "day.fri"];
-  var KIND_KEYS = { course: "kind.lecture", seminar: "kind.seminar", lab: "kind.lab" };
+  var api = window.UniSpaceApi;
+  var grid = window.UniSpaceGrid;
 
-  // day: 0 = Monday. start/end: hours. type: course | seminar | lab
-  var SAMPLE = [
-    { day: 0, start: 8, end: 10, type: "course", title: "Analysis I", room: "A101" },
-    { day: 0, start: 12, end: 14, type: "seminar", title: "Databases", room: "B204" },
-    { day: 1, start: 10, end: 12, type: "lab", title: "Operating systems", room: "L3" },
-    { day: 1, start: 14, end: 16, type: "course", title: "Linear algebra", room: "A101" },
-    { day: 2, start: 9, end: 11, type: "seminar", title: "Web programming", room: "B110" },
-    { day: 2, start: 16, end: 18, type: "lab", title: "Databases lab", room: "L1" },
-    { day: 3, start: 8, end: 10, type: "course", title: "Probability", room: "C02" },
-    { day: 3, start: 13, end: 15, type: "seminar", title: "Analysis I", room: "B204" },
-    { day: 4, start: 10, end: 12, type: "course", title: "Software design", room: "A101" },
-    { day: 4, start: 15, end: 17, type: "lab", title: "Web programming lab", room: "L2" }
-  ];
+  var gridElement = document.getElementById("tt-grid");
+  if (!gridElement) return;
+  var body = document.getElementById("tt-body");
+  var emptyNote = document.getElementById("tt-empty");
+  var statusLine = document.getElementById("tt-status");
+  var facultySelect = document.getElementById("tt-faculty");
+  var entityInput = document.getElementById("tt-entity");
+  var entityLabel = document.getElementById("tt-entity-label");
+  var entityList = document.getElementById("entity-list");
+  var weekLabel = document.getElementById("tt-week-label");
+  var dialog = document.getElementById("tt-dialog");
+  var tabs = document.querySelectorAll("[role='tab'][data-mode]");
 
-  var VIEWS = {
-    group: { key: "timetable.viewGroup", vars: { name: "CS-2A" } },
-    teacher: { key: "timetable.viewTeacher", vars: { name: "Prof. Sample" } },
-    room: { key: "timetable.viewRoom", vars: { name: "A101" } }
+  var ENTITY_LABEL_KEYS = {
+    group: "timetable.entityGroup",
+    professor: "timetable.entityProfessor",
+    room: "timetable.entityRoom"
+  };
+  var PARITY_KEYS = { ALL: "timetable.parityAll", ODD: "timetable.parityOdd", EVEN: "timetable.parityEven" };
+  var KIND_KEYS = {
+    COURSE: "kind.course",
+    SEMINAR: "kind.seminar",
+    LAB: "kind.lab",
+    EXAM: "kind.exam",
+    RESERVATION: "kind.reservation"
   };
 
-  var activeView = "group";
-
-  function el(tag, className, text) {
-    var node = document.createElement(tag);
-    if (className) node.className = className;
-    if (text !== undefined) node.textContent = text;
-    return node;
+  function pad(value) {
+    return String(value).padStart(2, "0");
   }
 
-  function pad(hour) {
-    return String(hour).padStart(2, "0") + ":00";
+  function isoDate(date) {
+    return date.getFullYear() + "-" + pad(date.getMonth() + 1) + "-" + pad(date.getDate());
   }
 
-  function draw() {
-    grid.textContent = "";
+  function parseIso(text) {
+    var parts = text.split("-");
+    return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+  }
 
-    grid.appendChild(el("div", "tt-head", t("timetable.time")));
-    DAY_KEYS.forEach(function (key, index) {
-      var head = el("div", "tt-head", t(key));
-      head.style.gridColumn = String(index + 2);
-      head.style.gridRow = "1";
-      grid.appendChild(head);
-    });
+  function addDays(date, days) {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate() + days);
+  }
 
-    for (var hour = FIRST_HOUR; hour < LAST_HOUR; hour++) {
-      var row = hour - FIRST_HOUR + 2;
-      var label = el("div", "tt-time", pad(hour));
-      label.style.gridColumn = "1";
-      label.style.gridRow = String(row);
-      grid.appendChild(label);
-      for (var day = 0; day < DAY_KEYS.length; day++) {
-        var cell = el("div", "tt-cell");
-        cell.style.gridColumn = String(day + 2);
-        cell.style.gridRow = String(row);
-        grid.appendChild(cell);
-      }
+  // Monday of the week that contains the date (Sunday belongs to the week before).
+  function mondayOf(date) {
+    return addDays(date, -((date.getDay() + 6) % 7));
+  }
+
+  function locale() {
+    return window.UniSpaceI18n.current() === "ro" ? "ro-RO" : "en-GB";
+  }
+
+  var params = new URLSearchParams(window.location.search);
+  var state = {
+    mode: ENTITY_LABEL_KEYS[params.get("mode")] ? params.get("mode") : "group",
+    facultyId: params.get("faculty_id") || "",
+    urlEntityId: params.get("id") || "",
+    faculties: [],
+    entities: [],
+    entity: null,
+    monday: mondayOf(/^\d{4}-\d{2}-\d{2}$/.test(params.get("date") || "")
+      ? parseIso(params.get("date"))
+      : new Date()),
+    week: null,
+    items: null,
+    statusKey: "",
+    statusError: false,
+    requestNumber: 0,
+    entityRequestNumber: 0
+  };
+
+  function setStatus(key, isError) {
+    state.statusKey = key || "";
+    state.statusError = Boolean(isError);
+    statusLine.textContent = key ? t(key) : "";
+    statusLine.className = state.statusError && key ? "notice notice--error" : "muted";
+  }
+
+  function renderWeek() {
+    var sunday = addDays(state.monday, 6);
+    var format = new Intl.DateTimeFormat(locale(), { day: "numeric", month: "short" });
+    var range = format.format(state.monday) + " – " + format.format(sunday);
+    if (state.week && state.week.number) {
+      var parity = t(PARITY_KEYS[state.week.parity] || "timetable.parityAll");
+      weekLabel.textContent = range + " · " + t("timetable.weekLabel", { n: state.week.number, parity: parity });
+    } else {
+      weekLabel.textContent = range;
     }
+  }
 
-    SAMPLE.forEach(function (item) {
-      var block = el("div", "tt-block tt-block--" + item.type);
-      block.style.gridColumn = String(item.day + 2);
-      block.style.gridRow = (item.start - FIRST_HOUR + 2) + " / " + (item.end - FIRST_HOUR + 2);
-      block.appendChild(el("strong", null, item.title));
-      block.appendChild(el("span", null, t(KIND_KEYS[item.type]) + " · " + item.room));
-      grid.appendChild(block);
+  function renderEntityLabel() {
+    entityLabel.textContent = t(ENTITY_LABEL_KEYS[state.mode]);
+  }
+
+  function renderTabs() {
+    tabs.forEach(function (tab) {
+      tab.setAttribute("aria-selected", String(tab.getAttribute("data-mode") === state.mode));
     });
   }
 
-  function showViewLabel() {
-    var label = document.getElementById("tt-view-label");
-    var view = VIEWS[activeView];
-    if (label) label.textContent = t(view.key, view.vars);
+  function populateFaculties() {
+    var chosen = state.facultyId;
+    if (chosen === "campus" && state.mode !== "room") chosen = "";
+    facultySelect.textContent = "";
+    var placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = t("timetable.chooseFaculty");
+    facultySelect.appendChild(placeholder);
+    if (state.mode === "room") {
+      var campus = document.createElement("option");
+      campus.value = "campus";
+      campus.textContent = t("common.campus");
+      facultySelect.appendChild(campus);
+    }
+    state.faculties.forEach(function (faculty) {
+      var option = document.createElement("option");
+      option.value = faculty.id;
+      option.textContent = faculty.name;
+      facultySelect.appendChild(option);
+    });
+    facultySelect.value = chosen;
+    state.facultyId = facultySelect.value;
   }
 
-  function bindTabs() {
-    var tabs = document.querySelectorAll("[role='tab'][data-view]");
+  function showEmpty() {
+    body.hidden = true;
+    emptyNote.hidden = false;
+  }
+
+  function showBody() {
+    emptyNote.hidden = true;
+    body.hidden = false;
+  }
+
+  function fillEntityList() {
+    entityList.textContent = "";
+    state.entities.forEach(function (entity) {
+      var option = document.createElement("option");
+      option.value = entity.name;
+      entityList.appendChild(option);
+    });
+  }
+
+  // Loads the groups, professors or rooms of the faculty into the datalist.
+  function loadEntities() {
+    var request = ++state.entityRequestNumber;
+    entityInput.disabled = !state.facultyId;
+    // Drop the previous list at once, so the datalist never offers the old tab's names.
+    state.entities = [];
+    fillEntityList();
+    if (!state.facultyId) return Promise.resolve();
+    var source;
+    if (state.mode === "group") {
+      source = api.groups(state.facultyId).then(function (rows) {
+        return rows.map(function (row) { return { id: row.id, name: row.name }; });
+      });
+    } else if (state.mode === "professor") {
+      source = api.professors(state.facultyId).then(function (rows) {
+        return rows.map(function (row) { return { id: row.name, name: row.name }; });
+      });
+    } else {
+      source = api.classrooms(state.facultyId).then(function (rows) {
+        return rows.map(function (row) { return { id: row.id, name: row.name }; });
+      });
+    }
+    return source.then(function (entities) {
+      if (request !== state.entityRequestNumber) return;
+      state.entities = entities;
+      fillEntityList();
+    }).catch(function () {
+      if (request !== state.entityRequestNumber) return;
+      state.entities = [];
+      fillEntityList();
+      setStatus("timetable.error", true);
+    });
+  }
+
+  function findEntity(name) {
+    for (var i = 0; i < state.entities.length; i++) {
+      if (state.entities[i].name === name) return state.entities[i];
+    }
+    return null;
+  }
+
+  function updateUrl() {
+    var search = new URLSearchParams();
+    search.set("mode", state.mode);
+    if (state.facultyId) search.set("faculty_id", state.facultyId);
+    if (state.entity) search.set("id", state.entity.id);
+    search.set("date", isoDate(state.monday));
+    window.history.replaceState(null, "", "?" + search.toString());
+  }
+
+  function scheduleParams() {
+    var values = { date: isoDate(state.monday) };
+    // The faculty picks the planning unit to draw ("campus" is not a faculty id: none is sent).
+    if (state.facultyId && state.facultyId !== "campus") values.faculty_id = state.facultyId;
+    if (state.mode === "group") values.group_id = state.entity.id;
+    else if (state.mode === "professor") values.professor = state.entity.name;
+    else values.room_id = state.entity.id;
+    return values;
+  }
+
+  function loadSchedule() {
+    if (!state.entity) {
+      state.items = null;
+      state.week = null;
+      renderWeek();
+      setStatus("");
+      showEmpty();
+      return;
+    }
+    var request = ++state.requestNumber;
+    setStatus("timetable.loading");
+    api.schedule(scheduleParams()).then(function (data) {
+      if (request !== state.requestNumber) return;
+      state.items = data.items;
+      state.week = { number: data.week_number, parity: data.parity };
+      renderWeek();
+      setStatus(data.items.length ? "" : "timetable.noItems");
+      drawGrid();
+      showBody();
+    }).catch(function (error) {
+      if (request !== state.requestNumber) return;
+      state.items = null;
+      renderWeek();
+      setStatus(error.status === 404 ? "timetable.notFound" : "timetable.error", true);
+      showEmpty();
+    });
+  }
+
+  function drawGrid() {
+    if (!state.items) return;
+    grid.render(gridElement, state.items, openDetails);
+  }
+
+  function openDetails(item) {
+    var fill = function (id, text) {
+      var node = document.getElementById(id);
+      if (node) node.textContent = text;
+    };
+    var kind = KIND_KEYS[item.activity_type] ? t(KIND_KEYS[item.activity_type]) : item.activity_type;
+    var day = new Intl.DateTimeFormat(locale(), { weekday: "long", day: "numeric", month: "long" })
+      .format(parseIso(item.date));
+    fill("tt-d-title", item.title);
+    fill("tt-d-kind", kind);
+    fill("tt-d-date", day);
+    fill("tt-d-time", item.start_time + "–" + item.end_time);
+    fill("tt-d-room", item.room_name);
+    fill("tt-d-professor", item.professor || t("timetable.unknown"));
+    fill("tt-d-groups", item.groups && item.groups.length ? item.groups.join(", ") : t("timetable.unknown"));
+    fill("tt-d-priority", String(item.priority));
+    fill("tt-d-parity", t(PARITY_KEYS[item.parity] || "timetable.parityAll"));
+    fill("tt-d-recurring", item.is_recurring ? t("timetable.recurring") : t("timetable.oneOff"));
+    if (!dialog) return;
+    if (typeof dialog.showModal === "function") dialog.showModal();
+    else dialog.setAttribute("open", "");
+  }
+
+  function chooseEntity(entity) {
+    state.entity = entity;
+    updateUrl();
+    loadSchedule();
+  }
+
+  function onEntityChange(isFinal) {
+    var name = entityInput.value.trim();
+    if (!name) {
+      if (state.entity) {
+        state.entity = null;
+        updateUrl();
+        loadSchedule();
+      }
+      return;
+    }
+    var found = findEntity(name);
+    if (found) {
+      if (!state.entity || state.entity.id !== found.id) chooseEntity(found);
+    } else if (isFinal) {
+      state.entity = null;
+      state.items = null;
+      renderWeek();
+      setStatus("timetable.notFound", true);
+      showEmpty();
+    }
+  }
+
+  function setMode(mode) {
+    state.mode = mode;
+    renderTabs();
+    renderEntityLabel();
+    entityInput.value = "";
+    state.entity = null;
+    state.items = null;
+    populateFaculties();
+    updateUrl();
+    loadEntities();
+    setStatus("");
+    showEmpty();
+  }
+
+  function init() {
+    renderTabs();
+    renderEntityLabel();
+    renderWeek();
+    showEmpty();
+
     tabs.forEach(function (tab) {
       tab.addEventListener("click", function () {
-        tabs.forEach(function (other) {
-          other.setAttribute("aria-selected", String(other === tab));
-        });
-        activeView = tab.dataset.view;
-        showViewLabel();
+        setMode(tab.getAttribute("data-mode"));
       });
+    });
+
+    facultySelect.addEventListener("change", function () {
+      state.facultyId = facultySelect.value;
+      entityInput.value = "";
+      state.entity = null;
+      updateUrl();
+      loadEntities();
+      loadSchedule();
+    });
+
+    entityInput.addEventListener("input", function () { onEntityChange(false); });
+    entityInput.addEventListener("change", function () { onEntityChange(true); });
+
+    document.getElementById("tt-prev").addEventListener("click", function () {
+      state.monday = addDays(state.monday, -7);
+      updateUrl();
+      loadSchedule();
+    });
+    document.getElementById("tt-next").addEventListener("click", function () {
+      state.monday = addDays(state.monday, 7);
+      updateUrl();
+      loadSchedule();
+    });
+    document.getElementById("tt-today").addEventListener("click", function () {
+      state.monday = mondayOf(new Date());
+      updateUrl();
+      loadSchedule();
+    });
+    var close = document.getElementById("tt-d-close");
+    if (close && dialog) close.addEventListener("click", function () { dialog.close(); });
+
+    api.faculties().then(function (faculties) {
+      state.faculties = faculties;
+      populateFaculties();
+      return loadEntities();
+    }).then(function () {
+      if (!state.facultyId || !state.urlEntityId) {
+        updateUrl();
+        return;
+      }
+      var match = state.entities.filter(function (entity) {
+        return entity.id === state.urlEntityId;
+      })[0];
+      if (match) {
+        entityInput.value = match.name;
+        chooseEntity(match);
+      } else {
+        setStatus("timetable.notFound", true);
+      }
+    }).catch(function () {
+      setStatus("timetable.error", true);
     });
   }
 
-  draw();
-  showViewLabel();
-  bindTabs();
+  // Everything built by the script is translated again when the language changes.
   document.addEventListener("unispace:langchange", function () {
-    draw();
-    showViewLabel();
+    renderTabs();
+    renderEntityLabel();
+    renderWeek();
+    populateFaculties();
+    fillEntityList();
+    setStatus(state.statusKey, state.statusError);
+    if (dialog && dialog.open) dialog.close();
+    if (state.items && !body.hidden) drawGrid();
   });
+
+  init();
 })();

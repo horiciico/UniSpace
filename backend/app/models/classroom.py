@@ -24,6 +24,10 @@ class Classroom(Base):
     has_projector: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"))
     has_outlets: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"))
     access_status: Mapped[str | None] = mapped_column(Text)  # how to access / open the room
+    # FALSE: left out of the free-room search. TRUE by default.
+    is_bookable: Mapped[bool] = mapped_column(Boolean, default=True, server_default=text("true"))
+    # TRUE: checked on site. FALSE by default, so the room shows as "date estimate".
+    is_field_verified: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"))
 
     activities: Mapped[list["Activity"]] = relationship(  # noqa: F821
         back_populates="classroom", foreign_keys="Activity.classroom_id"

@@ -2,58 +2,82 @@
 <html lang="ro">
   <head>
     <!--#include virtual="/components/head.html" -->
-    <title data-i18n="timetable.title">Timetable · UniSpace</title>
+    <title data-i18n="timetable.title">Orar · UniSpace</title>
+    <script src="/js/api.js" defer></script>
+    <script src="/js/modules.js" defer></script>
+    <script src="/js/grid.js" defer></script>
     <script src="/js/pages/timetable.js" defer></script>
   </head>
   <body>
     <main id="main" class="container">
-      <p class="eyebrow" data-i18n="timetable.eyebrow">Timetable</p>
-      <h1 data-i18n="timetable.heading">This week</h1>
-      <p class="muted" data-i18n="timetable.intro">Week 14 · odd week (sample). The parity and the week number come from the semester setup.</p>
+      <p class="eyebrow" data-i18n="timetable.eyebrow">Orar</p>
+      <h1 data-i18n="timetable.heading">Orar săptămânal</h1>
 
-      <div class="card__meta my-5">
-        <div class="tabs" role="tablist" data-i18n-attr="aria-label:timetable.viewBy" aria-label="View by">
-          <button class="tab" role="tab" type="button" data-view="group" aria-selected="true" data-i18n="timetable.tabGroup">Group</button>
-          <button class="tab" role="tab" type="button" data-view="teacher" aria-selected="false" data-i18n="timetable.tabTeacher">Teacher</button>
-          <button class="tab" role="tab" type="button" data-view="room" aria-selected="false" data-i18n="timetable.tabRoom">Room</button>
+      <div class="card__meta my-5 tt-controls">
+        <div class="tabs" role="tablist" data-i18n-attr="aria-label:timetable.tabsAria" aria-label="Vizualizare după">
+          <button class="tab" role="tab" type="button" data-mode="group" aria-selected="true" data-i18n="timetable.tabGroup">Pe grupă</button>
+          <button class="tab" role="tab" type="button" data-mode="professor" aria-selected="false" data-i18n="timetable.tabProfessor">Pe profesor</button>
+          <button class="tab" role="tab" type="button" data-mode="room" aria-selected="false" data-i18n="timetable.tabRoom">Pe sală</button>
         </div>
-        <div class="chips" data-i18n-attr="aria-label:timetable.weekAria" aria-label="Week">
-          <button class="chip" type="button" data-placeholder-action="placeholder.weekNav" data-i18n="timetable.previous">← Previous</button>
-          <button class="chip" type="button" aria-pressed="true" data-i18n="timetable.thisWeek">This week</button>
-          <button class="chip" type="button" data-placeholder-action="placeholder.weekNav" data-i18n="timetable.next">Next →</button>
+
+        <div class="tt-filters">
+          <label class="field">
+            <span class="field__label" data-i18n="timetable.faculty">Facultate</span>
+            <select id="tt-faculty" required>
+              <option value="" data-i18n="timetable.chooseFaculty">Alege o facultate</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="field__label" id="tt-entity-label" data-i18n="timetable.entityGroup">Grupă</span>
+            <input id="tt-entity" list="entity-list" autocomplete="off" disabled
+                   data-i18n-attr="placeholder:timetable.entitySearch" placeholder="Caută și alege din listă" />
+            <datalist id="entity-list"></datalist>
+          </label>
+        </div>
+
+        <div class="chips tt-week" data-i18n-attr="aria-label:timetable.weekAria" aria-label="Navigare pe săptămâni">
+          <button class="chip" id="tt-prev" type="button" data-i18n="timetable.prev">← Anterioara</button>
+          <span class="chip tt-week-label" id="tt-week-label" aria-live="polite"></span>
+          <button class="chip" id="tt-next" type="button" data-i18n="timetable.next">Următoarea →</button>
+          <button class="chip" id="tt-today" type="button" data-i18n="timetable.today">Azi</button>
         </div>
       </div>
 
-      <p><strong id="tt-view-label" data-i18n="timetable.viewGroup" data-i18n-vars="name:CS-2A">Group CS-2A (sample)</strong></p>
+      <p class="muted" id="tt-status" role="status" aria-live="polite"></p>
 
-      <div class="legend mb-3">
-        <span><span class="legend__swatch legend__swatch--course"></span><span data-i18n="kind.course">Course</span></span>
-        <span><span class="legend__swatch legend__swatch--seminar"></span><span data-i18n="kind.seminar">Seminar</span></span>
-        <span><span class="legend__swatch legend__swatch--lab"></span><span data-i18n="kind.lab">Lab</span></span>
+      <div class="card tt-empty" id="tt-empty">
+        <p data-i18n="timetable.empty">Alege o facultate și o grupă, un profesor sau o sală pentru a vedea orarul</p>
       </div>
 
-      <div class="table-wrap tt-scroll">
-        <div class="tt-grid" id="tt-grid" role="grid" data-i18n-attr="aria-label:timetable.gridAria" aria-label="Weekly timetable (sample)"></div>
-      </div>
-
-      <div class="section">
-        <div class="card-grid card-grid--2">
-          <div class="card">
-            <h3 data-i18n="timetable.exportTitle">Export</h3>
-            <p class="muted" data-i18n="timetable.exportText">Get a link that keeps this timetable in your calendar app.</p>
-            <div class="card__actions">
-              <a class="btn btn-primary btn-small" href="/calendar" data-i18n="timetable.subscribe">Subscribe</a>
-            </div>
-          </div>
-          <div class="card">
-            <h3 data-i18n="timetable.changedTitle">Changed this week</h3>
-            <p class="muted" data-i18n="timetable.changedText">Placeholder: one-off moves and cancellations for this group appear here.</p>
-            <div class="card__actions">
-              <a class="link-arrow" href="/changes" data-i18n="timetable.changeHistory">Change history</a>
-            </div>
-          </div>
+      <div id="tt-body" hidden>
+        <div class="legend mb-3" data-i18n-attr="aria-label:timetable.legendAria" aria-label="Legendă">
+          <span><span class="legend__swatch legend__swatch--course"></span><span data-i18n="kind.course">Curs</span></span>
+          <span><span class="legend__swatch legend__swatch--seminar"></span><span data-i18n="kind.seminar">Seminar</span></span>
+          <span><span class="legend__swatch legend__swatch--lab"></span><span data-i18n="kind.lab">Laborator</span></span>
+          <span><span class="legend__swatch legend__swatch--other"></span><span data-i18n="kind.exam">Examen</span></span>
+        </div>
+        <div class="table-wrap tt-scroll">
+          <div class="tt-grid" id="tt-grid" role="grid" data-i18n-attr="aria-label:timetable.gridAria" aria-label="Orar săptămânal"></div>
         </div>
       </div>
     </main>
+
+    <dialog class="tt-dialog" id="tt-dialog" aria-labelledby="tt-d-title">
+      <h2 id="tt-d-title"></h2>
+      <p><span class="pill pill--info" id="tt-d-kind"></span></p>
+      <dl>
+        <dt data-i18n="timetable.date">Data</dt><dd id="tt-d-date"></dd>
+        <dt data-i18n="timetable.time">Ora</dt><dd id="tt-d-time"></dd>
+        <dt data-i18n="timetable.room">Sală</dt><dd id="tt-d-room"></dd>
+        <dt data-i18n="timetable.professor">Profesor</dt><dd id="tt-d-professor"></dd>
+        <dt data-i18n="timetable.groups">Grupe</dt><dd id="tt-d-groups"></dd>
+        <dt data-i18n="timetable.priority">Prioritate</dt><dd id="tt-d-priority"></dd>
+        <dt data-i18n="timetable.parity">Paritate</dt><dd id="tt-d-parity"></dd>
+        <dt data-i18n="timetable.occurrence">Tip</dt><dd id="tt-d-recurring"></dd>
+      </dl>
+      <div class="card__actions">
+        <button class="btn btn-small" id="tt-d-close" type="button" data-i18n="timetable.close">Închide</button>
+      </div>
+    </dialog>
   </body>
 </html>

@@ -1,6 +1,7 @@
 """ORM models. Import each model module here so Alembic sees it in Base.metadata."""
 from app.models.activity import Activity
 from app.models.activity_exception import ActivityException
+from app.models.activity_group import ActivityGroup
 from app.models.classroom import Classroom
 from app.models.enums import (
     ActivityType,
@@ -19,7 +20,7 @@ from app.models.student_group import StudentGroup
 from app.models.user import User
 
 __all__ = [
-    "Activity", "ActivityException", "ActivityType", "Classroom", "Faculty", "Invitation",
+    "Activity", "ActivityException", "ActivityGroup", "ActivityType", "Classroom", "Faculty", "Invitation",
     "Parity", "PlanningTimeUnit", "PlanningUnitType", "Priority", "RequestStatus",
     "RuleChangeRequest", "Role", "Status", "StudentGroup", "User",
 ]
