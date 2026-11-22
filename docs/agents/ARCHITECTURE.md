@@ -28,7 +28,7 @@ browser ──> frontend (nginx :8080) ──> backend (FastAPI :8000) ──> d
 | Frontend components | `frontend/components/` | page template and the shared chrome (header, footer, toggles, toast) | the pages |
 | Frontend styles | `frontend/styles/` | design tokens, base, one CSS file per component | the pages and components |
 | Frontend scripts | `frontend/js/`, `frontend/i18n/` | session service, single-page scripts, i18n runtime and dictionaries | the pages and components |
-| Web routing | `infra/nginx/default.conf` | clean URLs, 404 page, proxy of `/health` and `/api/` to the backend | nginx, backend |
+| Web routing | `infra/nginx/default.conf` | clean URLs, 404 page, proxy of `/health` (public) and `/api/` (signed in) to the backend | nginx, backend |
 | ETL pipeline | `etl/` (`downloader.py`, `loader.py`) | imports the ULBS schedule API into PostgreSQL in four steps | ULBS API (HTTP), `data/schedules/`, PostgreSQL (backend models) |
 | Stack | `docker-compose.yml` | runs db, backend, frontend | Docker |
 
@@ -60,7 +60,9 @@ frontend/
     motion.css     reduced-motion overrides, loaded last
   js/
     auth.js        session service: reads /auth/me for the header; not a security check
-    pages/         scripts of single pages (login.js, timetable.js)
+    api.js         fetch wrappers for /api/* (faculties, groups, professors, classrooms, schedule)
+    grid.js        weekly timetable grid (CSS Grid): 10-minute rows 08:00-21:00, overlap lanes
+    pages/         scripts of single pages (login.js, timetable.js: Orar, free.js: Liber acum)
   i18n/            i18n.js runtime; ro.js and en.js dictionaries (D-011)
 ```
 
@@ -107,6 +109,7 @@ Run it: `docker compose --profile etl run --rm etl` (all four steps). Options: `
 
 Rules the loader applies (decisions D-014 to D-017 and the ETL answers in OPEN-QUESTIONS):
 - one `activities` row per (room, day, parity, start, end); every entry in that slot is merged into it.
+- every study group of a merged slot is linked in `activity_groups`; `activities.group_id` keeps the lowest group id.
 - stored rows are named "Didactic Activity", priority 5; the type comes from the ULBS name (see `ACTIVITY_TYPE_BY_NAME`).
 - entries with no room, or an online room, are not stored. Entries with no time are reported as unparsed.
 - an entry with no study group is stored with no group; an entry with no type is stored as Course and reported as a warning.
@@ -144,6 +147,6 @@ Local only so far. Deploy is not defined (Q-005). See AGENTS.md sections 2 and 5
 - Pages are gated by nginx: `auth_request` asks the backend (`/auth/me`, `/auth/admin` for
   `/admin/`) before any page is served, so a typed URL does not get around it (D-010).
   Public: `/login` (its page `pages/shared/login.html`), `/styles/`, `/components/`, `/js/`,
-  `/i18n/`, `/health`, `/auth/`. The API routes under `/api/` are not gated by nginx.
+  `/i18n/`, `/health`, `/auth/`. The API routes under `/api/` are signed in only: nginx asks `/auth/me` first and answers 401 when signed out (C-003).
 - `frontend/js/auth.js` only reads the signed-in user for the header; it is not a security check.
 - Contracts: docs/agents/CONTRACTS.md.

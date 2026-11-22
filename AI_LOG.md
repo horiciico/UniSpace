@@ -16,6 +16,18 @@ What I did with it: <kept, changed, rejected, merged; where it went>
 
 ---
 
+## 2026-11-22 · /api/* gated by nginx; endpoints recorded as C-003
+Tool: Claude Code (Haiku 5.5), free prompt
+What I asked: record the endpoints, and gate the /api/* routes as well (signed in only).
+What I got: infra/nginx/default.conf: `location ^~ /api/` now runs auth_request on /auth/me (signed out: plain 401); `/health` stays a public exact location. Checked with curl: signed out 401 on /api/faculties and /api/schedule, signed in 200, /health 200; the temporary user was removed. CONTRACTS.md: C-003 (approved, confirmed 2026-11-22) lists every route, its parameters, response shape and errors. ARCHITECTURE.md: the boundary note now says /api/ is signed in only. frontend/js/api.js: a 401 sends the visitor to /login. Ledger lint passes.
+What I did with it: not committed. D-010 (proposed) already covers the gate; its promotion is left to the user.
+
+## 2026-11-22 · Liber acum and Orar: schema, API, both pages (branch feat/liber-acum-timetable)
+Tool: Claude Code (Haiku 5.5), free prompt
+What I asked: build the two pages, Liber acum (free rooms) and Orar (weekly timetable), with the endpoints from the spec, on a separate branch, with the i18n dictionaries.
+What I got: migration d41f7c2a9e10: `activity_groups` (every group of a merged activity; backfilled from `activities.group_id`), `classrooms.is_bookable` (default true) and `classrooms.is_field_verified` (default false). Endpoints: `GET /api/classrooms/free`, `GET /api/classrooms`, `GET /api/schedule`, `GET /api/faculties`, `GET /api/groups`, `GET /api/professors`. Week parity is counted per planning unit (D-014). The ETL loader links every study group of a merged slot. Frontend: `pages/student/rooms/free.html`, `pages/student/timetable.html`, `js/api.js`, `js/grid.js`, `js/pages/free.js`, `js/pages/timetable.js`, `styles/components/room-card.css`; ro/en keys added, 3 unused keys removed. Full ETL run against the ULBS API: 6,145 activities, 7,242 group links, 655 activities with several groups. Tests: backend 68 passed (new `test_timetable_api.py`), ETL 66 passed (new merged-group test). Browser check on the running stack (headless Edge over DevTools, temporary signed-in user, removed afterwards): both pages, both languages, no console errors.
+What I did with it: branch `feat/liber-acum-timetable` from `main`. Not committed. Open items are listed in the report: nginx does not gate `/api/`, and the iCal button is hidden.
+
 ## 2026-11-22 · Open questions answered (Q-002, Q-013, Q-014); Q-003, Q-006, Q-008 deferred
 Tool: Claude Code (Haiku 5.5), free prompt
 What I asked: address the open questions.

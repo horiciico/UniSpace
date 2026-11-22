@@ -29,13 +29,14 @@ from datetime import time
 from pathlib import Path
 
 import httpx
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from app.db import SessionLocal
 from app.models import (
     Activity,
     ActivityException,
+    ActivityGroup,
     ActivityType,
     Classroom,
     Faculty,
@@ -212,6 +213,8 @@ def activity_values(members: list[Block]) -> dict:
     group = min(with_group, key=lambda b: (b.group_id, b.item_id or 0)) if with_group else None
     types = {b.activity_type for b in members}
     professors = sorted({b.professor for b in members if b.professor})
+    # Every study group in the slot, by API id; the first one is also stored on the row.
+    groups = {b.group_id: b.group_name for b in with_group}
     return {
         "name": DIDACTIC_ACTIVITY_NAME,
         "type": next(t for t in TYPE_PRECEDENCE if t in types),
@@ -219,6 +222,7 @@ def activity_values(members: list[Block]) -> dict:
         "room_id": first.room_id,
         "group_api_id": group.group_id if group else None,
         "group_name": group.group_name if group else "",
+        "groups": groups,
         "day_of_week": first.day,
         "start_time": first.start,
         "end_time": first.end,
@@ -354,7 +358,9 @@ def upsert_group(db: Session, ctx: LoadContext, api_id: int, name: str, report: 
 
 
 def upsert_activity(db: Session, unit_id: uuid.UUID, external_id: str, values: dict,
-                    classroom_id: uuid.UUID, group_id: uuid.UUID | None, report: LoadReport) -> None:
+                    classroom_id: uuid.UUID, group_id: uuid.UUID | None,
+                    report: LoadReport) -> Activity | None:
+    """Insert or update the row. Returns it, or None when an admin edited it (left as it is)."""
     target = {
         "name": values["name"],
         "type": values["type"],
@@ -374,7 +380,7 @@ def upsert_activity(db: Session, unit_id: uuid.UUID, external_id: str, values: d
         )
     )
     if existing is None:
-        db.add(Activity(
+        activity = Activity(
             planning_time_unit_id=unit_id,
             external_id=external_id,
             specific_date=None,
@@ -382,12 +388,14 @@ def upsert_activity(db: Session, unit_id: uuid.UUID, external_id: str, values: d
             status=Status.APPROVED,
             user_id=None,
             **target,
-        ))
+        )
+        db.add(activity)
+        db.flush()  # the id is needed to link the groups
         report.inserted += 1
-        return
+        return activity
     if existing.is_manually_modified:
         report.skipped_manual += 1
-        return
+        return None
     changed = False
     for name, value in target.items():
         if getattr(existing, name) != value:
@@ -397,6 +405,15 @@ def upsert_activity(db: Session, unit_id: uuid.UUID, external_id: str, values: d
         report.updated += 1
     else:
         report.unchanged += 1
+    return existing
+
+
+def sync_activity_groups(db: Session, activity_id: uuid.UUID, group_ids: list[uuid.UUID]) -> None:
+    """Make the activity's group links exactly these groups (replaces the old links)."""
+    db.execute(delete(ActivityGroup).where(ActivityGroup.activity_id == activity_id))
+    for group_id in sorted(set(group_ids), key=str):
+        db.add(ActivityGroup(activity_id=activity_id, group_id=group_id))
+    db.flush()
 
 
 def remove_stale(db: Session, unit_id: uuid.UUID, seen: set[str], report: LoadReport) -> None:
@@ -468,7 +485,13 @@ def load_envelope(db: Session, envelope: dict, ctx: LoadContext, report: LoadRep
                 group_id = None
                 if values["group_api_id"] is not None:
                     group_id = upsert_group(db, ctx, values["group_api_id"], values["group_name"], report)
-                upsert_activity(db, unit.id, external_id, values, classroom_id, group_id, report)
+                activity = upsert_activity(db, unit.id, external_id, values, classroom_id, group_id, report)
+                if activity is not None:
+                    group_ids = [
+                        upsert_group(db, ctx, api_id, name, report)
+                        for api_id, name in sorted(values["groups"].items())
+                    ]
+                    sync_activity_groups(db, activity.id, group_ids)
         except Exception as exc:  # one bad row must not stop the file
             report.unparsed.append((source, members[0].item_id, members[0].subject,
                                     f"database error: {type(exc).__name__}: {exc}"))

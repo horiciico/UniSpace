@@ -24,7 +24,7 @@ from app.models import (
 def test_all_tables_and_enums_registered() -> None:
     assert set(Base.metadata.tables) == {
         "users", "student_groups", "classrooms", "activities", "activity_exceptions", "invitations",
-        "faculties", "planning_time_units", "rule_change_requests",
+        "faculties", "planning_time_units", "rule_change_requests", "activity_groups",
     }
     assert [p.value for p in Priority] == [1, 2, 3, 4, 5]
     assert Priority.COURSE > Priority.EXAM > Priority.OFFICIAL_FACULTY > Priority.STUDENT_ORG > Priority.STUDENT

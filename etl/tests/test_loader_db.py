@@ -16,6 +16,7 @@ from app.db import engine
 from app.models import (
     Activity,
     ActivityException,
+    ActivityGroup,
     ActivityType,
     Classroom,
     Faculty,
@@ -185,3 +186,32 @@ def test_a_file_for_another_faculty_is_refused(db: Session) -> None:
     ctx = LoadContext(rooms={}, faculty_ids={"tst5": faculty.id, "other": uuid.uuid4()})
     with pytest.raises(ValueError, match="another faculty"):
         run(db, envelope("other", unit.id, {"Monday": []}), ctx)
+
+
+def test_a_merged_slot_links_every_study_group_and_a_rerun_keeps_them(db: Session) -> None:
+    faculty, unit = setup_faculty_and_unit(db, "tst10")
+    room = str(uuid.uuid4())
+    ctx = LoadContext(
+        rooms={room: RoomInfo("Sala G", 40, "tst10")},
+        faculty_ids={"tst10": faculty.id},
+    )
+    env = envelope("tst10", unit.id, {
+        "Monday": [
+            entry(1, room, group=7),
+            entry(2, room, group=8, subject="Analiza"),  # same slot: one activity, two groups
+        ],
+    })
+    run(db, env, ctx)
+    activity = db.scalars(select(Activity).where(Activity.planning_time_unit_id == unit.id)).one()
+
+    def linked_groups() -> set[int]:
+        rows = db.scalars(
+            select(StudentGroup.external_id)
+            .join(ActivityGroup, ActivityGroup.group_id == StudentGroup.id)
+            .where(ActivityGroup.activity_id == activity.id)
+        ).all()
+        return set(rows)
+
+    assert linked_groups() == {7, 8}
+    run(db, env, ctx)
+    assert linked_groups() == {7, 8}
