@@ -7,77 +7,78 @@
 :root {
   color-scheme: light;
 
-  /* Colour: light */
-  --color-bg: #f7f6f2;
+  /* Colour: light. From the UniSpace logo: navy #0e243c, teal #08a896. Links and focus use a
+     darker teal, because bright teal text on white is too faint. */
+  --color-bg: #f4f7f6;
   --color-surface: #ffffff;
-  --color-text: #1d1c2b;
-  --color-muted: #55546a;
-  --color-border: #dcdad2;
-  --color-primary: #263ec9;
-  --color-link: #263ec9;
+  --color-text: #0e243c;
+  --color-muted: #4d5f70;
+  --color-border: #d3dedb;
+  --color-primary: #0e243c;
+  --color-link: #066e62;
   --color-on-primary: #ffffff;
-  --color-accent: #ffb703;
-  --color-on-accent: #1d1c2b;
-  --color-focus: #263ec9;
-  --color-success-bg: #d7f3e3;
-  --color-success-text: #14603d;
-  --color-warning-bg: #fde7c0;
+  --color-accent: #08a896;
+  --color-on-accent: #0e243c;
+  --color-focus: #066e62;
+  --color-success-bg: #d4f2ea;
+  --color-success-text: #0a5c4e;
+  --color-warning-bg: #fdebc8;
   --color-warning-text: #7a4a00;
-  --color-danger-bg: #fbd5d0;
+  --color-danger-bg: #fbd9d4;
   --color-danger-text: #8a2118;
-  --color-info-bg: #dfe3ff;
-  --color-info-text: #2b2e8f;
-  --color-shadow: rgb(20 19 40 / 0.08);
+  --color-info-bg: #dbe7f2;
+  --color-info-text: #1d3f63;
+  --color-shadow: rgb(14 36 60 / 0.08);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --color-bg: #13121d;
-    --color-surface: #1d1c2c;
-    --color-text: #ecebf6;
-    --color-muted: #aaa9bf;
-    --color-border: #33324a;
-    --color-primary: #263ec9;
-    --color-link: #8f91ff;
-    --color-on-primary: #ffffff;
-    --color-accent: #ffb703;
-    --color-on-accent: #1d1c2b;
-    --color-focus: #8f91ff;
-    --color-success-bg: #123d2a;
-    --color-success-text: #9fe3c2;
-    --color-warning-bg: #4a3210;
-    --color-warning-text: #ffd58a;
-    --color-danger-bg: #4a1d19;
-    --color-danger-text: #ffb4a9;
-    --color-info-bg: #252a55;
-    --color-info-text: #c5c9ff;
-    --color-shadow: rgb(0 0 0 / 0.4);
+    --color-bg: #0b1a2b;
+    --color-surface: #12233a;
+    --color-text: #e6eef6;
+    --color-muted: #9fb3c6;
+    --color-border: #2a4059;
+    --color-primary: #1cc3ac;
+    --color-link: #5ed8c6;
+    --color-on-primary: #06201b;
+    --color-accent: #08a896;
+    --color-on-accent: #06201b;
+    --color-focus: #5ed8c6;
+    --color-success-bg: #123f35;
+    --color-success-text: #9be6d4;
+    --color-warning-bg: #4a3a14;
+    --color-warning-text: #ffd68a;
+    --color-danger-bg: #4a1f1c;
+    --color-danger-text: #ffb8ae;
+    --color-info-bg: #1a3350;
+    --color-info-text: #bcd9f2;
+    --color-shadow: rgb(0 0 0 / 0.45);
   }
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --color-bg: #13121d;
-  --color-surface: #1d1c2c;
-  --color-text: #ecebf6;
-  --color-muted: #aaa9bf;
-  --color-border: #33324a;
-  --color-primary: #263ec9;
-  --color-link: #8f91ff;
-  --color-on-primary: #ffffff;
-  --color-accent: #ffb703;
-  --color-on-accent: #1d1c2b;
-  --color-focus: #8f91ff;
-  --color-success-bg: #123d2a;
-  --color-success-text: #9fe3c2;
-  --color-warning-bg: #4a3210;
-  --color-warning-text: #ffd58a;
-  --color-danger-bg: #4a1d19;
-  --color-danger-text: #ffb4a9;
-  --color-info-bg: #252a55;
-  --color-info-text: #c5c9ff;
-  --color-shadow: rgb(0 0 0 / 0.4);
+  --color-bg: #0b1a2b;
+  --color-surface: #12233a;
+  --color-text: #e6eef6;
+  --color-muted: #9fb3c6;
+  --color-border: #2a4059;
+  --color-primary: #1cc3ac;
+  --color-link: #5ed8c6;
+  --color-on-primary: #06201b;
+  --color-accent: #08a896;
+  --color-on-accent: #06201b;
+  --color-focus: #5ed8c6;
+  --color-success-bg: #123f35;
+  --color-success-text: #9be6d4;
+  --color-warning-bg: #4a3a14;
+  --color-warning-text: #ffd68a;
+  --color-danger-bg: #4a1f1c;
+  --color-danger-text: #ffb8ae;
+  --color-info-bg: #1a3350;
+  --color-info-text: #bcd9f2;
+  --color-shadow: rgb(0 0 0 / 0.45);
 }
 
 :root {

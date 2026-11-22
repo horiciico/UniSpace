@@ -34,7 +34,8 @@
   width: 28px;
   height: 28px;
   border-radius: var(--radius-sm);
-  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  object-fit: contain;
+  box-shadow: 0 0 0 1px var(--color-border); /* keeps the white tile visible on a white header */
 }
 
 .nav {

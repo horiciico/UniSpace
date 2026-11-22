@@ -94,21 +94,21 @@ the lowest is 6.1:1.
 ### Color
 | Token | Light | Dark | Use |
 |---|---|---|---|
-| `--color-bg` | #f7f6f2 | #13121d | page background |
-| `--color-surface` | #ffffff | #1d1c2c | cards, header, tables |
-| `--color-text` | #1d1c2b | #ecebf6 | body text (15.5:1 / 15.7:1) |
-| `--color-muted` | #55546a | #aaa9bf | secondary text (6.8:1 / 8.1:1) |
-| `--color-border` | #dcdad2 | #33324a | borders, table lines |
-| `--color-primary` | #263ec9 | #263ec9 | theme colour: primary buttons, active nav, brand (8.0:1 with white text, both themes) |
-| `--color-link` | #263ec9 | #8f91ff | text links. Dark uses a lighter tint: #263ec9 is 2.1:1 on dark surfaces |
-| `--color-on-primary` | #ffffff | #ffffff | text on primary (8.0:1) |
-| `--color-accent` | #ffb703 | #ffb703 | highlight, secondary call to action |
-| `--color-on-accent` | #1d1c2b | #1d1c2b | text on accent (9.6:1) |
-| `--color-focus` | #263ec9 | #8f91ff | focus ring (dark uses the lighter tint, for the same reason as links) |
-| `--color-success-bg` / `-text` | #d7f3e3 / #14603d | #123d2a / #9fe3c2 | free, approved, confirmed |
-| `--color-warning-bg` / `-text` | #fde7c0 / #7a4a00 | #4a3210 / #ffd58a | soon, requested, pending, lab blocks |
-| `--color-danger-bg` / `-text` | #fbd5d0 / #8a2118 | #4a1d19 / #ffb4a9 | busy, rejected, bumped, cancelled |
-| `--color-info-bg` / `-text` | #dfe3ff / #2b2e8f | #252a55 / #c5c9ff | neutral info, course blocks |
+| `--color-bg` | #f4f7f6 | #0b1a2b | page background |
+| `--color-surface` | #ffffff | #12233a | cards, header, tables |
+| `--color-text` | #0e243c | #e6eef6 | body text (14.6:1 / 15.0:1) |
+| `--color-muted` | #4d5f70 | #9fb3c6 | secondary text (6.1:1 / 8.1:1) |
+| `--color-border` | #d3dedb | #2a4059 | borders, table lines |
+| `--color-primary` | #0e243c (logo navy) | #1cc3ac (logo teal, brightened) | primary buttons, active nav, brand. Light: 15.7:1 with white text; dark: 7.7:1 with `--color-on-primary` |
+| `--color-link` | #066e62 | #5ed8c6 | text links. Light uses a darker teal: bright teal #08a896 is about 3:1 on white |
+| `--color-on-primary` | #ffffff | #06201b | text on primary (15.7:1 / 7.7:1) |
+| `--color-accent` | #08a896 (logo teal) | #08a896 | highlight, secondary call to action, the logo's accent |
+| `--color-on-accent` | #0e243c | #06201b | text on accent (5.3:1 / 5.7:1) |
+| `--color-focus` | #066e62 | #5ed8c6 | focus ring (same tint as links) |
+| `--color-success-bg` / `-text` | #d4f2ea / #0a5c4e | #123f35 / #9be6d4 | free, approved, confirmed (6.7:1 / 8.2:1) |
+| `--color-warning-bg` / `-text` | #fdebc8 / #7a4a00 | #4a3a14 / #ffd68a | soon, requested, pending, lab blocks (6.4:1 / 8.0:1) |
+| `--color-danger-bg` / `-text` | #fbd9d4 / #8a2118 | #4a1f1c / #ffb8ae | busy, rejected, bumped, cancelled (6.9:1 / 8.5:1) |
+| `--color-info-bg` / `-text` | #dbe7f2 / #1d3f63 | #1a3350 / #bcd9f2 | neutral info, course blocks (8.6:1 / 8.8:1) |
 | `--color-shadow` | rgb(20 19 40 / 0.08) | rgb(0 0 0 / 0.4) | card shadows |
 
 ### Typography

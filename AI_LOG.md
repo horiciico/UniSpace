@@ -16,6 +16,18 @@ What I did with it: <kept, changed, rejected, merged; where it went>
 
 ---
 
+## 2026-11-22 · Header brand shows the logo mark
+Tool: Claude Code (Haiku 5.5), free prompt
+What I asked: the green square next to the UniSpace text should contain the logo.
+What I got: `frontend/public/brand-mark.png` (the logo mark on the light tile, 128 px); `header.js` shows it as an image in place of the gradient placeholder; `header.css` keeps the size and adds a thin border so the tile shows on a white header. Checked in the browser on the login page in both themes. Backend tests 75 passed.
+What I did with it: not committed.
+
+## 2026-11-22 · Favicon from the logo; colour scheme from the logo (light and dark)
+Tool: Claude Code (Haiku 5.5), free prompt
+What I asked: add the logo in frontend/public as the favicon; update the colour scheme to match it, good in both light and dark themes.
+What I got: colours sampled from the logo: navy #0e243c, teal #08a896. Light: navy text and primary, darker teal for links and focus (bright teal is too faint on white). Dark: brightened teal for primary and links on navy. Every text pair is at least 5.3:1 (AA). `tokens.css` and `DESIGN.md` updated; `theme-color` meta is the navy. Icons made from the mark on a light rounded tile (readable on light and dark browser tabs): `frontend/public/favicon.ico`, `favicon-32.png`, `apple-touch-icon.png`; linked from `head.html`. nginx serves `/public/` and `/favicon.ico` without a session. Checks: icon URLs answer 200 signed out; login page screenshot in both schemes. Backend tests pass.
+What I did with it: not committed. Open: the header brand mark is still the gradient placeholder, not the logo.
+
 ## 2026-11-22 · Free now lists the rooms free for the current module
 Tool: Claude Code (Haiku 5.5), free prompt
 What I asked: on load, with no time frame chosen, the free now page lists the faculty's rooms free in the current 1.5-hour module, and shows until when each is free.
