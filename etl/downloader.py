@@ -435,9 +435,9 @@ def format_download_summary(results: list[DownloadResult]) -> str:
 
 def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="ULBS schedule ETL")
-    parser.add_argument("--step", choices=("all", "sync", "schedules"), default="all",
-                        help="all = steps 1-3 (default); sync = faculties and planning units; "
-                             "schedules = weekly schedule files for the current planning units")
+    parser.add_argument("--step", choices=("all", "sync", "schedules", "load"), default="all",
+                        help="all = steps 1-4 (default); sync = faculties and planning units; "
+                             "schedules = weekly schedule files; load = write the files to the database")
     parser.add_argument("--faculty", help="one faculty code, e.g. sti (default: all faculties)")
     parser.add_argument("--year", type=int, help="academic year (default: the current year)")
     return parser.parse_args(argv)
@@ -470,6 +470,17 @@ async def _run_schedules(args: argparse.Namespace) -> bool:
     return True
 
 
+async def _run_load(args: argparse.Namespace) -> None:
+    """Step 4. Imported here so that the downloader does not depend on the loader at import time."""
+    from etl.loader import format_report, load_all
+
+    report = await load_all(args.faculty)
+    if not report.files_loaded and not report.errors:
+        print("No schedule files found in data/schedules. Run the schedules step first.")
+        return
+    print(format_report(report))
+
+
 async def _main(argv: list[str] | None = None) -> None:
     args = _parse_args(argv)
     if args.step in ("all", "sync"):
@@ -478,7 +489,12 @@ async def _main(argv: list[str] | None = None) -> None:
     if args.step in ("all", "schedules"):
         if args.step == "all":
             print()
-        await _run_schedules(args)
+        if not await _run_schedules(args) and args.step == "all":
+            return
+    if args.step in ("all", "load"):
+        if args.step == "all":
+            print()
+        await _run_load(args)
 
 
 if __name__ == "__main__":

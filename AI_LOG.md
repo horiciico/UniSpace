@@ -16,6 +16,24 @@ What I did with it: <kept, changed, rejected, merged; where it went>
 
 ---
 
+## 2026-11-22 · ETL chapter closed: open items resolved
+Tool: Claude Code (Haiku 5.5), free prompt
+What I asked: resolve every open item so the ETL chapter can close.
+What I got: (1) fresh-database run: a new empty database, the full pipeline (migrations and all four steps), 6,152 activities inserted, the same unparsed and warning cases; the test database was dropped afterwards. (2) The 2 rows that changed on the first load are explained: one merged an unlinked entry (professor names joined), one merged a missing-type entry (type LAB to COURSE, by the precedence rule). (3) test_auth: the count covered every user in the table, so it failed whenever a real account existed; it now counts only the test's own account. (4) test_models: table names and the renamed class updated. (5) data/ added to .gitignore (generated, re-creatable). (6) ARCHITECTURE.md: ETL section added. Backend 48 passed; ETL 64 passed. Ledger lint passes.
+What I did with it: scheduling is not set up; it depends on the deploy plan (Q-005) and is left open. Local commit on feat/etl-faculties, not pushed.
+
+## 2026-11-22 · Loader decisions: unlinked entries, Optional as Course, missing type warned
+Tool: Claude Code (Haiku 5.5), free prompt
+What I asked: entries with no study group are stored with no group; `Optional` and entries with no type map to Course, and the missing-type entry gets a warning; entries with no time stay unparsed with the exact reason.
+What I got: loader updated; tests 64 passed. Full load: 14 activities inserted (entries with no group), 2 updated (existing rows changed; cause not yet checked), 6,152 unchanged on the second run. Unparsed: 21 (13 empty time slots, 8 with no time slots). Warnings: 1 entry with no type, stored as Course.
+What I did with it: not committed. Open: the cause of the 2 updated rows is unchecked.
+
+## 2026-11-22 · ETL step 4: loader writes schedules to the database
+Tool: Claude Code (Haiku 5.5), free prompt
+What I asked: step 4: load the schedule files into classrooms, student groups and activities, idempotently, with the rules from the answers: one row per (room, day, parity, start, end); name "Didactic Activity"; priority 5; capacity null when unknown; entries without a room (and online entries) not stored; admin-edited rows never changed.
+What I got: migration bc1469b9b255 (classrooms.capacity nullable; classrooms.external_id unique on its own; student_groups.external_id unique). Models updated. `etl/loader.py`: parse, merge contiguous time slots, group, room fetch (unfiltered list plus `?faculty=` per faculty, paginated: 565 rooms), upserts, stale-row removal (kept if an exception or change request points at the row), report. Wired into the downloader as `--step load`; `--step all` now runs steps 1 to 4.
+What I did with it: ETL tests 60 passed (loader rules and database behaviour). Full load: 9 files, 6,917 entries, 6,138 activities stored (all priority 5, none admin-edited), 374 classrooms (113 with unknown capacity, 7 rooms taken from the schedule because the rooms list does not have them), 855 student groups. A second run inserted and deleted nothing (6,138 unchanged). Unparsed: 42 entries with no study formation id, 21 with no usable time, 8 with an activity type outside the mapping. Backend: 42 passed; test_auth fails as before; test_models does not import. Not committed.
+
 ## 2026-11-21 · One command runs the whole ETL pipeline
 Tool: Claude Code (Haiku 5.5), free prompt
 What I asked: a single command that starts the pipeline for all faculties.
