@@ -68,7 +68,10 @@ ACTIVITY_TYPE_BY_NAME = {
     "Tutorat": ActivityType.SEMINAR,
     "Facultativ": ActivityType.COURSE,
     "C+S": ActivityType.COURSE,
+    "Optional": ActivityType.COURSE,  # decided: blocks the room as an official course
 }
+# An entry with no activity type at all is stored as a Course and reported as a warning.
+MISSING_TYPE_FALLBACK = ActivityType.COURSE
 # When one row merges entries of several types, the first type in this order is kept.
 TYPE_PRECEDENCE = (ActivityType.COURSE, ActivityType.LAB, ActivityType.SEMINAR)
 DIDACTIC_ACTIVITY_NAME = "Didactic Activity"
@@ -101,9 +104,10 @@ class Block:
     start: time
     end: time
     activity_type: ActivityType
-    group_id: int
+    group_id: int | None  # None: the entry has no study group; the row is stored unlinked
     group_name: str
     professor: str | None
+    type_missing: bool = False
 
 
 GroupKey = tuple[str, int, Parity, time, time]
@@ -138,25 +142,29 @@ def parse_item(item: dict) -> list[Block]:
     if parity is None:
         raise Unparsed(f"unknown parity {item.get('parity')!r}")
     type_name = (item.get("activityType") or {}).get("name")
-    activity_type = ACTIVITY_TYPE_BY_NAME.get(type_name)
-    if activity_type is None:
-        raise Unparsed(f"unknown activity type {type_name!r}")
+    type_missing = type_name is None
+    if type_missing:
+        activity_type = MISSING_TYPE_FALLBACK
+    else:
+        activity_type = ACTIVITY_TYPE_BY_NAME.get(type_name)
+        if activity_type is None:
+            raise Unparsed(f"unknown activity type {type_name!r}")
 
     slots = item.get("timeSlots") or []
     if not slots:
         raise Unparsed("no time slots")
     pairs: list[tuple[time, time]] = []
     for slot in slots:
+        if not slot.get("startTime") or not slot.get("endTime"):
+            raise Unparsed("time slot has no start or end time")
         try:
             pairs.append((time.fromisoformat(slot["startTime"]), time.fromisoformat(slot["endTime"])))
-        except (KeyError, TypeError, ValueError):
-            raise Unparsed(f"bad time slot {slot!r}") from None
+        except (TypeError, ValueError):
+            raise Unparsed(f"time slot has an unreadable time: {slot.get('startTime')}-{slot.get('endTime')}") from None
     blocks = merge_contiguous(pairs)
 
     group = item.get("studyFormation") or {}
-    group_id = group.get("id")
-    if not isinstance(group_id, int):
-        raise Unparsed("no study formation id")
+    group_id = group.get("id") if isinstance(group.get("id"), int) else None
     group_name = (group.get("name") or "")[:GROUP_NAME_MAX]
     professor = item.get("professor") or None
 
@@ -175,6 +183,7 @@ def parse_item(item: dict) -> list[Block]:
             group_id=group_id,
             group_name=group_name,
             professor=professor,
+            type_missing=type_missing,
         )
         for start, end in blocks
     ]
@@ -198,7 +207,9 @@ def external_id_for(key: GroupKey) -> str:
 
 def activity_values(members: list[Block]) -> dict:
     """The stored fields of one activity row, built from the entries it merges."""
-    first = min(members, key=lambda b: (b.group_id, b.item_id or 0))
+    first = min(members, key=lambda b: (b.start, b.item_id or 0))
+    with_group = [b for b in members if b.group_id is not None]
+    group = min(with_group, key=lambda b: (b.group_id, b.item_id or 0)) if with_group else None
     types = {b.activity_type for b in members}
     professors = sorted({b.professor for b in members if b.professor})
     return {
@@ -206,8 +217,8 @@ def activity_values(members: list[Block]) -> dict:
         "type": next(t for t in TYPE_PRECEDENCE if t in types),
         "priority": DIDACTIC_PRIORITY,
         "room_id": first.room_id,
-        "group_api_id": first.group_id,
-        "group_name": first.group_name,
+        "group_api_id": group.group_id if group else None,
+        "group_name": group.group_name if group else "",
         "day_of_week": first.day,
         "start_time": first.start,
         "end_time": first.end,
@@ -284,6 +295,7 @@ class LoadReport:
     deduplicated: int = 0
     no_room: int = 0
     unparsed: list[tuple[str, object, str, str]] = field(default_factory=list)  # file, id, subject, reason
+    warnings: list[tuple[str, object, str, str]] = field(default_factory=list)  # same shape; stored anyway
     errors: list[str] = field(default_factory=list)
     rooms_stored: int = 0
     rooms_unknown_capacity: int = 0
@@ -342,7 +354,7 @@ def upsert_group(db: Session, ctx: LoadContext, api_id: int, name: str, report: 
 
 
 def upsert_activity(db: Session, unit_id: uuid.UUID, external_id: str, values: dict,
-                    classroom_id: uuid.UUID, group_id: uuid.UUID, report: LoadReport) -> None:
+                    classroom_id: uuid.UUID, group_id: uuid.UUID | None, report: LoadReport) -> None:
     target = {
         "name": values["name"],
         "type": values["type"],
@@ -432,7 +444,11 @@ def load_envelope(db: Session, envelope: dict, ctx: LoadContext, report: LoadRep
         for item in day_items:
             report.entries += 1
             try:
-                blocks.extend(parse_item(item))
+                parsed = parse_item(item)
+                blocks.extend(parsed)
+                if parsed and parsed[0].type_missing:
+                    report.warnings.append((source, item.get("id"), item.get("subject") or "",
+                                            "activity type missing: stored as Course"))
             except NotStored:
                 report.no_room += 1
             except Unparsed as exc:
@@ -449,7 +465,9 @@ def load_envelope(db: Session, envelope: dict, ctx: LoadContext, report: LoadRep
         try:
             with db.begin_nested():
                 classroom_id = upsert_classroom(db, ctx, values["room_id"], members[0], report)
-                group_id = upsert_group(db, ctx, values["group_api_id"], values["group_name"], report)
+                group_id = None
+                if values["group_api_id"] is not None:
+                    group_id = upsert_group(db, ctx, values["group_api_id"], values["group_name"], report)
                 upsert_activity(db, unit.id, external_id, values, classroom_id, group_id, report)
         except Exception as exc:  # one bad row must not stop the file
             report.unparsed.append((source, members[0].item_id, members[0].subject,
@@ -520,6 +538,11 @@ def format_report(report: LoadReport) -> str:
         lines.append("")
         lines.append("file errors:")
         lines.extend(f"  {error}" for error in report.errors)
+    if report.warnings:
+        lines.append("")
+        lines.append(f"warnings (stored, please check): {len(report.warnings)}")
+        for source, item_id, subject, reason in report.warnings:
+            lines.append(f"  {source} | id {item_id} | {subject} | {reason}")
     if report.unparsed:
         lines.append("")
         lines.append(f"unparsed entries: {len(report.unparsed)}")

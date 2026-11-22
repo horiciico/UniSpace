@@ -11,7 +11,7 @@ from app.models import (
     Activity,
     ActivityType,
     Classroom,
-    EventException,
+    ActivityException,
     Parity,
     Priority,
     Role,
@@ -23,7 +23,8 @@ from app.models import (
 
 def test_all_tables_and_enums_registered() -> None:
     assert set(Base.metadata.tables) == {
-        "user", "student_group", "classroom", "activity", "event_exception", "invitation",
+        "users", "student_groups", "classrooms", "activities", "activity_exceptions", "invitations",
+        "faculties", "planning_time_units", "rule_change_requests",
     }
     assert [p.value for p in Priority] == [1, 2, 3, 4, 5]
     assert Priority.COURSE > Priority.EXAM > Priority.OFFICIAL_FACULTY > Priority.STUDENT_ORG > Priority.STUDENT
@@ -100,7 +101,7 @@ def test_relationships_round_trip(db: Session) -> None:
     db.add_all([user, group])
     db.flush()
     a = make_activity(db, room, user_id=user.id, group_id=group.id, alt_classroom_id=alt.id)
-    exc = EventException(activity_id=a.id, original_date=__import__("datetime").date(2026, 11, 16), is_cancelled=True)
+    exc = ActivityException(activity_id=a.id, original_date=__import__("datetime").date(2026, 11, 16), is_cancelled=True)
     db.add(exc)
     db.flush()
     db.refresh(a)

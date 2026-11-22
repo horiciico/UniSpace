@@ -98,7 +98,8 @@ def test_second_login_does_not_duplicate(client, db, monkeypatch) -> None:
     google_returns(monkeypatch)
     callback(client)
     callback(client)
-    assert db.scalar(select(func.count()).select_from(User)) == 1
+    # Count only this test's account: the database may hold other users (a real sign-in, seeded data).
+    assert len(users(db, "ana@ulbsibiu.ro")) == 1
 
 
 def test_university_hd_with_foreign_email_is_forbidden(client, db, monkeypatch) -> None:

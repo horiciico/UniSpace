@@ -76,7 +76,7 @@ def test_online_entries_are_not_stored(room: str) -> None:
     ({"activityType": {"name": "Examen"}}, "unknown activity type"),
     ({"timeSlots": []}, "no time slots"),
     ({"timeSlots": [{"startTime": "10:00", "endTime": "08:00"}]}, "ends before it starts"),
-    ({"studyFormation": None}, "no study formation id"),
+    ({"timeSlots": [{"startTime": None, "endTime": None}]}, "time slot has no start or end time"),
 ])
 def test_bad_entries_are_unparsed_with_a_reason(overrides: dict, reason: str) -> None:
     with pytest.raises(Unparsed, match=reason):
@@ -139,3 +139,30 @@ def test_rooms_without_capacity_store_none() -> None:
     assert rooms["a"] == RoomInfo("Sala A", 30, "sti")
     assert rooms["b"] == RoomInfo("Sala B", None, None)
     assert rooms["c"].capacity is None
+
+
+def test_entry_without_study_group_is_stored_unlinked() -> None:
+    block = parse_item(entry(studyFormation=None))[0]
+    assert block.group_id is None
+    values = activity_values([block])
+    assert values["group_api_id"] is None
+    assert values["group_name"] == ""
+
+
+def test_group_is_taken_from_a_member_that_has_one() -> None:
+    unlinked = parse_item(entry(id=1, studyFormation=None))
+    linked = parse_item(entry(id=2, studyFormation={"id": 9, "name": "GR9"}))
+    values = activity_values(unlinked + linked)
+    assert values["group_api_id"] == 9
+    assert values["group_name"] == "GR9"
+
+
+def test_optional_type_is_stored_as_course() -> None:
+    assert parse_item(entry(activityType={"name": "Optional"}))[0].activity_type == ActivityType.COURSE
+
+
+def test_missing_type_is_stored_as_course_and_flagged() -> None:
+    block = parse_item(entry(activityType=None))[0]
+    assert block.activity_type == ActivityType.COURSE
+    assert block.type_missing is True
+    assert parse_item(entry())[0].type_missing is False

@@ -29,6 +29,7 @@ browser ──> frontend (nginx :8080) ──> backend (FastAPI :8000) ──> d
 | Frontend styles | `frontend/styles/` | design tokens, base, one CSS file per component | the pages and components |
 | Frontend scripts | `frontend/js/`, `frontend/i18n/` | session service, single-page scripts, i18n runtime and dictionaries | the pages and components |
 | Web routing | `infra/nginx/default.conf` | clean URLs, 404 page, proxy of `/health` and `/api/` to the backend | nginx, backend |
+| ETL pipeline | `etl/` (`downloader.py`, `loader.py`) | imports the ULBS schedule API into PostgreSQL in four steps | ULBS API (HTTP), `data/schedules/`, PostgreSQL (backend models) |
 | Stack | `docker-compose.yml` | runs db, backend, frontend | Docker |
 
 ## Frontend structure
@@ -89,6 +90,30 @@ script, after the include.
 **Styling rules.** No `style=""` attributes in pages (a test enforces it). Use a component
 class, or a utility when the change is only spacing or alignment. The timetable sets grid
 positions from JavaScript, the one allowed exception.
+
+## ETL pipeline
+Standalone: not wired into FastAPI. Runs as the compose service `etl` (profile `etl`, so a plain
+`docker compose up` does not start it). Source: the ULBS schedule API.
+
+| Step | What it does | Writes |
+|---|---|---|
+| 1 faculties | `GET /api/faculties` | `faculties` |
+| 2 sync | active semester or module per faculty (`isCurrent`, date fallback) | `planning_time_units` |
+| 3 schedules | `GET /api/faculties/{code}/schedule/weekly` per current unit | `data/schedules/*.json` (file, not the database) |
+| 4 load | reads the files; rooms from `/api/faculties/{code}/rooms` (`?faculty=` filter, paginated) | `classrooms`, `student_groups`, `activities` |
+
+Run it: `docker compose --profile etl run --rm etl` (all four steps). Options: `--faculty <code>`,
+`--step sync|schedules|load`.
+
+Rules the loader applies (decisions D-014 to D-017 and the ETL answers in OPEN-QUESTIONS):
+- one `activities` row per (room, day, parity, start, end); every entry in that slot is merged into it.
+- stored rows are named "Didactic Activity", priority 5; the type comes from the ULBS name (see `ACTIVITY_TYPE_BY_NAME`).
+- entries with no room, or an online room, are not stored. Entries with no time are reported as unparsed.
+- an entry with no study group is stored with no group; an entry with no type is stored as Course and reported as a warning.
+- rooms without a capacity store NULL ("unknown capacity").
+- rows edited by an admin (`is_manually_modified`) are never changed.
+- a row that leaves the feed is deleted, unless an exception or a change request points at it.
+- a second run on the same data inserts and deletes nothing.
 
 ## Data flow
 1. Browser requests a page → nginx checks the session, then serves the page file. Clean URLs map to files explicitly in `infra/nginx/default.conf`: `/timetable` → `pages/student/timetable.html`, `/rooms/` → `pages/student/rooms/index.html`. Unknown paths → `pages/shared/404.html`.
