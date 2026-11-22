@@ -20,6 +20,47 @@ from app.models import Activity, Parity, PlanningTimeUnit
 LOCAL_TZ = ZoneInfo("Europe/Bucharest")
 
 
+def _clock(minutes: int) -> time:
+    return time(minutes // 60, minutes % 60)
+
+
+# The university's modules: 90 minutes of teaching, then a 10-minute break.
+# 08:00-09:30, 09:40-11:10, ... 19:40-21:10. A room is booked for whole modules only.
+MODULES: tuple[tuple[time, time], ...] = tuple(
+    (_clock(8 * 60 + index * 100), _clock(8 * 60 + index * 100 + 90)) for index in range(8)
+)
+MODULE_STARTS = frozenset(start for start, _ in MODULES)
+MODULE_ENDS = frozenset(end for _, end in MODULES)
+BOOKING_END = MODULES[-1][1]  # 21:10: no room can be booked after the last module
+
+
+class NoModuleLeft(ValueError):
+    """No module starts at or after this time on the day it is asked for."""
+
+
+def booking_window(start: time | None, end: time | None) -> tuple[time, time]:
+    """The module interval a free-room search covers. Raises ValueError when it is not allowed.
+
+    - No times: the module that contains now, or the next one during a break.
+    - start only: the same, from that time (so an exact local time gives its module).
+    - start and end: from the start of one module to the end of another.
+    """
+    if end is None:
+        if start is None:
+            start = local_now().time().replace(second=0, microsecond=0)
+        for module_start, module_end in MODULES:
+            if start < module_end:
+                return module_start, module_end
+        raise NoModuleLeft("no module is left today: the last module ends at 21:10")
+    if start is None:
+        raise ValueError("start_time is needed with end_time")
+    if end <= start:
+        raise ValueError("end_time must be after start_time")
+    if start not in MODULE_STARTS or end not in MODULE_ENDS:
+        raise ValueError("a booking starts at the start of a module and ends at the end of a module")
+    return start, end
+
+
 def local_now() -> datetime:
     return datetime.now(LOCAL_TZ)
 

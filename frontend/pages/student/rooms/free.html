@@ -4,6 +4,7 @@
     <!--#include virtual="/components/head.html" -->
     <title data-i18n="free.title">Săli libere · UniSpace</title>
     <script src="/js/api.js" defer></script>
+    <script src="/js/modules.js" defer></script>
     <script src="/js/pages/free.js" defer></script>
   </head>
   <body>
@@ -27,18 +28,18 @@
               </label>
               <label class="field">
                 <span class="field__label" data-i18n="free.start">De la</span>
-                <input id="free-start" type="time" value="10:00" />
+                <select id="free-from"></select>
               </label>
               <label class="field">
                 <span class="field__label" data-i18n="free.end">Până la</span>
-                <input id="free-end" type="time" value="12:00" />
+                <select id="free-to"></select>
               </label>
             </div>
           </div>
           <label class="field">
             <span class="field__label" data-i18n="free.faculty">Facultate</span>
-            <select id="free-faculty">
-              <option value="" data-i18n="free.allFaculties">Toate facultățile</option>
+            <select id="free-faculty" required>
+              <option value="" data-i18n="free.chooseFaculty">Alege o facultate</option>
             </select>
           </label>
           <label class="field">

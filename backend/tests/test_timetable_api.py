@@ -133,27 +133,79 @@ def test_course_does_not_run_in_an_even_week(client: TestClient, world: dict) ->
     assert rooms[0]["free_until"] == "13:00"  # next: the seminar; the one-off is at 15:00
 
 
-def test_free_until_is_null_when_nothing_follows(client: TestClient, world: dict) -> None:
+def test_free_until_is_the_end_of_the_booking_day_when_nothing_follows(client: TestClient, world: dict) -> None:
     response = client.get("/api/classrooms/free", params={"date": MONDAY_ODD_WEEK, "start_time": "17:00"})
     rows = free_ids(response.json(), world)
-    assert rows[str(world["campus"].id)]["free_until"] is None
+    assert rows[str(world["campus"].id)]["free_until"] == "21:10"
     assert str(world["closed"].id) not in rows  # not bookable
 
 
-def test_interval_overlapping_a_seminar_is_taken(client: TestClient, world: dict) -> None:
+def test_module_interval_overlapping_a_seminar_is_taken(client: TestClient, world: dict) -> None:
     response = client.get("/api/classrooms/free", params={
-        "date": MONDAY_ODD_WEEK, "start_time": "12:00", "end_time": "13:30",
+        "date": MONDAY_ODD_WEEK, "start_time": "13:00", "end_time": "14:30",
         "faculty_id": str(world["faculty"].id),
     })
     assert response.json() == []
 
 
-def test_interval_that_ends_before_a_seminar_is_free(client: TestClient, world: dict) -> None:
+def test_module_interval_without_activities_is_free(client: TestClient, world: dict) -> None:
+    # Even week: the course does not run, so 11:20-12:50 is free until the seminar at 13:00.
     response = client.get("/api/classrooms/free", params={
-        "date": MONDAY_ODD_WEEK, "start_time": "12:00", "end_time": "12:45",
+        "date": MONDAY_EVEN_WEEK, "start_time": "11:20", "end_time": "12:50",
         "faculty_id": str(world["faculty"].id),
     })
-    assert [row["id"] for row in response.json()] == [str(world["owned"].id)]
+    rooms = response.json()
+    assert [row["id"] for row in rooms] == [str(world["owned"].id)]
+    assert rooms[0]["free_until"] == "13:00"
+
+
+def test_times_that_are_not_module_boundaries_are_refused(client: TestClient) -> None:
+    refused = [
+        {"start_time": "12:00", "end_time": "13:30"},  # neither is a module boundary
+        {"end_time": "11:10"},  # an end without a start
+        {"start_time": "13:00", "end_time": "13:00"},  # not after the start
+    ]
+    for params in refused:
+        response = client.get("/api/classrooms/free", params={"date": MONDAY_ODD_WEEK, **params})
+        assert response.status_code == 400, params
+    # A start alone is allowed: it maps to the module that contains that time (09:40 is a start).
+    assert client.get("/api/classrooms/free", params={"date": MONDAY_ODD_WEEK, "start_time": "10:30"}).status_code == 200
+
+
+def test_several_modules_can_be_booked_together(client: TestClient, world: dict) -> None:
+    response = client.get("/api/classrooms/free", params={
+        "date": MONDAY_ODD_WEEK, "start_time": "09:40", "end_time": "14:30",
+        "faculty_id": str(world["faculty"].id),
+    })
+    assert response.status_code == 200 and response.json() == []  # the course runs in the first module
+
+
+def test_after_the_last_module_only_the_current_day_is_closed(client: TestClient, world: dict) -> None:
+    from app.planning import local_today
+
+    today = local_today()
+    tomorrow = today.fromordinal(today.toordinal() + 1).isoformat()
+    # Today, after 21:10: refused (the "free now" case).
+    assert client.get("/api/classrooms/free", params={"date": today.isoformat(), "start_time": "21:12"}).status_code == 400
+    # A later day: rooms can still be booked by module, including the last one.
+    last = client.get("/api/classrooms/free", params={
+        "date": tomorrow, "start_time": "19:40", "end_time": "21:10", "faculty_id": str(world["faculty"].id),
+    })
+    assert last.status_code == 200
+    # A later day, start only after 21:10: no module starts then, so nothing is free.
+    assert client.get("/api/classrooms/free", params={"date": tomorrow, "start_time": "23:23"}).json() == []
+
+
+def test_nothing_can_be_booked_after_the_last_module(client: TestClient, world: dict) -> None:
+    after = client.get("/api/classrooms/free", params={
+        "date": MONDAY_ODD_WEEK, "start_time": "21:10", "faculty_id": str(world["faculty"].id),
+    })
+    assert after.status_code == 400
+    past = client.get("/api/classrooms/free", params={
+        "date": MONDAY_ODD_WEEK, "start_time": "19:40", "end_time": "21:20",
+        "faculty_id": str(world["faculty"].id),
+    })
+    assert past.status_code == 400
 
 
 def test_campus_filter_and_capacity(client: TestClient, world: dict) -> None:
@@ -186,7 +238,7 @@ def test_verified_rooms_sort_first(client: TestClient, world: dict) -> None:
 
 
 def test_end_time_must_follow_start(client: TestClient) -> None:
-    response = client.get("/api/classrooms/free", params={"start_time": "12:00", "end_time": "11:00"})
+    response = client.get("/api/classrooms/free", params={"start_time": "11:20", "end_time": "09:40"})
     assert response.status_code == 400
 
 

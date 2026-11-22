@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.db import get_db
 from app.models import Classroom, Faculty
-from app.planning import hhmm, local_now, local_today, occurrences
+from app.planning import BOOKING_END, NoModuleLeft, booking_window, hhmm, local_today, occurrences
 
 router = APIRouter(prefix="/api/classrooms", tags=["classrooms"])
 
@@ -61,16 +61,25 @@ def free_classrooms(
     only_verified: bool | None = None,
     db: Session = Depends(get_db),
 ) -> list[dict]:
-    """Rooms free at start_time, or free over [start_time, end_time] when end_time is given.
+    """Rooms free for a window of whole modules (planning.booking_window).
 
-    Only bookable rooms. free_until is the start of the room's next activity that day
-    (null: free for the rest of the day). Sorted: verified first, then the latest
-    free_until (no next activity first), then name.
+    Without times: the module that contains now (the next one during a break). start_time
+    alone works the same way from that time. Both: from the start of a module to the end of a
+    module. Only bookable rooms. free_until is the next start that day, or 21:10 when nothing
+    follows. Sorted: verified first, then the latest free_until, then name.
     """
-    day = day or local_today()
-    start = start_time or local_now().time().replace(second=0, microsecond=0)
-    if end_time is not None and end_time <= start:
-        raise HTTPException(status_code=400, detail="end_time must be after start_time")
+    today = local_today()
+    day = day or today
+    try:
+        window_start, window_end = booking_window(start_time, end_time)
+    except NoModuleLeft as exc:
+        # Only the current day is closed after the last module. A later day has rooms
+        # bookable by module, but none starts at this time, so nothing is free for it.
+        if day > today:
+            return []
+        raise HTTPException(status_code=400, detail=str(exc))
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
 
     stmt = (
         select(Classroom, Faculty.name)
@@ -93,19 +102,13 @@ def free_classrooms(
         activity = occurrence.activity
         busy.setdefault(activity.classroom_id, []).append((activity.start_time, activity.end_time))
 
-    # The window's last moment: the end, or the start when only a moment is checked.
-    window_end = end_time or start
-    found: list[tuple[dict, time | None]] = []
+    found: list[tuple[dict, time]] = []
     for room, faculty_name in rooms:
         intervals = busy.get(room.id, [])
-        if end_time is not None:
-            taken = any(s < end_time and e > start for s, e in intervals)
-        else:
-            taken = any(s <= start < e for s, e in intervals)
-        if taken:
+        if any(s < window_end and e > window_start for s, e in intervals):
             continue
         next_starts = [s for s, _ in intervals if s >= window_end]
-        free_until = min(next_starts) if next_starts else None
+        free_until = min(next_starts) if next_starts else BOOKING_END
         found.append((
             {
                 "id": str(room.id),
@@ -116,15 +119,13 @@ def free_classrooms(
                 "has_projector": room.has_projector,
                 "has_outlets": room.has_outlets,
                 "is_field_verified": room.is_field_verified,
-                "free_until": hhmm(free_until) if free_until else None,
+                "free_until": hhmm(free_until),
             },
             free_until,
         ))
 
-    def sort_key(item: tuple[dict, time | None]):
+    def sort_key(item: tuple[dict, time]):
         room, free_until = item
-        # NULLS FIRST, then the later time first (free_until DESC).
-        until_key = (0, 0) if free_until is None else (1, -_minutes(free_until))
-        return (0 if room["is_field_verified"] else 1, until_key, room["name"])
+        return (0 if room["is_field_verified"] else 1, -_minutes(free_until), room["name"])
 
     return [room for room, _ in sorted(found, key=sort_key)]

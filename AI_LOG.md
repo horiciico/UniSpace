@@ -16,6 +16,24 @@ What I did with it: <kept, changed, rejected, merged; where it went>
 
 ---
 
+## 2026-11-22 · Free rooms page: a faculty must be chosen first
+Tool: Claude Code (Haiku 5.5), free prompt
+What I asked: on the free now page, no rooms until a faculty is selected, and prompt the user to select one.
+What I got: the faculty list starts on a placeholder ("Alege o facultate") and the "All faculties" option is removed; without a faculty no request is made, the list is empty and the status line asks for a faculty (`free.pickFaculty`). The select gets the focus on load. Dictionaries updated (`free.allFaculties` replaced by `free.chooseFaculty` and `free.pickFaculty`). Backend unchanged (faculty stays optional in the API). Backend tests 75 passed. Browser check: no faculty gives no cards and the prompt; a faculty with a custom interval gives 18 rooms; no console errors.
+What I did with it: not committed.
+
+## 2026-11-22 · The after-21:10 closure applies to the current day only
+Tool: Claude Code (Haiku 5.5), free prompt
+What I asked: clarify that no booking is closed after 21:10 for later days; only the free-now list for today is empty after 21:10.
+What I got: the backend refused any start-only search after 21:10, whatever the date. Now only the current day is refused (400); a later day returns no rooms for a start-only search at that time, and module intervals on any day work. Test added. Backend tests 75 passed. The frontend needed no change.
+What I did with it: not committed.
+
+## 2026-11-22 · Free now uses the exact local time; bookings are whole modules; nothing after 21:10
+Tool: Claude Code (Haiku 5.5), free prompt
+What I asked: free now calculates the exact local time on each visit; the last module ends at 21:10 and nothing is bookable after it; a room is booked for one or more whole 1.5-hour modules.
+What I got: planning.py: MODULES table, `booking_window` (no times: the module containing now, or the next during a break; a start only: the same from that time; start and end: must be module boundaries; after 21:10: refused). The free endpoint uses that window; `free_until` is never null (21:10 when nothing follows). frontend/js/modules.js shares the table with the grid. Free-now sends the exact local time on load, on tab entry and when the page is shown again; after 21:10 it shows a message and does not search. Custom intervals are chosen by module. Messages added to ro/en; `free.freeRestOfDay` removed. Tests: backend 74 passed. Browser check at 21:27 (after the last module): the message, the module pickers, the range message, a custom search; no console errors. Daytime behaviour checked by the backend tests only. C-003 updated (user request).
+What I did with it: not committed.
+
 ## 2026-11-22 · Timetable follows the module schedule (08:00 to 21:10)
 Tool: Claude Code (Haiku 5.5), free prompt
 What I asked: the timetable follows the module convention: 90-minute modules with a 10-minute break, 08:00-09:30 up to 19:40-21:10.

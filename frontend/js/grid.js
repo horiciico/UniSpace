@@ -14,11 +14,9 @@
 (function () {
   "use strict";
 
-  var FIRST_MINUTE = 8 * 60;
-  var MODULE_COUNT = 8;
-  var MODULE_LENGTH = 90;   // minutes of teaching
-  var MODULE_PERIOD = 100;  // a module and the 10-minute break after it
-  var LAST_MINUTE = FIRST_MINUTE + (MODULE_COUNT - 1) * MODULE_PERIOD + MODULE_LENGTH; // 21:10
+  var MODULES = window.UniSpaceModules;
+  var FIRST_MINUTE = MODULES.list[0].startMin; // 08:00
+  var LAST_MINUTE = MODULES.endMin;            // 21:10
   var SLOT_MINUTES = 10;
   var SLOT_COUNT = (LAST_MINUTE - FIRST_MINUTE) / SLOT_MINUTES; // 79
   var DAY_KEYS = ["day.mon", "day.tue", "day.wed", "day.thu", "day.fri", "day.sat", "day.sun"];
@@ -34,10 +32,6 @@
   function toMinutes(hhmm) {
     var parts = String(hhmm).split(":");
     return Number(parts[0]) * 60 + Number(parts[1]);
-  }
-
-  function clock(minutes) {
-    return String(Math.floor(minutes / 60)).padStart(2, "0") + ":" + String(minutes % 60).padStart(2, "0");
   }
 
   function element(tag, className, text) {
@@ -111,13 +105,13 @@
       container.appendChild(head);
     });
 
-    for (var module = 0; module < MODULE_COUNT; module++) {
-      var start = FIRST_MINUTE + module * MODULE_PERIOD;
-      var label = element("div", "tt-time", clock(start) + "–" + clock(start + MODULE_LENGTH));
+    MODULES.list.forEach(function (module) {
+      var label = element("div", "tt-time", module.start + "–" + module.end);
       label.style.gridColumn = "1";
-      label.style.gridRow = ((start - FIRST_MINUTE) / SLOT_MINUTES + 2) + " / span " + (MODULE_LENGTH / SLOT_MINUTES);
+      label.style.gridRow = ((module.startMin - FIRST_MINUTE) / SLOT_MINUTES + 2) + " / span " +
+        ((module.endMin - module.startMin) / SLOT_MINUTES);
       container.appendChild(label);
-    }
+    });
 
     var columns = [];
     for (var day = 0; day < DAY_KEYS.length; day++) {

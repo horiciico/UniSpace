@@ -1,20 +1,21 @@
 /*
- * Liber acum (free rooms) page. "Free now" asks the backend for the current time; "custom
- * interval" sends the chosen date and times. Each room card links to its timetable
- * (/timetable?mode=room&faculty_id=...&id=...). The backend decides who is free; this script
- * only sends the filters and draws the cards.
+ * Liber acum (free rooms) page. "Free now" sends the exact local time of every visit (on load,
+ * on switching to the tab, and when the page is shown again). "Custom interval" picks whole
+ * modules. The backend decides who is free; this script sends the filters and draws the cards.
+ * Each card links to the room's timetable (/timetable?mode=room&faculty_id=...&id=...).
  */
 (function () {
   "use strict";
 
   var t = window.UniSpaceI18n.t;
   var api = window.UniSpaceApi;
+  var modules = window.UniSpaceModules;
 
   var modeButtons = document.querySelectorAll("[data-free-mode]");
   var customFields = document.getElementById("free-custom");
   var dateInput = document.getElementById("free-date");
-  var startInput = document.getElementById("free-start");
-  var endInput = document.getElementById("free-end");
+  var fromSelect = document.getElementById("free-from");
+  var toSelect = document.getElementById("free-to");
   var facultySelect = document.getElementById("free-faculty");
   var capacityInput = document.getElementById("free-capacity");
   var projectorInput = document.getElementById("free-projector");
@@ -25,13 +26,13 @@
 
   var mode = "now";
   var requestNumber = 0;
+  var checkedAt = "";
 
   function pad(value) {
     return String(value).padStart(2, "0");
   }
 
-  function todayIso() {
-    var now = new Date();
+  function todayIso(now) {
     return now.getFullYear() + "-" + pad(now.getMonth() + 1) + "-" + pad(now.getDate());
   }
 
@@ -44,17 +45,55 @@
     statusLine.className = isError && text ? "notice notice--error" : "muted";
   }
 
+  // The index of the module that contains the moment, or the next one during a break.
+  function moduleIndexAt(minutes) {
+    for (var index = 0; index < modules.list.length; index++) {
+      if (minutes < modules.list[index].endMin) return index;
+    }
+    return -1;
+  }
+
+  // Fills the two module pickers. Each option reads "1 · 08:00–09:30".
+  function fillModules(selectedFrom, selectedTo) {
+    [fromSelect, toSelect].forEach(function (select) {
+      select.textContent = "";
+      modules.list.forEach(function (module, index) {
+        var option = document.createElement("option");
+        option.value = String(index);
+        option.textContent = module.number + " · " + module.start + "–" + module.end;
+        select.appendChild(option);
+      });
+    });
+    fromSelect.value = String(selectedFrom);
+    toSelect.value = String(selectedTo);
+  }
+
+  // The request for the current mode. Free now: the exact local date and time, no end.
+  function now() {
+    var moment = new Date();
+    var minutes = moment.getHours() * 60 + moment.getMinutes();
+    return { date: todayIso(moment), minutes: minutes, time: pad(moment.getHours()) + ":" + pad(moment.getMinutes()) };
+  }
+
   function filters() {
-    var custom = mode === "custom";
-    return {
+    var values = {
       faculty_id: facultySelect.value || null,
-      date: custom && dateInput.value ? dateInput.value : null,
-      start_time: custom && startInput.value ? startInput.value : null,
-      end_time: custom && endInput.value ? endInput.value : null,
       min_capacity: capacityInput.value ? capacityInput.value : null,
       has_projector: projectorInput.checked ? true : null,
       only_verified: verifiedInput.checked ? true : null
     };
+    if (mode === "custom") {
+      var from = modules.list[Number(fromSelect.value)];
+      var to = modules.list[Number(toSelect.value)];
+      values.date = dateInput.value || todayIso(new Date());
+      values.start_time = from.start;
+      values.end_time = to.end;
+    } else {
+      var moment = now();
+      values.date = moment.date;
+      values.start_time = moment.time;
+    }
+    return values;
   }
 
   function roomHref(room, date) {
@@ -88,9 +127,7 @@
     badges.className = "room-card__badges";
     var availability = document.createElement("span");
     availability.className = "pill pill--info";
-    availability.textContent = room.free_until
-      ? t("free.freeUntil", { time: room.free_until })
-      : t("free.freeRestOfDay");
+    availability.textContent = t("free.freeUntil", { time: room.free_until });
     badges.appendChild(availability);
     var verified = document.createElement("span");
     verified.className = "pill " + (room.is_field_verified ? "pill--confirmed" : "pill--pending");
@@ -132,22 +169,39 @@
   }
 
   function load() {
-    var values = filters();
-    if (mode === "custom" && values.start_time && values.end_time && values.end_time <= values.start_time) {
-      setStatus(t("free.badRange"), true);
+    var current = ++requestNumber;
+    // No rooms until a faculty is chosen: the page asks for one instead of listing every room.
+    if (!facultySelect.value) {
       draw([], null);
+      setStatus(t("free.pickFaculty"));
       return;
     }
-    var current = ++requestNumber;
+    if (mode === "now") {
+      var moment = now();
+      checkedAt = moment.time;
+      // After the last module no room can be booked: say so, and do not ask.
+      if (moment.minutes >= modules.endMin) {
+        draw([], null);
+        setStatus(t("free.afterLast"), true);
+        return;
+      }
+    }
+    if (mode === "custom" && Number(toSelect.value) < Number(fromSelect.value)) {
+      draw([], null);
+      setStatus(t("free.badRange"), true);
+      return;
+    }
+    var values = filters();
     setStatus(t("free.loading"));
     api.freeClassrooms(values).then(function (rooms) {
       if (current !== requestNumber) return;
       draw(rooms, values.date);
-      setStatus(rooms.length ? t("free.count", { n: rooms.length }) : t("free.empty"));
-    }).catch(function () {
+      var count = rooms.length ? t("free.count", { n: rooms.length }) : t("free.empty");
+      setStatus(mode === "now" ? count + " · " + t("free.checkedAt", { time: checkedAt }) : count);
+    }).catch(function (error) {
       if (current !== requestNumber) return;
       draw([], null);
-      setStatus(t("free.error"), true);
+      setStatus(t(error.status === 400 ? "free.badRange" : "free.error"), true);
     });
   }
 
@@ -164,11 +218,11 @@
   function loadFaculties() {
     var chosen = facultySelect.value;
     api.faculties().then(function (faculties) {
-      var all = document.createElement("option");
-      all.value = "";
-      all.textContent = t("free.allFaculties");
+      var placeholder = document.createElement("option");
+      placeholder.value = "";
+      placeholder.textContent = t("free.chooseFaculty");
       facultySelect.textContent = "";
-      facultySelect.appendChild(all);
+      facultySelect.appendChild(placeholder);
       var campus = document.createElement("option");
       campus.value = "campus";
       campus.textContent = t("common.campus");
@@ -180,6 +234,7 @@
         facultySelect.appendChild(option);
       });
       facultySelect.value = chosen;
+      if (!chosen) setStatus(t("free.pickFaculty"));
     }).catch(function () {
       setStatus(t("free.error"), true);
     });
@@ -190,17 +245,31 @@
       setMode(button.getAttribute("data-free-mode"));
     });
   });
-  [facultySelect, dateInput, startInput, endInput, capacityInput, projectorInput, verifiedInput]
+  [facultySelect, dateInput, fromSelect, toSelect, capacityInput, projectorInput, verifiedInput]
     .forEach(function (control) {
       control.addEventListener("change", load);
     });
 
-  dateInput.value = todayIso();
+  // Every visit gets the exact local time: when the page is shown again (back button,
+  // returning to the tab), the free-now list is asked again.
+  window.addEventListener("pageshow", function () {
+    if (mode === "now") load();
+  });
+  document.addEventListener("visibilitychange", function () {
+    if (!document.hidden && mode === "now") load();
+  });
+
+  var moment = now();
+  var index = moduleIndexAt(moment.minutes);
+  dateInput.value = moment.date;
+  fillModules(index < 0 ? 0 : index, index < 0 ? 0 : index);
   loadFaculties();
   setMode("now");
+  facultySelect.focus();
 
-  // The cards and the status line are built by the script: ask again in the new language.
+  // The cards, the status and the module labels are built by the script: build them again.
   document.addEventListener("unispace:langchange", function () {
+    fillModules(Number(fromSelect.value), Number(toSelect.value));
     loadFaculties();
     load();
   });
