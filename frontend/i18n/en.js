@@ -308,5 +308,6 @@ window.UniSpaceI18n.register("en", {
   "kind.exam": "Exam",
   "kind.reservation": "Reservation",
   "day.sat": "Sat",
+  "day.sun": "Sun",
   "common.campus": "Campus"
 });

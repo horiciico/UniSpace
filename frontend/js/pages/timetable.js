@@ -208,6 +208,8 @@
 
   function scheduleParams() {
     var values = { date: isoDate(state.monday) };
+    // The faculty picks the planning unit to draw ("campus" is not a faculty id: none is sent).
+    if (state.facultyId && state.facultyId !== "campus") values.faculty_id = state.facultyId;
     if (state.mode === "group") values.group_id = state.entity.id;
     else if (state.mode === "professor") values.professor = state.entity.name;
     else values.room_id = state.entity.id;

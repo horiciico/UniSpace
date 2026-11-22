@@ -272,3 +272,73 @@ def test_classroom_lookup_lists_the_flags(client: TestClient, world: dict) -> No
     assert by_id[str(world["owned"].id)]["is_bookable"] is True
     assert str(world["campus"].id) not in by_id
     assert str(world["closed"].id) in by_id and by_id[str(world["closed"].id)]["is_bookable"] is False
+
+
+# --- one planning unit per timetable ----------------------------------------------------
+
+@pytest.fixture
+def other_faculty(db: Session, world: dict) -> dict:
+    """Another faculty with its own unit, and an activity of that unit in the owned room (Monday 16:00)."""
+    tag = world["tag"]
+    faculty = Faculty(code=f"u{tag}", name="Alta facultate")
+    db.add(faculty)
+    db.flush()
+    unit = PlanningTimeUnit(
+        faculty_id=faculty.id, external_id=2, year=2026, name="Alt semestru",
+        type=PlanningUnitType.SEMESTER, start_date=date(2026, 10, 5), end_date=date(2027, 1, 31),
+    )
+    db.add(unit)
+    db.flush()
+    intruder = Activity(
+        name="Intrus", type=ActivityType.COURSE, priority=Priority.COURSE, classroom_id=world["owned"].id,
+        day_of_week=1, start_time=time(16, 0), end_time=time(17, 0), parity=Parity.ALL,
+        planning_time_unit_id=unit.id, external_id=f"i-{tag}",
+    )
+    db.add(intruder)
+    db.flush()
+    return {"faculty": faculty, "unit": unit, "intruder": intruder}
+
+
+def titles(response_json: dict) -> set[str]:
+    return {item["title"] for item in response_json["items"]}
+
+
+def test_room_timetable_shows_only_the_selected_faculty_unit(client: TestClient, world: dict,
+                                                             other_faculty: dict) -> None:
+    room = str(world["owned"].id)
+    mine = client.get("/api/schedule", params={
+        "room_id": room, "date": MONDAY_EVEN_WEEK, "faculty_id": str(world["faculty"].id),
+    }).json()
+    assert titles(mine) == {"Seminar X", "Colocviu"}  # the other faculty's "Intrus" is left out
+    assert mine["week_number"] == 8 and mine["parity"] == "EVEN"  # from this faculty's unit
+
+    theirs = client.get("/api/schedule", params={
+        "room_id": room, "date": MONDAY_EVEN_WEEK, "faculty_id": str(other_faculty["faculty"].id),
+    }).json()
+    assert titles(theirs) == {"Intrus", "Colocviu"}  # one-off bookings are shown for any unit
+
+
+def test_without_a_faculty_the_most_used_unit_is_shown(client: TestClient, world: dict,
+                                                       other_faculty: dict) -> None:
+    # Odd week: the course of the world's unit runs, so that unit has two activities in this room
+    # against one of the other faculty's.
+    body = client.get("/api/schedule", params={"room_id": str(world["owned"].id), "date": MONDAY_ODD_WEEK}).json()
+    assert "Intrus" not in titles(body)
+    assert {"Algebra", "Seminar X"} <= titles(body)
+
+
+def test_a_faculty_without_a_unit_for_the_week_shows_no_week_number(client: TestClient, world: dict,
+                                                                    db: Session) -> None:
+    faculty = Faculty(code=f"v{world['tag']}", name="Fara semestru")
+    db.add(faculty)
+    db.flush()
+    db.add(PlanningTimeUnit(
+        faculty_id=faculty.id, external_id=3, year=2026, name="Vechi",
+        type=PlanningUnitType.MODULE, start_date=date(2026, 1, 5), end_date=date(2026, 2, 27),
+    ))
+    db.flush()
+    body = client.get("/api/schedule", params={
+        "room_id": str(world["owned"].id), "date": MONDAY_EVEN_WEEK, "faculty_id": str(faculty.id),
+    }).json()
+    assert body["week_number"] is None and body["parity"] is None
+    assert titles(body) == {"Colocviu"}  # only the one-off booking remains

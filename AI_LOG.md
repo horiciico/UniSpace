@@ -16,6 +16,24 @@ What I did with it: <kept, changed, rejected, merged; where it went>
 
 ---
 
+## 2026-11-22 · Timetable follows the module schedule (08:00 to 21:10)
+Tool: Claude Code (Haiku 5.5), free prompt
+What I asked: the timetable follows the module convention: 90-minute modules with a 10-minute break, 08:00-09:30 up to 19:40-21:10.
+What I got: grid.js: 79 ten-minute rows, 08:00 to 21:10; the time column shows each module's range; day lines fall at module starts (every 100 minutes). Activities keep their real times. Real data: 5,673 activities start and end on the module grid; 479 (about 8%) do not (45 to 60 minute slots such as 08:10-09:00), and they are shown at their recorded times. Browser check: one group timetable, 14 blocks, eight module rows, Sunday column; no console errors checked on this page.
+What I did with it: not committed. The 479 off-grid activities are open: keep the recorded times or snap them to modules.
+
+## 2026-11-22 · Sunday column on the timetable
+Tool: Claude Code (Haiku 5.5), free prompt
+What I asked: add Sunday to the timetable.
+What I got: grid.js draws seven day columns (Monday to Sunday); the timetable CSS has seven columns; `day.sun` added to ro.js ("Dum") and en.js ("Sun"). The API already returned Sunday items, so no backend change. Backend tests 71 passed; both scripts pass a syntax check.
+What I did with it: not committed. Not re-checked in the browser.
+
+## 2026-11-22 · Timetable shows one planning unit per week
+Tool: Claude Code (Haiku 5.5), free prompt
+What I asked: the timetable page shows the schedule only for the corresponding planning unit.
+What I got: `/api/schedule` takes an optional `faculty_id`; with it, only that faculty's unit covering the week is drawn; without it, the unit most of the entity's recurring activities use in weeks covering this one. One-off rows are always shown. The week number comes from that unit only; the old fallback to any faculty's unit is removed. `timetable.js` sends the selected faculty (not `campus`). Real data: a room with activities from two faculties now shows 18 (ing) or 21 (sti) activities instead of a mix. Tests: backend 71 passed (3 new). C-003 updated (user request).
+What I did with it: not committed. Free rooms still consider every unit; not changed, as the request was about the timetable.
+
 ## 2026-11-22 · /api/* gated by nginx; endpoints recorded as C-003
 Tool: Claude Code (Haiku 5.5), free prompt
 What I asked: record the endpoints, and gate the /api/* routes as well (signed in only).

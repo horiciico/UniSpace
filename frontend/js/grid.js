@@ -1,8 +1,10 @@
 /*
  * Weekly timetable grid (CSS Grid), drawn into an element with class .tt-grid.
  *
- * Columns: a time column, then Monday to Saturday. Rows: 10-minute slots from 08:00 to
- * 21:00, 78 rows in all, so the ULBS times (09:40, 14:40, ...) land on exact rows. Each
+ * Columns: a time column, then Monday to Sunday. Rows: 10-minute slots from 08:00 to
+ * 21:10, 79 rows in all. The university's modules are 90 minutes, with a 10-minute break:
+ * 08:00-09:30, 09:40-11:10, ... 19:40-21:10 (eight modules, one every 100 minutes). The time
+ * column shows each module's range, and the day lines fall at the start of each module. Each
  * day is one grid cell; the activities sit inside it at their start and height. Activities
  * that overlap in time (a subgroup, an optional course) share the day's width side by side
  * ("lanes"), so the grid keeps its shape.
@@ -13,10 +15,13 @@
   "use strict";
 
   var FIRST_MINUTE = 8 * 60;
-  var LAST_MINUTE = 21 * 60;
+  var MODULE_COUNT = 8;
+  var MODULE_LENGTH = 90;   // minutes of teaching
+  var MODULE_PERIOD = 100;  // a module and the 10-minute break after it
+  var LAST_MINUTE = FIRST_MINUTE + (MODULE_COUNT - 1) * MODULE_PERIOD + MODULE_LENGTH; // 21:10
   var SLOT_MINUTES = 10;
-  var SLOT_COUNT = (LAST_MINUTE - FIRST_MINUTE) / SLOT_MINUTES; // 78
-  var DAY_KEYS = ["day.mon", "day.tue", "day.wed", "day.thu", "day.fri", "day.sat"];
+  var SLOT_COUNT = (LAST_MINUTE - FIRST_MINUTE) / SLOT_MINUTES; // 79
+  var DAY_KEYS = ["day.mon", "day.tue", "day.wed", "day.thu", "day.fri", "day.sat", "day.sun"];
   var KIND_KEYS = {
     COURSE: "kind.course",
     SEMINAR: "kind.seminar",
@@ -29,6 +34,10 @@
   function toMinutes(hhmm) {
     var parts = String(hhmm).split(":");
     return Number(parts[0]) * 60 + Number(parts[1]);
+  }
+
+  function clock(minutes) {
+    return String(Math.floor(minutes / 60)).padStart(2, "0") + ":" + String(minutes % 60).padStart(2, "0");
   }
 
   function element(tag, className, text) {
@@ -87,7 +96,7 @@
 
   /**
    * Draws the week. items: [{ day_of_week (1 Mon .. 7 Sun), start_time "HH:MM", end_time,
-   * activity_type, title, room_name, ... }]. Sunday and times outside 08:00-21:00 are left
+   * activity_type, title, room_name, ... }]. Times outside 08:00-21:10 are left
    * out of the grid. onSelect(item) runs when a block is clicked.
    */
   function render(container, items, onSelect) {
@@ -102,10 +111,11 @@
       container.appendChild(head);
     });
 
-    for (var hour = FIRST_MINUTE / 60; hour < LAST_MINUTE / 60; hour++) {
-      var label = element("div", "tt-time", String(hour).padStart(2, "0") + ":00");
+    for (var module = 0; module < MODULE_COUNT; module++) {
+      var start = FIRST_MINUTE + module * MODULE_PERIOD;
+      var label = element("div", "tt-time", clock(start) + "–" + clock(start + MODULE_LENGTH));
       label.style.gridColumn = "1";
-      label.style.gridRow = (((hour * 60) - FIRST_MINUTE) / SLOT_MINUTES + 2) + " / span 6";
+      label.style.gridRow = ((start - FIRST_MINUTE) / SLOT_MINUTES + 2) + " / span " + (MODULE_LENGTH / SLOT_MINUTES);
       container.appendChild(label);
     }
 
