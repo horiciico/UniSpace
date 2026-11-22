@@ -16,6 +16,12 @@ What I did with it: <kept, changed, rejected, merged; where it went>
 
 ---
 
+## 2026-11-22 · Open questions answered (Q-002, Q-013, Q-014); Q-003, Q-006, Q-008 deferred
+Tool: Claude Code (Haiku 5.5), free prompt
+What I asked: address the open questions.
+What I got: Q-002: `main` is the release and deploy branch (version scheme still open). Q-013: the proposed answer confirmed (date 2026-11-22). Q-014: the admin selects the scope; the meaning of "whole duration" is still open. Q-003: after a frontend and an end-to-end flow exist. Q-006 and Q-008: to be configured later.
+What I did with it: ledger updated; lint passes. Not committed.
+
 ## 2026-11-22 · ETL chapter closed: open items resolved
 Tool: Claude Code (Haiku 5.5), free prompt
 What I asked: resolve every open item so the ETL chapter can close.

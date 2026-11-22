@@ -10,7 +10,7 @@
 
 ## Index
 - Q-001 · What does UniSpace do, and who uses it? · _answered_
-- Q-002 · Which branches and version scheme does the release use?
+- Q-002 · Which branches and version scheme does the release use? · _answered_
 - Q-003 · How are UI screenshots taken for review?
 - Q-004 · Is there a design board (Claude Design) or Figma for the UI? · _answered_
 - Q-005 · Where and how is the platform deployed? · _answered_
@@ -21,8 +21,8 @@
 - Q-010 · Which days and rooms can an admin mark as off limits, and how is that stored? · _answered_
 - Q-011 · Does the app store all nine faculties, or only `dre`? · _answered_
 - Q-012 · Does a permanent rule change go through a request table, or does the admin edit directly? · _answered_
-- Q-013 · What does the ULBS schedule JSON look like (row per course or per occurrence, id types)?
-- Q-014 · Is a day-level off-limits mark for the whole university or for one faculty?
+- Q-013 · What does the ULBS schedule JSON look like (row per course or per occurrence, id types)? · _answered_
+- Q-014 · Is a day-level off-limits mark for the whole university or for one faculty? · _answered_
 
 ---
 
@@ -33,16 +33,18 @@
 - **Who answers:** the user (product owner)
 
 ## Q-002 · Which branches and version scheme does the release use?
-- **Status:** open
-- **Blocks:** AGENTS.md section 5 (release), the base branch in /build, and the version source.
+- **Status:** answered (branch), open (version scheme)
+- **Answer (user, 2026-11-22):** `main` is the default branch and the one used for releases and deploys.
+- **Still open:** whether releases get version numbers (such as `1.0.0`) or dates. Not answered yet.
+- **Blocks:** the version source and the changelog in AGENTS.md section 5.
 - **Who answers:** the user
-- **Note (2026-11-19):** the user did not understand this question. To rephrase: (a) which branch is the one that gets released (for example `main`, or a separate `release` branch)? (b) Do releases get version numbers, and if so, like `1.0.0`, or by date?
 
 ## Q-003 · How are UI screenshots taken for review?
 - **Status:** open
 - **Blocks:** the screenshot step of /build and the visual check in the definition of done.
 - **Who answers:** the user
 - **Proposed answer:** A headless browser (for example Playwright) run in a container against the nginx frontend. Not confirmed: no tool is set up yet.
+- **Note (user, 2026-11-22):** will be established once there is a frontend and an end-to-end flow. Stays open until then.
 
 ## Q-004 · Is there a design board (Claude Design) or Figma for the UI?
 - **Status:** answered
@@ -61,6 +63,7 @@
 - **Blocks:** the lint and type-check lines in AGENTS.md sections 2 and 6.
 - **Who answers:** the user
 - **Note (user, 2026-11-19):** will be configured in the future. Stays open until then.
+- **Note (user, 2026-11-22):** will be configured later. Stays open until then.
 
 ## Q-007 · How do users sign in (university account, password, or both)?
 - **Status:** answered
@@ -73,6 +76,7 @@
 - **Blocks:** `CUSTOM` parity (a CHECK keeps it unusable), a weeks list on `activity`, and any `valid_from` / `valid_to` or semester table.
 - **Who answers:** the user (the user will answer later; the rest is still open)
 - **Answer (user, 2026-11-19, partly):** The active period (start and end) comes from the ULBS API, per planning unit (`planning_time_units`). Parity works by week, and the mapping is in Q-013. Still open: holidays, breaks, and inverted-parity weeks; and whether the CUSTOM parity and a weeks list are needed.
+- **Note (user, 2026-11-22):** will be configured later. Stays open until then.
 
 ## Q-009 · How does a university (@ulbsibiu.ro) user get a role above STUDENT?
 - **Status:** answered
@@ -99,12 +103,16 @@
 - **Who answers:** the user
 
 ## Q-013 · What does the ULBS schedule JSON look like (row per course or per occurrence, id types)?
-- **Status:** open
+- **Status:** answered
 - **Parity mapping (user, 2026-11-19, confirmed):** `parity` 0 = ALL (every week), 1 = ODD (odd weeks only; week 1 of the academic year is odd), 2 = EVEN (even weeks only).
 - **Blocks:** the parser, the unique constraint on `external_id`, and the types of `external_id`. The structure is to be discovered from the schedule JSON files in Step 2.
 - **Who answers:** the user, together with the JSON files. The user said: "we will discover together."
+- **Answer (user, 2026-11-22, confirmed the proposed answer):** one row per ULBS entry per study formation, with `timeSlots` as a list (0 to 6 slots; contiguous runs are merged, gaps stay open). The `id` is unique within a faculty file but not across files (560 ids repeat with different content), so the loader does not use it as a key. It keys each row on (room, day, parity, start, end), hashed to 40 characters, and keeps the ULBS id only in the report. Ids are integers; room `roomId` is a UUID; `studyFormation.id` is an integer. Parity values 0, 1, 2 as in D-014.
+- **Confirmed:** 2026-11-22
 
 ## Q-014 · Is a day-level off-limits mark for the whole university or for one faculty?
-- **Status:** open
-- **Blocks:** the scope column on `off_limits`. Also: does "the whole duration" mean the whole semester, or the whole academic year?
+- **Status:** answered (scope), open (duration wording)
+- **Answer (user, 2026-11-22):** the admin selects the scope when setting the mark.
+- **Still open:** whether "the whole duration" means the whole semester or the whole academic year.
+- **Blocks:** the duration wording of the `off_limits` table; the scope column itself is no longer blocked.
 - **Who answers:** the user
