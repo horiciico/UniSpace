@@ -8,6 +8,28 @@ Each entry follows the same shape:
 
 ```
 
+## 2026-11-24 · Student room booking, step 2: booking endpoints and conflict check
+Tool: Claude Code (Haiku 5.5), /plan then build
+What I asked: after the defaults were confirmed, build POST /api/bookings (conflict check against recurring activities and approved bookings, 409 on a clash), GET /api/bookings/my, DELETE /api/bookings/{id} (owner only, pending only, soft cancel), and Free Now fields. Decisions from the user: any signed-in role books; admin bookings are approved at once; professors wait for approval.
+What I got:
+- New router `backend/app/routers/bookings.py`, registered in `backend/app/main.py`.
+- `backend/app/routers/classrooms.py`: the free-room search counts approved bookings and returns `start_time` and `end_time`; `free_until` is unchanged.
+- Tests: `backend/tests/test_bookings_api.py` (30 new).
+- Contract C-005 added; C-003 change note added; Q-017 opened for cancelled and moved occurrences, which the shared helper ignores.
+What I did with it: on branch `feature/student-room-booking`. Backend 142 passed, ETL 113, frontend 252. `docker compose config` and `docker compose build backend` pass. Not committed or pushed. The Bookings page move to `pages/shared` is not done in this step.
+
+## 2026-11-24 · Student room booking, step 2 follow-up: campus null, D-023, booking data layer and UI drafts
+Tool: Claude Code (Haiku 5.5), build and /plan
+What I asked: return null (not the text Campus) for a room with no faculty (D-012); record D-023 (approved); build the data layer for steps 3 and 4 and draw the UI mocks.
+What I got:
+- Backend: `faculty_name` is null for a campus room; test added; C-005 updated.
+- D-023 added as approved; the ledger index updated.
+- `frontend/js/api.js`: myBookings, createBooking, cancelBooking (send helper now shared with PUT); tests in `api.test.js`.
+- `frontend/js/bookings.js` (new, pure helpers): the Bookings link and its reading, status labels; tests in `frontend/tests/unit/bookings.test.js`.
+- i18n: `bookings.statusPending` and `bookings.statusRejected` in ro.js and en.js.
+- Mocks (draft, not built): `docs/design/mocks/DS-unispace-bookings.html`, `DS-unispace-timetable-grid.html`, `DS-unispace-free-rooms.html`; registry entries set to draft.
+What I did with it: on branch `feature/student-room-booking`. The screens (steps 3 and 4) are not built: DESIGN.md requires a confirmed mock first. All suites pass (backend 143, ETL 113, frontend 259). Not committed or pushed.
+
 ## 2026-11-24 · Student room booking, step 1: bookings table
 Tool: Claude Code (Haiku 5.5), /plan then build
 What I asked: after the plan was approved, add the `bookings` table (UUID id, user and classroom foreign keys, date, start and end time, title VARCHAR(255), native `booking_status` enum, created_at) with an Alembic revision; update the Activity docstring and D-015 so bookings are not activities.

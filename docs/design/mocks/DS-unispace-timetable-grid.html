@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MOCK · DS-unispace-timetable-grid · draft</title>
+    <!-- Mock only: the real grid is frontend/js/grid.js with styles/components/timetable.css. -->
+    <link rel="stylesheet" href="../../../frontend/styles/tokens.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/base.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/buttons.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/pills.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/cards.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/notice.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/timetable.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/utilities.css" />
+    <style>
+      /* Mock scaffolding only. */
+      .mock-bar { display: flex; gap: var(--space-2); padding: var(--space-3) var(--space-4); background: var(--color-warning-bg); color: var(--color-warning-text); flex-wrap: wrap; }
+      .mock-label { margin: var(--space-7) 0 var(--space-2); font-size: var(--text-sm); font-weight: 700; color: var(--color-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+      /* New in the real grid (tokens only): a free module that can be booked. */
+      .tt-free {
+        position: absolute;
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--space-1);
+        border: 1px dashed var(--color-primary);
+        border-radius: var(--radius-sm);
+        background: transparent;
+        color: var(--color-primary);
+        font-size: var(--text-sm);
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .tt-free:hover { background: var(--color-info-bg); }
+      .tt-free:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 1px; }
+      .tt-free:disabled { border-style: solid; border-color: var(--color-border); color: var(--color-muted); cursor: not-allowed; background: transparent; }
+      .mock-grid-wrap { overflow-x: auto; }
+      .mock-grid-small { grid-template-rows: auto repeat(79, 0.5rem); }
+      .mock-grid-small .tt-free { font-size: 0.75rem; }
+    </style>
+  </head>
+  <body>
+    <div class="mock-bar">
+      <strong>Draft mock, not built.</strong>
+      <span>Room view of the timetable. Needs your confirmation before it is built (DESIGN.md).</span>
+      <button class="btn btn-small" type="button" onclick="var d=document.documentElement;d.dataset.theme=d.dataset.theme==='dark'?'light':'dark'">Toggle light / dark</button>
+    </div>
+
+    <main id="main" class="container">
+      <p class="mock-label">1 · Bookable room: a free module shows a booking action</p>
+      <p class="muted">Room B110 · Week 11 (odd). Dashed boxes are free modules of a bookable room. Clicking one opens the Bookings page for that module.</p>
+      <div class="mock-grid-wrap">
+        <div class="tt-grid mock-grid-small" role="grid" aria-label="Room B110, week 11">
+          <div class="tt-corner">Time</div>
+          <div class="tt-head" style="grid-column:2;grid-row:1">Mon</div>
+          <div class="tt-head" style="grid-column:3;grid-row:1">Tue</div>
+          <div class="tt-head" style="grid-column:4;grid-row:1">Wed</div>
+
+          <div class="tt-time" style="grid-column:1;grid-row:2 / span 9">08:00–09:30</div>
+          <div class="tt-time" style="grid-column:1;grid-row:11 / span 9">09:40–11:10</div>
+          <div class="tt-time" style="grid-column:1;grid-row:20 / span 9">11:20–12:50</div>
+
+          <div class="tt-day" style="grid-column:2;grid-row:2 / 81">
+            <button class="tt-free" type="button" style="top:calc(0% + 1px);height:calc(11.39% - 2px);left:2px;width:calc(100% - 4px)">Book 08:00–09:30</button>
+            <button class="tt-block tt-block--course" type="button" style="top:calc(11.39% + 1px);height:calc(11.39% - 2px);left:2px;width:calc(100% - 4px)"><strong>Algebra</strong><span>Course · B110</span><span>09:40–11:10</span></button>
+          </div>
+          <div class="tt-day" style="grid-column:3;grid-row:2 / 81">
+            <button class="tt-free" type="button" style="top:calc(0% + 1px);height:calc(11.39% - 2px);left:2px;width:calc(100% - 4px)">Book 08:00–09:30</button>
+            <button class="tt-free" type="button" style="top:calc(22.78% + 1px);height:calc(11.39% - 2px);left:2px;width:calc(100% - 4px)">Book 11:20–12:50</button>
+          </div>
+          <div class="tt-day" style="grid-column:4;grid-row:2 / 81">
+            <button class="tt-free" type="button" disabled style="top:calc(0% + 1px);height:calc(11.39% - 2px);left:2px;width:calc(100% - 4px)">Past</button>
+          </div>
+        </div>
+      </div>
+
+      <p class="mock-label">2 · Room that cannot be booked: no booking action</p>
+      <p class="muted">Room C-17 · the same week. The courses stay visible; free modules have no action and no dashed box.</p>
+      <div class="mock-grid-wrap">
+        <div class="tt-grid mock-grid-small" aria-label="Room C-17, week 11">
+          <div class="tt-corner">Time</div>
+          <div class="tt-head" style="grid-column:2;grid-row:1">Mon</div>
+          <div class="tt-time" style="grid-column:1;grid-row:2 / span 9">08:00–09:30</div>
+          <div class="tt-day" style="grid-column:2;grid-row:2 / 81">
+            <button class="tt-block tt-block--seminar" type="button" style="top:calc(11.39% + 1px);height:calc(11.39% - 2px);left:2px;width:calc(100% - 4px)"><strong>Seminar</strong><span>Seminar · C-17</span><span>09:40–11:10</span></button>
+          </div>
+        </div>
+      </div>
+      <div class="notice mt-3">This room cannot be booked. Its timetable is shown for reference.</div>
+
+      <p class="mock-label">3 · Empty and states</p>
+      <ul class="muted">
+        <li>Keyboard: each dashed box is a button with a visible focus ring, reached in Tab order by day and time.</li>
+        <li>Name: each action says the module, e.g. "Book 08:00–09:30 on Monday 14 December".</li>
+        <li>Past modules are disabled, not hidden, so the week keeps its shape.</li>
+        <li>No action appears for a room that cannot be booked (business rule 5 of the booking brief: visible in the timetable, not clickable).</li>
+      </ul>
+    </main>
+  </body>
+</html>

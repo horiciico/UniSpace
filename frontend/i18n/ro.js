@@ -228,6 +228,8 @@ window.UniSpaceI18n.register("ro", {
   "bookings.notePlaceholder": "Orice ar trebui să știe administratorul",
   "bookings.send": "Trimite cererea",
   "bookings.conflictsNote": "Suprapunerile sunt verificate când trimiți.",
+  "bookings.statusPending": "În așteptare",
+  "bookings.statusRejected": "Respinsă",
   "rooms.title": "Săli · UniSpace",
   "rooms.eyebrow": "Săli",
   "rooms.heading": "Toate cele {n} săli",

@@ -227,6 +227,8 @@ window.UniSpaceI18n.register("en", {
   "bookings.notePlaceholder": "Anything the admin should know",
   "bookings.send": "Send request",
   "bookings.conflictsNote": "Conflicts are checked when you send.",
+  "bookings.statusPending": "Pending",
+  "bookings.statusRejected": "Rejected",
   "rooms.title": "Rooms · UniSpace",
   "rooms.eyebrow": "Rooms",
   "rooms.heading": "All {n} rooms",

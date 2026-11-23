@@ -25,6 +25,7 @@
 - Q-014 · Is a day-level off-limits mark for the whole university or for one faculty? · _answered_
 - Q-015 · Where do the professors and their emails come from? · _answered_
 - Q-016 · Two professor ids share one email: which record is kept? · _answered_
+- Q-017 · Should a cancelled or moved occurrence still block a room in the free-room search and in booking? 
 
 ---
 
@@ -133,4 +134,11 @@
 - **Answer (user, 2026-11-23):** one person with duplicate records in the ULBS system. Deduplicate by normalized email during the transform. Keep one id: prefer an id that appears in `activities` if that is easy, otherwise the lexicographically smallest id. Log a warning with the skipped duplicate id. This keeps `professors.email` unique without dropping the professor from login.
 - **Implemented (2026-11-23):** an id already stored for the email is kept first, then an id used by an activity, then the smallest id. The stored id comes first so that a later run does not swap ids and trigger a refusal.
 - **Blocks:** nothing now.
+- **Who answers:** the user
+
+## Q-017 · Should a cancelled or moved occurrence still block a room in the free-room search and in booking?
+- **Status:** open
+- **Found (2026-11-24):** `planning.occurrences()` (the shared helper) ignores `Activity.status` (CANCELLED) and `ActivityException` (`is_cancelled`, `new_date`, `new_start_time`, `new_end_time`). So a cancelled course still blocks its room in `GET /api/classrooms/free`, and a moved occurrence still blocks its old time. The room-booking check skips cancelled activities and cancelled occurrences only; moved occurrences still block at their old time there too.
+- **Proposed answer:** yes, cancelled occurrences should not block; a moved occurrence should block its new time instead of its old one. Not confirmed: the user has not answered.
+- **Blocks:** the correctness of the free-room search (C-003) and the booking check (C-005). The shared helper is left untouched until this is answered, so the existing free-room tests keep their current behaviour.
 - **Who answers:** the user
