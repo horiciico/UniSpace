@@ -32,6 +32,7 @@ class UserOut(BaseModel):
     faculty_id: uuid.UUID | None = None  # students only (D-022)
     study_formation_id: uuid.UUID | None = None  # students only (D-022)
     needs_onboarding: bool = False
+    picture: str | None = None
 
 
 @router.get("/auth/login")

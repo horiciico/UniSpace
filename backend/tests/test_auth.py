@@ -87,6 +87,14 @@ def test_university_user_is_provisioned_as_student(client, db, monkeypatch) -> N
     assert client.get("/auth/me").json()["email"] == "ana@ulbsibiu.ro"
 
 
+def test_google_login_saves_and_returns_picture(client, db, monkeypatch) -> None:
+    google_returns(monkeypatch, picture="https://lh3.googleusercontent.com/photo.jpg")
+    r = callback(client)
+    assert r.status_code == 303
+    me = client.get("/auth/me").json()
+    assert me["picture"] == "https://lh3.googleusercontent.com/photo.jpg"
+
+
 def test_session_cookie_flags(client, db, monkeypatch) -> None:
     google_returns(monkeypatch)
     cookie = callback(client).headers["set-cookie"].lower()

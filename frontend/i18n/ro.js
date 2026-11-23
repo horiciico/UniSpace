@@ -18,7 +18,6 @@ window.UniSpaceI18n.register("ro", {
   "nav.calendar": "Calendar",
   "nav.admin": "Administrare",
   "header.skip": "Sari la conținut",
-  "header.menu": "Meniu",
   "header.navAria": "Principal",
   "header.logout": "Deconectare",
   "header.language": "Limba",

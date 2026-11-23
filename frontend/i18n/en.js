@@ -17,7 +17,6 @@ window.UniSpaceI18n.register("en", {
   "nav.calendar": "Calendar",
   "nav.admin": "Admin",
   "header.skip": "Skip to content",
-  "header.menu": "Menu",
   "header.navAria": "Main",
   "header.logout": "Log out",
   "header.language": "Language",

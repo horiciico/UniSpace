@@ -86,15 +86,25 @@ def resolve_user(db: Session, claims: dict) -> User:
 
     professor_id = professor.id if professor is not None else None
     name = claims.get("name") or email
+    picture = claims.get("picture")
     try:
         if user is None:
-            user = User(email=email, name=name, role=role, google_sub=sub, professor_id=professor_id)
+            user = User(
+                email=email,
+                name=name,
+                role=role,
+                google_sub=sub,
+                professor_id=professor_id,
+                picture=picture,
+            )
             db.add(user)
         else:
             if user.google_sub is None:
                 user.google_sub = sub
             user.role = role
             user.professor_id = professor_id
+            if picture:
+                user.picture = picture
         db.commit()
     except IntegrityError:
         # A concurrent callback created the same account first.

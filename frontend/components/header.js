@@ -46,24 +46,32 @@
       '<div class="site-header__inner">' +
       '<a class="brand" href="/"><img class="brand__mark" src="/public/brand-mark.png" alt="" width="28" height="28" />UniSpace</a>' +
       '<div class="header-actions">' + actions + "</div>" +
-      (user
-        ? '<button class="btn btn-ghost btn-small nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">' +
-        esc(t("header.menu")) + "</button>" +
-        '<nav id="site-nav" class="nav" aria-label="' + esc(t("header.navAria")) + '">' + links + "</nav>"
-        : "") +
+      (user ? '<nav id="site-nav" class="nav" aria-label="' + esc(t("header.navAria")) + '">' + links + "</nav>" : "") +
     "</div>";
-    // The language toggle is last, so it sits in the top right corner.
-    header.querySelector(".header-actions").appendChild(UI.languageToggle());
-    document.body.prepend(header);
 
-    var nav = header.querySelector(".nav");
-    var toggle = header.querySelector(".nav-toggle");
-    if (toggle && nav) {
-      toggle.addEventListener("click", function (event) {
-        var open = nav.classList.toggle("is-open");
-        event.currentTarget.setAttribute("aria-expanded", String(open));
-      });
+    var actionsEl = header.querySelector(".header-actions");
+    actionsEl.appendChild(UI.languageToggle());
+
+    if (user) {
+      if (user.picture) {
+        var img = document.createElement("img");
+        img.className = "user-avatar";
+        img.src = user.picture;
+        img.alt = "";
+        img.width = 32;
+        img.height = 32;
+        img.referrerPolicy = "no-referrer";
+        actionsEl.appendChild(img);
+      } else {
+        var placeholder = document.createElement("span");
+        placeholder.className = "user-avatar user-avatar--placeholder";
+        placeholder.setAttribute("aria-hidden", "true");
+        placeholder.textContent = user.name.charAt(0).toUpperCase();
+        actionsEl.appendChild(placeholder);
+      }
     }
+
+    document.body.prepend(header);
 
     var logout = header.querySelector(".logout");
     if (logout) {

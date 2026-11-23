@@ -23,6 +23,7 @@ class User(Base):
     study_formation_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("student_groups.id", ondelete="SET NULL", name="fk_users_study_formation")
     )
+    picture: Mapped[str | None] = mapped_column(String(1024), nullable=True)
 
     activities: Mapped[list["Activity"]] = relationship(back_populates="user")  # noqa: F821
 
