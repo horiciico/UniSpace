@@ -8,6 +8,16 @@ Each entry follows the same shape:
 
 ```
 
+## 2026-11-24 · Student room booking, step 1: bookings table
+Tool: Claude Code (Haiku 5.5), /plan then build
+What I asked: after the plan was approved, add the `bookings` table (UUID id, user and classroom foreign keys, date, start and end time, title VARCHAR(255), native `booking_status` enum, created_at) with an Alembic revision; update the Activity docstring and D-015 so bookings are not activities.
+What I got:
+- New model `backend/app/models/booking.py`; `BookingStatus` in `enums.py`; exports in `models/__init__.py`.
+- Revision `backend/alembic/versions/20261123_58cba83b6174_bookings_table.py`. Downgrade also drops the enum type, which autogenerate left out.
+- Tests in `backend/tests/test_models.py` (5 new; the table-set assertion now includes `bookings`).
+- D-015 now says student bookings live in `bookings`; its Confirmed date is 2026-11-24.
+What I did with it: on branch `feature/student-room-booking`. Upgrade, downgrade and re-upgrade checked against the compose database; `alembic check` reports no differences. All suites pass (backend 112, ETL 113, frontend 252). Nothing is committed or pushed.
+
 ## 2026-11-24 · CI workflow split into 3 parallel test suites
 Tool: Antigravity, free prompt
 What I asked: modify GitHub workflows to run on push and PR; divide the test suite into the 3 configured test suites (backend, ETL, frontend) and run all 3.
