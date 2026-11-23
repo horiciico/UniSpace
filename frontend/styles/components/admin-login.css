@@ -1,0 +1,107 @@
+/* Component: the discreet administrator sign-in on the login page (DS-unispace-admin-login).
+   Tokens only: no raw colours, sizes or spaces. */
+
+.admin-access {
+  margin: var(--space-4) 0 0;
+}
+
+.admin-link {
+  min-height: 44px;
+  padding: var(--space-1) 0;
+  background: none;
+  border: 0;
+  font: inherit;
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.admin-link:hover {
+  color: var(--color-link);
+}
+
+.admin-link:focus-visible,
+.admin-dialog button:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* The dialog covers the page. The scrim is a pseudo-element, so no raw colour is needed. */
+.admin-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: var(--space-5);
+}
+
+.admin-dialog[hidden] {
+  display: none;
+}
+
+.admin-dialog::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--color-bg);
+  opacity: 0.9;
+}
+
+.admin-dialog__panel {
+  position: relative;
+  width: min(100%, 380px);
+  padding: var(--space-5);
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 12px 32px var(--color-shadow);
+}
+
+.admin-dialog__panel h2 {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-xl);
+  line-height: var(--leading-tight);
+}
+
+.admin-dialog__lead {
+  margin: 0 0 var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+}
+
+.admin-dialog__panel .field {
+  margin-bottom: var(--space-4);
+}
+
+.admin-dialog__panel .field input {
+  min-height: 44px;
+}
+
+.admin-dialog__panel .field input[aria-invalid="true"] {
+  border-color: var(--color-danger-text);
+}
+
+.admin-dialog__actions {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: flex-end;
+  margin-top: var(--space-5);
+}
+
+.admin-dialog__actions .btn {
+  min-height: 44px;
+}
+
+.admin-dialog__actions .btn[disabled] {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.admin-dialog .notice--error {
+  margin: 0 0 var(--space-4);
+}

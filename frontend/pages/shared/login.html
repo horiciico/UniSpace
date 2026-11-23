@@ -3,7 +3,9 @@
   <head>
     <!--#include virtual="/components/head.html" -->
     <title data-i18n="login.title">Log in · UniSpace</title>
+    <link rel="stylesheet" href="/styles/components/admin-login.css" />
     <script src="/js/pages/login.js" defer></script>
+    <script src="/components/admin-login.js" defer></script>
   </head>
   <body>
     <main id="main" class="container">
@@ -31,8 +33,31 @@
             <span data-i18n="login.button">Log in with Google</span>
           </a>
         </div>
-        <p class="muted" data-i18n="login.note">Use your @ulbsibiu.ro account. Anyone else needs an invitation.</p>
+        <p class="muted" data-i18n="login.note">Use your @ulbsibiu.ro account. Registered faculty members can use their own Google account.</p>
+        <p class="admin-access">
+          <button class="admin-link" id="admin-open" type="button" aria-haspopup="dialog" data-i18n="admin.open">Administrator access</button>
+        </p>
       </div>
     </main>
+
+    <div class="admin-dialog" id="admin-dialog" hidden>
+      <form class="admin-dialog__panel" id="admin-form" role="dialog" aria-modal="true" aria-labelledby="admin-title" novalidate>
+        <h2 id="admin-title" data-i18n="admin.open">Administrator access</h2>
+        <p class="admin-dialog__lead" data-i18n="admin.lead">Enter the administrator details. Your Google account is not used.</p>
+        <p class="notice notice--error" id="admin-error" role="alert" hidden></p>
+        <div class="field">
+          <label for="admin-username" data-i18n="admin.username">Username</label>
+          <input id="admin-username" name="username" type="text" autocomplete="username" />
+        </div>
+        <div class="field">
+          <label for="admin-password" data-i18n="admin.password">Password</label>
+          <input id="admin-password" name="password" type="password" autocomplete="current-password" />
+        </div>
+        <div class="admin-dialog__actions">
+          <button class="btn btn-ghost" id="admin-cancel" type="button" data-i18n="admin.cancel">Cancel</button>
+          <button class="btn btn-primary" id="admin-submit" type="submit" data-i18n="admin.submit">Sign in</button>
+        </div>
+      </form>
+    </div>
   </body>
 </html>

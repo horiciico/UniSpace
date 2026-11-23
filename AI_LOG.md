@@ -28,6 +28,25 @@ What I asked: put each ETL pipeline in its own folder under etl/ with its script
 What I got: the schedule pipeline (downloader.py, loader.py and their tests) moved with git mv into etl/schedule/; etl/professors/ created with a placeholder __init__.py (its code comes with Step 2). Imports, the Dockerfile entrypoint (python -m etl.schedule.downloader), the test-all path (etl) and ARCHITECTURE.md updated. No assertions changed. node scripts/test-all.mjs: backend 77, ETL 70, frontend 207 passed; the ETL image builds and its entrypoint runs.
 What I did with it: not committed or pushed.
 
+## 2026-11-23 · Coverage of the new code: tests for the professors pipeline and the sign-in race
+Tool: Claude Code (Haiku 5.5), free prompt asking whether the work is complete
+What I asked: whether anything else is left, and whether the work can be called complete.
+What I got: measured coverage with pytest-cov. The new code had gaps: the sign-in path for a refused write (auth.py lines 99-102), read_documents, load_professors, the professors CLI and the extract error paths. Added tests for each: backend/tests/test_auth_race.py, etl/professors/tests/test_professors_extract_errors.py, test_professors_load_files.py, test_professors_load_run.py, test_professors_cli_run.py. Result: app/auth.py 100%; professors pipeline 100% except the __main__ guard. node scripts/test-all.mjs: backend 95, ETL 113, frontend 223 passed, 431 in total.
+What I did with it: not committed or pushed. The schedule pipeline (loader, sync, download, cli) and a few backend lines (planning.py, schedule router, db.py) were already under 100% before this session and are not covered by this change; they are listed for a decision, not fixed here.
+
+## 2026-11-23 · Step 4: admin login modal built (mock confirmed)
+Tool: Claude Code (Haiku 5.5), free prompt with the confirmed mock DS-unispace-admin-login
+What I asked: the discreet "Acces administrator" link on the login page and the modal with username and password, posting to /auth/admin-login, with an inline error on 401 and entry to the admin state on success.
+What I got: frontend/components/admin-login.js (modal, focus trap, Escape, busy state, 401 and failure messages, re-translation on language change), frontend/styles/components/admin-login.css (tokens only), the modal and link in frontend/pages/shared/login.html, eight admin.* keys in ro.js and en.js, frontend/tests/unit/admin-login.test.js (16 tests). Coverage for admin-login.js is 100% on all four measures. Screenshots (light and dark) of the link page and of the open modal, saved as docs/design/screens/DS-unispace-admin-login.* and DS-unispace-login.* (the login screen changed); the registry entry is implemented.
+Tests: node scripts/test-all.mjs: backend 94, ETL 99, frontend 223 passed, 416 in total. The first frontend run had one failure (the opener was taken from the focused element, which a click does not set); fixed by recording the link itself.
+What I did with it: the endpoint is /auth/admin-login, as approved in Step 3 (nginx gates /api/). Not committed or pushed. Not checked: a real sign-in with the admin credentials in a browser, because .env has no ADMIN_USERNAME or ADMIN_PASSWORD set.
+
+## 2026-11-23 · Step 4: admin login mock (waiting for confirmation)
+Tool: Claude Code (Haiku 5.5), free prompt with the Step 4 brief
+What I asked: a discreet "Acces administrator" link on the login page that opens a modal with username and password, posts to the admin sign-in, shows an inline error on 401, and enters the admin state on success.
+What I got: docs/design/mocks/DS-unispace-admin-login.html (draft, three states: link, modal, 401 error) and a registry entry DS-unispace-admin-login with status draft. The brief's path /api/auth/admin-login is replaced by /auth/admin-login, as approved for Step 3, because nginx gates /api/ for signed-out visitors.
+What I did with it: no frontend code yet. DESIGN.md requires the user to confirm a new screen element before it is built. Not committed or pushed.
+
 ## 2026-11-23 · Step 3: role on every sign-in and the admin sign-in (D-020, D-021)
 Tool: Claude Code (Haiku 5.5), free prompt with the Step 3 brief and the user's answers and approvals
 What I asked: the role chain on Google sign-in (professor list on any domain, then a student association hook, then @ulbsibiu.ro as student, otherwise 403), and a POST admin sign-in with the ADMIN_USERNAME and ADMIN_PASSWORD pair from .env, returning the same session cookie.

@@ -112,7 +112,7 @@ designs:
       - docs/design/screens/DS-unispace-login.light.png
       - docs/design/screens/DS-unispace-login.dark.png
     design_ref: docs/design/mocks/DS-unispace-login.html
-    status: implemented  # mock confirmed by the user 2026-11-16; Google sign-in page
+    status: implemented  # mock confirmed by the user 2026-11-16; Google sign-in page; admin link added 2026-11-23 (screenshots refreshed)
 
   - id: DS-unispace-admin
     kind: screen
@@ -163,3 +163,12 @@ designs:
     screenshots: []
     design_ref: none
     status: implemented
+
+  - id: DS-unispace-admin-login
+    kind: component
+    source: frontend/components/admin-login.js, frontend/styles/components/admin-login.css, frontend/pages/shared/login.html
+    screenshots:
+      - docs/design/screens/DS-unispace-admin-login.light.png
+      - docs/design/screens/DS-unispace-admin-login.dark.png
+    design_ref: docs/design/mocks/DS-unispace-admin-login.html
+    status: implemented  # mock confirmed by the user 2026-11-23; tests in frontend/tests/unit/admin-login.test.js
