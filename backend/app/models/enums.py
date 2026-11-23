@@ -40,6 +40,15 @@ class RequestStatus(str, enum.Enum):
     REJECTED = "REJECTED"
 
 
+class BookingStatus(str, enum.Enum):
+    """Lowercase values, as confirmed for the bookings table. Only `approved` bookings block a slot (later step)."""
+
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+    CANCELLED = "cancelled"
+
+
 class Priority(enum.IntEnum):
     """Higher number wins a bump: course > exam > official faculty > student org > student."""
 

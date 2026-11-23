@@ -162,12 +162,12 @@
 ## D-015 · Imported activities are bound to a planning unit; the ETL skips manually modified rows
 - **Status:** approved
 - **Date:** 2026-11-19
-- **Rule:** Each imported activity links to its planning time unit (`planning_time_unit_id`) and has an `external_id` that is unique within that unit. The ETL updates rows with `is_manually_modified = false` and skips rows with `is_manually_modified = true`. Rows created by bookings have no `external_id`.
+- **Rule:** Each imported activity links to its planning time unit (`planning_time_unit_id`) and has an `external_id` that is unique within that unit. The ETL updates rows with `is_manually_modified = false` and skips rows with `is_manually_modified = true`. Student bookings are not activities: they live in the `bookings` table, which has no `external_id` and no planning unit (step 1 of the room booking feature).
 - **Why:** The ETL can re-run without duplicates, and admin edits are not overwritten.
 - **Rejected:** none stated
 - **Evidence:** backend/app/models/activity.py (planned columns), docs/agents/OPEN-QUESTIONS.md (Q-013)
 - **Source:** user · confidence high
-- **Confirmed:** 2026-11-19
+- **Confirmed:** 2026-11-24
 
 ## D-016 · One-off changes are exceptions; permanent changes go through an admin request
 - **Status:** approved

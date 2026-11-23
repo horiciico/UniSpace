@@ -32,7 +32,7 @@ _TIME_RANGE = f"int4range(least({_START_MIN}, {_END_MIN}), greatest({_START_MIN}
 
 
 class Activity(Base):
-    """One row for both the imported official schedule and bookings (weekly recurrence rule)."""   
+    """One row per imported official schedule entry (weekly recurrence rule). Student bookings live in `bookings`."""
 
     __tablename__ = "activities"
     __table_args__ = (

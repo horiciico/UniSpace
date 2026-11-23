@@ -2,9 +2,11 @@
 from app.models.activity import Activity
 from app.models.activity_exception import ActivityException
 from app.models.activity_group import ActivityGroup
+from app.models.booking import Booking
 from app.models.classroom import Classroom
 from app.models.enums import (
     ActivityType,
+    BookingStatus,
     Parity,
     PlanningUnitType,
     Priority,
@@ -21,7 +23,7 @@ from app.models.student_group import StudentGroup
 from app.models.user import User
 
 __all__ = [
-    "Activity", "ActivityException", "ActivityGroup", "ActivityType", "Classroom", "Faculty", "Invitation",
+    "Activity", "ActivityException", "ActivityGroup", "ActivityType", "Booking", "BookingStatus", "Classroom", "Faculty", "Invitation",
     "Parity", "PlanningTimeUnit", "PlanningUnitType", "Priority", "Professor", "RequestStatus",
     "RuleChangeRequest", "Role", "Status", "StudentGroup", "User",
 ]

@@ -1,9 +1,9 @@
 """Scheduling schema tests. Most need PostgreSQL (compose `db`); see conftest.py."""
 import uuid
-from datetime import time
+from datetime import date, time
 
 import pytest
-from sqlalchemy import select, text
+from sqlalchemy import inspect, select, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -11,6 +11,8 @@ from app.db import Base
 from app.models import (
     Activity,
     ActivityType,
+    Booking,
+    BookingStatus,
     Classroom,
     ActivityException,
     Parity,
@@ -27,7 +29,9 @@ def test_all_tables_and_enums_registered() -> None:
     assert set(Base.metadata.tables) == {
         "users", "student_groups", "classrooms", "activities", "activity_exceptions", "invitations",
         "faculties", "planning_time_units", "rule_change_requests", "activity_groups", "professors",
+        "bookings",
     }
+    assert [s.value for s in BookingStatus] == ["pending", "approved", "rejected", "cancelled"]
     assert [p.value for p in Priority] == [1, 2, 3, 4, 5]
     assert Priority.COURSE > Priority.EXAM > Priority.OFFICIAL_FACULTY > Priority.STUDENT_ORG > Priority.STUDENT
     assert {r.name for r in Role} == {"STUDENT", "PROFESSOR", "STUDENT_ORG", "ADMIN"}
@@ -146,3 +150,84 @@ def test_professor_links_are_optional_and_not_foreign_keys(db: Session) -> None:
     fk_targets = {fk.column.table.name for fk in Base.metadata.tables["activities"].columns["professor_id"].foreign_keys}
     assert fk_targets == set()
     assert Base.metadata.tables["users"].columns["professor_id"].foreign_keys == set()
+
+
+def make_booking_user(db: Session) -> User:
+    user = User(email="student@uni.ro", name="Student", role=Role.STUDENT)
+    db.add(user)
+    db.flush()
+    return user
+
+
+def make_booking(db: Session, user: User, room: Classroom, **kw) -> Booking:
+    values = dict(
+        user_id=user.id, classroom_id=room.id, specific_date=date(2026, 12, 1),
+        start_time=time(8, 0), end_time=time(9, 30), title="Board game evening",
+    )
+    values.update(kw)
+    booking = Booking(**values)
+    db.add(booking)
+    db.flush()
+    return booking
+
+
+def test_booking_defaults_to_pending_with_created_at(db: Session) -> None:
+    booking = make_booking(db, make_booking_user(db), make_room(db))
+    db.refresh(booking)
+
+    assert booking.id is not None
+    assert booking.status == BookingStatus.PENDING
+    assert booking.created_at is not None
+
+
+def test_booking_invalid_rows_are_rejected(db: Session) -> None:
+    user = make_booking_user(db)
+    room = make_room(db)
+    bad = [
+        dict(start_time=time(10, 0), end_time=time(10, 0)),
+        dict(start_time=time(11, 0), end_time=time(10, 0)),
+        dict(title=None),
+        dict(user_id=None),
+        dict(classroom_id=None),
+        dict(specific_date=None),
+        dict(start_time=None),
+        dict(end_time=None),
+    ]
+    for kw in bad:
+        with pytest.raises(IntegrityError):
+            with db.begin_nested():
+                make_booking(db, user, room, **kw)
+
+
+def test_booking_foreign_keys_and_indexes(db: Session) -> None:
+    table = "bookings"
+    insp = inspect(db.connection())
+    fks = {fk["constrained_columns"][0]: fk for fk in insp.get_foreign_keys(table)}
+
+    assert fks["user_id"]["referred_table"] == "users"
+    assert fks["user_id"]["options"]["ondelete"] == "CASCADE"
+    assert fks["classroom_id"]["referred_table"] == "classrooms"
+    assert fks["classroom_id"]["options"]["ondelete"] == "RESTRICT"
+
+    indexed = {col for idx in insp.get_indexes(table) for col in idx["column_names"]}
+    assert {"user_id", "classroom_id", "specific_date", "status"} <= indexed
+    columns = {col["name"]: col for col in insp.get_columns(table)}
+    assert not columns["status"]["nullable"]  # the ORM default would hide a None, so check the column
+
+
+def test_deleting_a_user_deletes_their_bookings(db: Session) -> None:
+    user = make_booking_user(db)
+    make_booking(db, user, make_room(db))
+    db.execute(text("DELETE FROM users WHERE id = :id"), {"id": user.id})
+
+    left = db.execute(text("SELECT count(*) FROM bookings WHERE user_id = :id"), {"id": user.id}).scalar_one()
+    assert left == 0
+
+
+def test_a_room_with_bookings_cannot_be_deleted(db: Session) -> None:
+    room = make_room(db)
+    make_booking(db, make_booking_user(db), room)
+
+    with pytest.raises(IntegrityError):
+        with db.begin_nested():
+            db.execute(text("DELETE FROM classrooms WHERE id = :id"), {"id": room.id})
