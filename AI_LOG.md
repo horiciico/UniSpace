@@ -28,6 +28,38 @@ What I asked: put each ETL pipeline in its own folder under etl/ with its script
 What I got: the schedule pipeline (downloader.py, loader.py and their tests) moved with git mv into etl/schedule/; etl/professors/ created with a placeholder __init__.py (its code comes with Step 2). Imports, the Dockerfile entrypoint (python -m etl.schedule.downloader), the test-all path (etl) and ARCHITECTURE.md updated. No assertions changed. node scripts/test-all.mjs: backend 77, ETL 70, frontend 207 passed; the ETL image builds and its entrypoint runs.
 What I did with it: not committed or pushed.
 
+## 2026-11-23 · Step 3: role on every sign-in and the admin sign-in (D-020, D-021)
+Tool: Claude Code (Haiku 5.5), free prompt with the Step 3 brief and the user's answers and approvals
+What I asked: the role chain on Google sign-in (professor list on any domain, then a student association hook, then @ulbsibiu.ro as student, otherwise 403), and a POST admin sign-in with the ADMIN_USERNAME and ADMIN_PASSWORD pair from .env, returning the same session cookie.
+What I got: D-013 superseded by D-021; D-020 and D-021 added; C-002 rewritten; Q-007 and Q-009 marked superseded by D-020. backend/app/auth.py rewritten (resolve_user, decide_role, is_student_association hook, admin_credentials_match with secrets.compare_digest, ensure_admin_user); POST /auth/admin-login in backend/app/routers/auth.py; ADMIN_USERNAME and ADMIN_PASSWORD in config and .env.example (empty = admin sign-in off). Invitations are no longer read for sign-in. Login page text in ro.js and en.js now says that sign-in is limited to @ulbsibiu.ro accounts or registered faculty members.
+Existing tests whose assertions changed, by name: test_university_email_without_hd_is_rejected (renamed; asserted the invitation wording, now the new rule); test_existing_university_row_is_linked_and_role_resolved (role PROFESSOR became STUDENT: not in the list); test_known_external_sub_is_rejected_unless_listed_as_professor (303 became 403: an external address needs the professor list); test_invitation_no_longer_admits_an_external_address (303 became 403; invitations removed); the sign_in helper in test_auth.py now uses a university address (the admin and role tests still assert the same things). DENIED text updated. No assertion was weakened.
+Tests: 17 new backend tests (roles, professor tiers, admin login). node scripts/test-all.mjs: backend 94, ETL 99, frontend 207 passed. Smoke test: POST /auth/admin-login answers 401 directly and through nginx while no admin credentials are set.
+What I did with it: not committed or pushed. Consequence to know: an external account that is not a listed professor, including a student-organization account created earlier, can no longer sign in until the student association tier is built. The .env needs ADMIN_USERNAME and ADMIN_PASSWORD set to turn the admin sign-in on.
+
+## 2026-11-23 · D-019 approved; the stored id is kept when the API changes it
+Tool: Claude Code (Haiku 5.5), free prompt with the user's approval of the proposal and the answer on the edge case
+What I asked: approve the decision "one email is one professor" (D-019), and handle the case where the API drops a stored id and gives the same email a new id.
+What I got: D-019 written as approved and confirmed. `plan_rekeys` and `rekey_professor`: on a full run the stored row takes the new id and users.professor_id and activities.professor_id move from the old id to the new one; a partial run only reports the refusal. Tests first: 5 new ETL tests (3 pure, 2 against PostgreSQL). `node scripts/test-all.mjs`: backend 77, ETL 99, frontend 207 passed. Live reload from the local files: 206 stored, 0 moved, 0 refused, table still 206 rows.
+What I did with it: the re-key is my design choice (the decision text says so): it moves references instead of deleting anything. Not committed or pushed.
+
+## 2026-11-23 · Professors load: one person per email (Q-016 answer)
+Tool: Claude Code (Haiku 5.5), free prompt with the user's answer to Q-016
+What I asked: treat records with the same normalized email as one person; keep one id (the one stored, else one used by an activity, else the smallest) and warn with the dropped id.
+What I got: `merge_records` groups by normalized email and returns the kept records, the repeated ids and the (dropped, kept) pairs; `build_preferences` reads the stored ids and activity professor ids. Warnings are printed by the CLI. Tests first: 94 ETL tests pass; `node scripts/test-all.mjs`: backend 77, ETL 94, frontend 207 passed. Live reload from the local files: 206 distinct professors stored, 2 duplicates warned, 0 refused, table still 206 rows.
+What I did with it: Q-016 marked answered. Not committed or pushed. Proposed a decision (below) for the rule "one email, one professor id"; not written to DECISIONS.md until approved.
+
+## 2026-11-23 · Professors ETL, step 2: extract to files, load into the professors table
+Tool: Claude Code (Haiku 5.5), free prompt with the step 2 brief
+What I asked: a standalone professors pipeline, run on demand by an admin: extract every faculty's professors (all pages, 500 per page) to local files, normalize (id, name, email; email stripped and lower-cased; null or blank email skipped), deduplicate by id across faculties, and load with an idempotent upsert that never truncates or deletes.
+What I got: `etl/professors/` with `extract.py`, `load.py`, `cli.py` and four test files (extract, load, load against PostgreSQL, CLI). `write_json_atomic` moved to `etl/common.py` so both pipelines share it. Tests first; `node scripts/test-all.mjs`: backend 77, ETL 89, frontend 207 passed. Live run against the ULBS API: 9 faculties, 208 distinct professors, 206 stored, 2 left out because their email belongs to another id, 4 repeats across faculties, 3 skipped for a missing or invalid email or id. A second load gave the same counts with no new rows.
+What I did with it: the duplicate-email case is recorded as open question Q-016 and needs your decision. Not committed or pushed. Local data files (data/professors) and the local database now hold personal data from the live run; both are outside git.
+
+## 2026-11-23 · ETL: split the schedule downloader into one module per step
+Tool: Claude Code (Haiku 5.5), free prompt
+What I asked: split the schedule downloader so that each step has its own script and tests.
+What I got: `etl/schedule/sync.py` (steps 1-2: faculties and planning units), `download.py` (step 3: weekly schedule files), `loader.py` (step 4, unchanged), `cli.py` (the command line that replaces `downloader.py`), and `common.py` (the timeout and the table formatter). The tests follow their modules; `test_downloader.py` became `test_faculties_fetch.py`. Function bodies moved unchanged; only imports changed. The Dockerfile entrypoint is now `python -m etl.schedule.cli`. node scripts/test-all.mjs: backend 77, ETL 70, frontend 207 passed. The ETL image runs its CLI, and pyflakes is clean on the new modules.
+What I did with it: not committed or pushed.
+
 ## 2026-11-23 · AGENTS.md: run and update all tests after every change
 Tool: Claude Code (Haiku 5.5), free prompt
 What I asked: an instruction, in the agent instruction file, to verify all existing tests after every code change and update them where needed.

@@ -24,6 +24,7 @@
 - Q-013 · What does the ULBS schedule JSON look like (row per course or per occurrence, id types)? · _answered_
 - Q-014 · Is a day-level off-limits mark for the whole university or for one faculty? · _answered_
 - Q-015 · Where do the professors and their emails come from? · _answered_
+- Q-016 · Two professor ids share one email: which record is kept? · _answered_
 
 ---
 
@@ -71,6 +72,7 @@
 - **Answer (user, 2026-11-19):** Google sign-in only, already implemented. Accounts on the `@ulbsibiu.ro` domain sign in and are created as STUDENT. Accounts outside that domain need an invitation (the `invitations` table). No passwords.
 - **Blocks:** confirming the sign-in method. Google sign-in and the nginx page gate are built (C-002, D-009, D-010); the old dummy login is gone.
 - **Who answers:** the user
+- **Superseded by:** D-020 and D-021 (2026-11-23). The answer above is kept for history.
 
 ## Q-008 · How is the semester customized (holidays, breaks, inverted-parity weeks)?
 - **Status:** open
@@ -84,6 +86,7 @@
 - **Answer (user, 2026-11-19):** Everyone starts as STUDENT. An admin raises the role by hand.
 - **Blocks:** professors and student-organization leaders with a university address getting their role without an admin changing the `user.role` column by hand. An unused invitation for a university email is ignored today.
 - **Who answers:** the user
+- **Superseded by:** D-020 (2026-11-23). The answer above is kept for history.
 
 ## Q-010 · Which days and rooms can an admin mark as off limits, and how is that stored?
 - **Status:** answered
@@ -122,4 +125,12 @@
 - **Status:** answered
 - **Answer (user, 2026-11-23):** A list of professors comes from an API and is loaded in Step 2 of the professors pipeline. The schedule files carry `professorId` and the name, but no email, so the email comes from that list.
 - **Blocks:** the `professors` table contents (Step 2) and the automatic PROFESSOR role (the role rule is not decided yet; a PROPOSAL is pending).
+- **Who answers:** the user
+
+## Q-016 · Two professor ids share one email: which record is kept?
+- **Status:** answered
+- **Found (2026-11-23):** the live professors API has records with different ids and the same email (one faculty alone has 152 ids and 151 emails).
+- **Answer (user, 2026-11-23):** one person with duplicate records in the ULBS system. Deduplicate by normalized email during the transform. Keep one id: prefer an id that appears in `activities` if that is easy, otherwise the lexicographically smallest id. Log a warning with the skipped duplicate id. This keeps `professors.email` unique without dropping the professor from login.
+- **Implemented (2026-11-23):** an id already stored for the email is kept first, then an id used by an activity, then the smallest id. The stored id comes first so that a later run does not swap ids and trigger a refusal.
+- **Blocks:** nothing now.
 - **Who answers:** the user

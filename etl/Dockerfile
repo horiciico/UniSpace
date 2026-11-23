@@ -16,4 +16,4 @@ COPY etl/ ./etl/
 
 # Migrations first (D-002), then the pipeline. Extra arguments (for example
 # `--faculty sti`) are passed to the pipeline. Run only with the "etl" profile.
-ENTRYPOINT ["sh", "-c", "alembic upgrade head && python -m etl.schedule.downloader \"$@\"", "etl"]
+ENTRYPOINT ["sh", "-c", "alembic upgrade head && python -m etl.schedule.cli \"$@\"", "etl"]

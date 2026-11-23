@@ -19,12 +19,14 @@
 - D-010 · Pages are gated by nginx, not by JavaScript · _proposed_
 - D-011 · The interface is in Romanian and English, from one dictionary per language
 - D-012 · Records from the backend are shown as they arrive, not translated in the frontend
-- D-013 · Sign-in is Google only; the app stores no passwords
 - D-014 · Parity is by week number: 0 ALL, 1 ODD, 2 EVEN
 - D-015 · Imported activities are bound to a planning unit; the ETL skips manually modified rows
 - D-016 · One-off changes are exceptions; permanent changes go through an admin request
 - D-017 · Admin off-limits marks are stored in an off_limits table
 - D-018 · Frontend unit tests use Vitest and jsdom, as dev-only tools; the app stays plain files
+- D-019 · One email is one professor; the stored id is kept when the API changes it
+- D-020 · Role on every sign-in: professor list, then university address, otherwise rejected
+- D-021 · The admin signs in with one .env credential pair; the session is the same as Google's
 
 ---
 
@@ -146,16 +148,6 @@
 - **Source:** user · confidence high
 - **Confirmed:** 2026-11-17
 
-## D-013 · Sign-in is Google only; the app stores no passwords
-- **Status:** approved
-- **Date:** 2026-11-17
-- **Rule:** Users sign in with their Google account (OAuth 2.0 through authlib). The backend stores no passwords and no password hashes. Access rules come from the verified Google claims and the invitation table (C-002).
-- **Why:** The user decided this. A password store adds hashing, reset and lockout code, and a larger attack surface to secure. Google handles the credential and the second factor.
-- **Rejected:** local accounts with bcrypt or argon2 hashes
-- **Evidence:** backend/app/auth.py, backend/app/routers/auth.py, docs/agents/CONTRACTS.md (C-002)
-- **Source:** user · confidence high
-- **Confirmed:** 2026-11-17
-
 ## D-014 · Parity is by week number: 0 ALL, 1 ODD, 2 EVEN
 - **Status:** approved
 - **Date:** 2026-11-19
@@ -204,4 +196,39 @@
 - **Rejected:** a bundler or framework for the app; a browser-only test run without a DOM library.
 - **Evidence:** frontend/package.json, frontend/vitest.config.js, frontend/tests/, docker-compose.yml (service `frontend-test`), docs/agents/ARCHITECTURE.md (Unit tests)
 - **Source:** user · confidence high
+- **Confirmed:** 2026-11-23
+
+## D-019 · One email is one professor; the stored id is kept when the API changes it
+- **Status:** approved
+- **Date:** 2026-11-23
+- **Rule:** A professor is identified by the normalized email (stripped, lower-case). Records that share an email are one professor. The kept id is the id already stored for that email, else an id used by an activity, else the smallest id. Each other id is left out and logged as a warning. If the API drops the stored id and gives the same email a new id, the stored row takes the new id, and the users and activities that pointed at the old id are moved to the new one. This happens on full runs only (all faculties, every file readable); a partial run reports the refusal instead.
+- **Why:** The ULBS system holds duplicate records for one person. `professors.email` must stay unique, and login matches on it, so one person cannot have two rows.
+- **Rejected:** storing both ids (the email must be unique); deleting the stored row when the id changes (the professors pipeline never deletes rows).
+- **Evidence:** etl/professors/load.py (merge_records, plan_rekeys, rekey_professor), docs/agents/OPEN-QUESTIONS.md (Q-016), etl/professors/tests/
+- **Source:** user (answered Q-016 and approved this decision, 2026-11-23) · confidence high
+- **Confirmed:** 2026-11-23
+
+## D-020 · Role on every sign-in: professor list, then university address, otherwise rejected
+- **Status:** approved
+- **Date:** 2026-11-23
+- **Rule:** On every Google sign-in the email is normalized (stripped, lower-case) and the role is resolved in this order:
+  1. the email is in `professors` → PROFESSOR, on any domain; `users.professor_id` is set to the professor's id;
+  2. `is_student_association(email)` is true → STUDENT_ORG (a placeholder hook that returns False until student associations are identified);
+  3. the email ends with `@ulbsibiu.ro` and the Google `hd` claim agrees → STUDENT; a former professor who is no longer in `professors` goes back to STUDENT;
+  4. anything else → 403. This includes a former professor who signs in from an external address.
+  A login never lowers an existing ADMIN or STUDENT_ORG. Invitations are no longer used for sign-in (the `invitations` table is no longer read).
+- **Why:** The user decided this on 2026-11-23. Registered professors may sign in from any address; university addresses are students; everyone else is kept out.
+- **Rejected:** invitations for external accounts (the professor list replaces them); lowercase role names (the enum values are used).
+- **Evidence:** backend/app/auth.py (resolve_user, decide_role, is_student_association), backend/tests/test_auth.py, docs/agents/CONTRACTS.md (C-002)
+- **Source:** user (answers 1-4 and the proposal, 2026-11-23) · confidence high
+- **Confirmed:** 2026-11-23
+
+## D-021 · The admin signs in with one .env credential pair; the session is the same as Google's
+- **Status:** approved
+- **Date:** 2026-11-23
+- **Rule:** `POST /auth/admin-login` takes `username` and `password` and compares both with `ADMIN_USERNAME` and `ADMIN_PASSWORD` from `.env` using `secrets.compare_digest`. The values are plain text in `.env` for now. If either is empty, the admin login is off and always answers 401. On success the backend creates or updates the `users` row whose email is `ADMIN_USERNAME` (lower-case), with role ADMIN, and issues the usual session cookie (D-009). A wrong username or password answers 401 with the same message. The route is under `/auth/`, outside the `/api/` gate.
+- **Why:** The admin needs a sign-in that does not use Google. The user chose a plain-text password in `.env` for now; a stored hash is a possible later change (it would be a PROPOSAL).
+- **Rejected:** credentials hard-coded in the source (AGENTS.md forbids secrets in files); `/api/auth/admin-login` (nginx would refuse it to a signed-out admin); a role field in the session cookie (changes D-009).
+- **Evidence:** backend/app/routers/auth.py (admin_login), backend/app/config.py, .env.example, infra/nginx/default.conf (`location /auth/`)
+- **Source:** user (chose option a and plain text, 2026-11-23) · confidence high
 - **Confirmed:** 2026-11-23

@@ -47,7 +47,8 @@ from app.models import (
     Status,
     StudentGroup,
 )
-from etl.schedule.downloader import SCHEDULES_DIR, TIMEOUT_SECONDS
+from etl.schedule.common import TIMEOUT_SECONDS
+from etl.schedule.download import SCHEDULES_DIR
 
 # The path's faculty is ignored by the API; `?faculty=` selects the owning faculty's rooms.
 # Owner-less rooms only appear in the list without the parameter, so both are read.

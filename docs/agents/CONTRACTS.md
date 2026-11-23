@@ -10,7 +10,7 @@
 
 ## Index
 - C-001 · GET /health · provided
-- C-002 · Auth routes (Google sign-in) · provided · _proposed_
+- C-002 · Auth routes (Google sign-in and admin sign-in) · provided
 - C-003 · Timetable and free-room API (/api/*) · provided
 
 ---
@@ -26,14 +26,15 @@
 - **Evidence:** backend/app/routers/health.py:7; consumer link in frontend/pages/shared/index.html
 - **Source:** code · confidence high
 
-### C-002 · Auth routes (Google sign-in)
-- **Status:** proposed
-- **Interface:** HTTP on the backend, no `/api` prefix, also proxied by nginx on the frontend origin (`:8080` locally): `GET /auth/login` (redirect to Google), `GET /auth/callback` (Google redirect URI; sets the session cookie, 303 to `POST_LOGIN_URL`), `GET /auth/me`, `GET /auth/admin` (204 for ADMIN, 403 otherwise, 401 signed out), `POST /auth/logout`.
+### C-002 · Auth routes (Google sign-in and admin sign-in)
+- **Status:** approved
+- **Interface:** HTTP on the backend, no `/api` prefix, also proxied by nginx on the frontend origin (`:8080` locally): `GET /auth/login` (redirect to Google), `GET /auth/callback` (Google redirect URI; resolves the role, sets the session cookie, 303 to `POST_LOGIN_URL`), `POST /auth/admin-login` (admin sign-in with `.env` credentials, D-021), `GET /auth/me`, `GET /auth/admin` (204 for ADMIN, 403 otherwise, 401 signed out), `POST /auth/logout`.
 - **Consumers:** nginx (`infra/nginx/default.conf`: `auth_request` on `/auth/me` and `/auth/admin`; turns `/auth/callback` 403 and 400 into `/login?error=denied|failed`); the frontend (`frontend/js/auth.js` reads `/auth/me` and posts `/auth/logout`; `frontend/pages/shared/login.html` links `/auth/login`).
-- **Shape:** `/auth/me` returns 200 `{"id", "email", "name", "role"}` or 401. `/auth/logout` returns 204. Rejections are 403 `{"detail": ...}`; Rule C text: "Access denied. Please use your institutional @ulbsibiu.ro account or request an invitation." Google failures are 400.
-- **Rules:** `@ulbsibiu.ro` (hd claim and email both) is auto-provisioned as STUDENT; other domains need an unused `invitation` row for the email. Any other role for a university user is an admin change (Q-009).
-- **Evidence:** backend/app/routers/auth.py, backend/app/auth.py
-- **Source:** code · confidence high
+- **Shape:** `/auth/me` returns 200 `{"id", "email", "name", "role"}` or 401. `/auth/logout` returns 204. `/auth/admin-login` takes `{"username", "password"}`: 200 with the same user shape and the session cookie, or 401 `{"detail": "Invalid admin credentials."}`. Rejections are 403 `{"detail": ...}` with the text "Access denied. Login is restricted to @ulbsibiu.ro accounts or registered faculty members." Google failures are 400.
+- **Rules:** the role is resolved on every sign-in as in D-020. An email in `professors` is a PROFESSOR on any domain; an `@ulbsibiu.ro` address with the matching `hd` claim is a STUDENT; anything else is a 403. Google accounts must have a verified email. Linking a seeded row with no Google id is allowed when the rule above admits it.
+- **Evidence:** backend/app/routers/auth.py, backend/app/auth.py, backend/app/routers/auth.py (admin_login), infra/nginx/default.conf (`location /auth/`)
+- **Source:** user (decisions D-020 and D-021, 2026-11-23) · code · confidence high
+- **Confirmed:** 2026-11-23
 
 ### C-003 · Timetable and free-room API (/api/*)
 - **Status:** approved
