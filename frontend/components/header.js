@@ -47,44 +47,44 @@
       '<a class="brand" href="/"><img class="brand__mark" src="/public/brand-mark.png" alt="" width="28" height="28" />UniSpace</a>' +
       '<div class="header-actions">' + actions + "</div>" +
       (user ? '<nav id="site-nav" class="nav" aria-label="' + esc(t("header.navAria")) + '">' + links + "</nav>" : "") +
-    "</div>";
+      "</div>";
 
-    var actionsEl = header.querySelector(".header-actions");
-    actionsEl.appendChild(UI.languageToggle());
+      var actionsEl = header.querySelector(".header-actions");
+      actionsEl.appendChild(UI.languageToggle());
 
-    if (user) {
-      if (user.picture) {
-        var img = document.createElement("img");
-        img.className = "user-avatar";
-        img.src = user.picture;
-        img.alt = "";
-        img.width = 32;
-        img.height = 32;
-        img.referrerPolicy = "no-referrer";
-        actionsEl.appendChild(img);
-      } else {
-        var placeholder = document.createElement("span");
-        placeholder.className = "user-avatar user-avatar--placeholder";
-        placeholder.setAttribute("aria-hidden", "true");
-        placeholder.textContent = user.name.charAt(0).toUpperCase();
-        actionsEl.appendChild(placeholder);
+      if (user) {
+        if (user.picture) {
+          var img = document.createElement("img");
+          img.className = "user-avatar";
+          img.src = user.picture;
+          img.alt = "";
+          img.width = 32;
+          img.height = 32;
+          img.referrerPolicy = "no-referrer";
+          actionsEl.appendChild(img);
+        } else {
+          var placeholder = document.createElement("span");
+          placeholder.className = "user-avatar user-avatar--placeholder";
+          placeholder.setAttribute("aria-hidden", "true");
+          placeholder.textContent = (user.name || "U").charAt(0).toUpperCase();
+          actionsEl.appendChild(placeholder);
+        }
       }
-    }
 
-    document.body.prepend(header);
+      document.body.prepend(header);
 
-    var logout = header.querySelector(".logout");
-    if (logout) {
-      logout.addEventListener("click", function () {
-        logout.disabled = true;
-        window.UniSpaceAuth.logout();
+      var logout = header.querySelector(".logout");
+      if (logout) {
+        logout.addEventListener("click", function () {
+          logout.disabled = true;
+          window.UniSpaceAuth.logout();
+        });
+      }
+    };
+
+    UI.fillUserName = function (user) {
+      document.querySelectorAll("[data-user-name]").forEach(function (el) {
+        el.textContent = user ? user.name : window.UniSpaceI18n.t("common.guest");
       });
-    }
-  };
-
-  UI.fillUserName = function (user) {
-    document.querySelectorAll("[data-user-name]").forEach(function (el) {
-      el.textContent = user ? user.name : window.UniSpaceI18n.t("common.guest");
-    });
-  };
-})();
+    };
+  }) ();
