@@ -35,18 +35,17 @@
   height: 28px;
   border-radius: var(--radius-sm);
   object-fit: contain;
-  box-shadow: 0 0 0 1px var(--color-border); /* keeps the white tile visible on a white header */
+  box-shadow: 0 0 0 1px var(--color-border);
+  /* keeps the white tile visible on a white header */
 }
 
 .nav {
-  display: none;
-  flex-basis: 100%;
-  flex-direction: column;
-  gap: var(--space-1);
-}
-
-.nav.is-open {
   display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  flex-basis: 100%;
+  gap: var(--space-1);
+  order: 1;
 }
 
 .nav a {
@@ -66,29 +65,91 @@
   color: var(--color-on-primary);
 }
 
-.nav-toggle {
-  margin-left: auto;
-}
-
 .header-actions {
   display: flex;
   gap: var(--space-2);
   align-items: center;
+  margin-left: auto;
 }
 
-@media (min-width: 960px) {
-  .nav {
-    display: flex;
-    flex-direction: row;
-    flex-basis: auto;
-    gap: var(--space-1);
-  }
-
-  .nav-toggle {
-    display: none;
-  }
-
-  .header-actions {
-    margin-left: auto;
-  }
+.profile-menu {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
 }
+
+.profile-menu__trigger {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-menu__trigger:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.profile-menu__dropdown {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  right: 0;
+  z-index: 100;
+  min-width: 180px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 16px var(--color-shadow);
+  padding: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.profile-menu__dropdown[hidden] {
+  display: none;
+}
+
+.profile-menu__dropdown .btn {
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+}
+
+  .user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 0 0 1px var(--color-border);
+    display: inline-block;
+    vertical-align: middle;
+  }
+
+  .user-avatar--placeholder {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-weight: 600;
+    font-size: var(--text-sm);
+    box-shadow: 0 0 0 1px var(--color-border);
+  }
+
+  @media (min-width: 960px) {
+    .nav {
+      display: flex;
+      flex-direction: row;
+      flex-basis: 100%;
+      gap: var(--space-1);
+      order: 1;
+    }
+  }

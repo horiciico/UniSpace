@@ -8,6 +8,29 @@ Each entry follows the same shape:
 
 ```
 
+## 2026-11-24 · Header listener cleanup and Google picture removal synchronization
+Tool: Antigravity, free prompt
+What I asked: clean up document-level click and keydown listeners across header rebuilds to prevent detached DOM retention and duplicate handling; update Google sign-in to assign the picture claim unconditionally on every login so omitting the picture claim clears any previous avatar URL.
+What I got:
+- In `backend/app/auth.py`: updated `resolve_user` to unconditionally set `user.picture = picture`, correctly clearing the avatar when Google omits the claim on subsequent logins. Added regression test `test_google_login_clears_picture_when_claim_is_omitted` in `backend/tests/test_auth.py`.
+- In `frontend/components/header.js`: maintained references to the active document-level `click` and `keydown` handlers (`activeCloseMenu`, `activeKeyDown`) and added `teardownMenuListeners()` called at the start of `UI.buildHeader` and exposed on `UI.teardownHeader`.
+- In `frontend/tests/unit/header.test.js`: added unit test asserting listener removal across header rebuilds. 100% frontend coverage maintained.
+What I did with it: On branch `fix/header-row-swap`. Tests passing across backend and frontend suites.
+
+## 2026-11-24 · Header profile dropdown and user picture
+Tool: Antigravity, free prompt
+What I asked: remove the menu button; add the user profile picture obtained through Google OAuth in the top right corner; move the theme and logout buttons from the header into a dropdown unfolding under the profile picture on click, along with routing to a placeholder settings page. Keep button functionalities intact.
+What I got:
+- Added `picture` column to `users` (String 1024, nullable) with Alembic migration `e5c1a7d890b2`.
+- Updated `resolve_user` and `UserOut` to store and expose Google OAuth `picture` claim.
+- Updated `CONTRACTS.md` (C-002).
+- Removed `.nav-toggle` and "Menu" button, keeping navigation directly accessible on the second row.
+- Replaced header theme toggle and logout in the header bar with an interactive profile menu trigger and dropdown displaying the user's avatar (or initial placeholder), containing the theme button, a placeholder `/settings` route, and the logout button.
+- Added `/settings` route in `infra/nginx/default.conf` and `frontend/pages/shared/settings.html`.
+- Added required keys to `ro.js` and `en.js` (`header.profileMenu`, `header.settings`, `settings.title`, `settings.heading`, `settings.lead`).
+- Updated unit tests in `header.test.js` to cover dropdown unfolding, outside clicks, and keyboard Escape behavior.
+What I did with it: On branch `fix/header-row-swap`. Tests pass across suites.
+
 ## 2026-11-23 · Student onboarding: faculty and study formation on first sign-in
 Tool: Claude Code (Haiku 5.5), /plan then /build, free prompt for the approval
 What I asked: on a student's first sign-in, a blocking dialog asks for the faculty (a dropdown of all faculties), then for the study formation of that faculty; both are stored on the user row in nullable columns that are filled only for students. Branch feat/student-onboarding. The user approved the plan and skipped the design mock.

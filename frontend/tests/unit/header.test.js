@@ -90,50 +90,132 @@ describe("header.js: the site header", () => {
       expect(window.UniSpaceAuth.roleLabel).toHaveBeenCalledWith("STUDENT");
     });
 
-    it("opens and closes the menu on small screens, and says so", async () => {
-      const UI = await loadHeader();
-      UI.buildHeader(STUDENT);
-      const toggle = document.querySelector(".nav-toggle");
-      const nav = document.querySelector("nav.nav");
-      toggle.click();
-      expect(nav.classList.contains("is-open")).toBe(true);
-      expect(toggle.getAttribute("aria-expanded")).toBe("true");
-      toggle.click();
-      expect(nav.classList.contains("is-open")).toBe(false);
-      expect(toggle.getAttribute("aria-expanded")).toBe("false");
+      it("renders user avatar when profile picture is provided", async () => {
+        const UI = await loadHeader();
+        UI.buildHeader({ ...STUDENT, picture: "https://example.com/avatar.jpg" });
+        const avatar = document.querySelector("img.user-avatar");
+        expect(avatar).not.toBeNull();
+        expect(avatar.getAttribute("src")).toBe("https://example.com/avatar.jpg");
+        expect(avatar.getAttribute("width")).toBe("32");
+      });
+
+      it("renders placeholder avatar when profile picture is not provided", async () => {
+        const UI = await loadHeader();
+        UI.buildHeader(STUDENT);
+        const placeholder = document.querySelector(".user-avatar--placeholder");
+        expect(placeholder).not.toBeNull();
+        expect(placeholder.textContent).toBe("A");
+      });
+
+      it("does not render a menu toggle button", async () => {
+        const UI = await loadHeader();
+        UI.buildHeader(STUDENT);
+        expect(document.querySelector(".nav-toggle")).toBeNull();
+      });
+
+      it("unfolds options (theme, settings, logout) when clicking the profile picture", async () => {
+        const UI = await loadHeader();
+        UI.buildHeader(STUDENT);
+        const trigger = document.querySelector(".profile-menu__trigger");
+        const dropdown = document.querySelector(".profile-menu__dropdown");
+
+        expect(dropdown.hidden).toBe(true);
+        expect(trigger.getAttribute("aria-expanded")).toBe("false");
+
+        trigger.click();
+        expect(dropdown.hidden).toBe(false);
+        expect(trigger.getAttribute("aria-expanded")).toBe("true");
+        expect(dropdown.querySelector(".theme-toggle")).not.toBeNull();
+        expect(dropdown.querySelector('a[href="/settings"]')).not.toBeNull();
+        expect(dropdown.querySelector(".logout")).not.toBeNull();
+
+        trigger.click();
+        expect(dropdown.hidden).toBe(true);
+        expect(trigger.getAttribute("aria-expanded")).toBe("false");
+      });
+
+      it("closes the profile menu when clicking outside", async () => {
+        const UI = await loadHeader();
+        UI.buildHeader(STUDENT);
+        const trigger = document.querySelector(".profile-menu__trigger");
+        const dropdown = document.querySelector(".profile-menu__dropdown");
+
+        trigger.click();
+        expect(dropdown.hidden).toBe(false);
+
+        dropdown.click();
+        expect(dropdown.hidden).toBe(false);
+
+        document.body.click();
+        expect(dropdown.hidden).toBe(true);
+        expect(trigger.getAttribute("aria-expanded")).toBe("false");
+      });
+
+      it("closes the profile menu on Escape key press and restores focus", async () => {
+        const UI = await loadHeader();
+        UI.buildHeader(STUDENT);
+        const trigger = document.querySelector(".profile-menu__trigger");
+        const dropdown = document.querySelector(".profile-menu__dropdown");
+
+        trigger.click();
+        expect(dropdown.hidden).toBe(false);
+
+        document.dispatchEvent(new KeyboardEvent("keydown", { key: "Tab" }));
+        expect(dropdown.hidden).toBe(false);
+
+        document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+        expect(dropdown.hidden).toBe(true);
+        expect(trigger.getAttribute("aria-expanded")).toBe("false");
+
+        document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+        expect(dropdown.hidden).toBe(true);
+      });
+
+      it("signs out from the log out button, and cannot be pressed twice", async () => {
+        const UI = await loadHeader();
+        UI.buildHeader(STUDENT);
+        const button = document.querySelector(".logout");
+        button.click();
+        expect(button.disabled).toBe(true);
+        expect(window.UniSpaceAuth.logout).toHaveBeenCalledTimes(1);
+      });
+
+      it("removes document listeners when rebuilding the header", async () => {
+        const UI = await loadHeader();
+        const removeSpy = vi.spyOn(document, "removeEventListener");
+        UI.buildHeader(STUDENT);
+        expect(removeSpy).not.toHaveBeenCalled();
+        UI.buildHeader(STUDENT);
+        expect(removeSpy).toHaveBeenCalledWith("click", expect.any(Function));
+        expect(removeSpy).toHaveBeenCalledWith("keydown", expect.any(Function));
+        removeSpy.mockClear();
+        UI.buildHeader(null);
+        expect(removeSpy).toHaveBeenCalledWith("click", expect.any(Function));
+        expect(removeSpy).toHaveBeenCalledWith("keydown", expect.any(Function));
+      });
+
+      it("builds a fresh header each time, one after another", async () => {
+        const UI = await loadHeader();
+        UI.buildHeader(STUDENT);
+        UI.buildHeader(ADMIN);
+        expect(document.querySelectorAll("header.site-header")).toHaveLength(2);
+      });
     });
 
-    it("signs out from the log out button, and cannot be pressed twice", async () => {
-      const UI = await loadHeader();
-      UI.buildHeader(STUDENT);
-      const button = document.querySelector(".logout");
-      button.click();
-      expect(button.disabled).toBe(true);
-      expect(window.UniSpaceAuth.logout).toHaveBeenCalledTimes(1);
-    });
+    describe("the user's name on the page", () => {
+      it("fills every [data-user-name] with the user's name", async () => {
+        const UI = await loadHeader();
+        document.body.innerHTML = '<span data-user-name></span><span data-user-name></span>';
+        UI.fillUserName(STUDENT);
+        expect([...document.querySelectorAll("[data-user-name]")].map((el) => el.textContent))
+          .toEqual(["Ana <Pop>", "Ana <Pop>"]);
+      });
 
-    it("builds a fresh header each time, one after another", async () => {
-      const UI = await loadHeader();
-      UI.buildHeader(STUDENT);
-      UI.buildHeader(ADMIN);
-      expect(document.querySelectorAll("header.site-header")).toHaveLength(2);
+      it("writes the guest word when nobody is signed in", async () => {
+        const UI = await loadHeader();
+        document.body.innerHTML = '<span data-user-name></span>';
+        UI.fillUserName(null);
+        expect(document.querySelector("[data-user-name]").textContent).toBe(window.UniSpaceI18n.t("common.guest"));
+      });
     });
   });
-
-  describe("the user's name on the page", () => {
-    it("fills every [data-user-name] with the user's name", async () => {
-      const UI = await loadHeader();
-      document.body.innerHTML = '<span data-user-name></span><span data-user-name></span>';
-      UI.fillUserName(STUDENT);
-      expect([...document.querySelectorAll("[data-user-name]")].map((el) => el.textContent))
-        .toEqual(["Ana <Pop>", "Ana <Pop>"]);
-    });
-
-    it("writes the guest word when nobody is signed in", async () => {
-      const UI = await loadHeader();
-      document.body.innerHTML = '<span data-user-name></span>';
-      UI.fillUserName(null);
-      expect(document.querySelector("[data-user-name]").textContent).toBe(window.UniSpaceI18n.t("common.guest"));
-    });
-  });
-});
