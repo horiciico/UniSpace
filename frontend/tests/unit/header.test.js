@@ -113,6 +113,64 @@ describe("header.js: the site header", () => {
         expect(document.querySelector(".nav-toggle")).toBeNull();
       });
 
+      it("unfolds options (theme, settings, logout) when clicking the profile picture", async () => {
+        const UI = await loadHeader();
+        UI.buildHeader(STUDENT);
+        const trigger = document.querySelector(".profile-menu__trigger");
+        const dropdown = document.querySelector(".profile-menu__dropdown");
+
+        expect(dropdown.hidden).toBe(true);
+        expect(trigger.getAttribute("aria-expanded")).toBe("false");
+
+        trigger.click();
+        expect(dropdown.hidden).toBe(false);
+        expect(trigger.getAttribute("aria-expanded")).toBe("true");
+        expect(dropdown.querySelector(".theme-toggle")).not.toBeNull();
+        expect(dropdown.querySelector('a[href="/settings"]')).not.toBeNull();
+        expect(dropdown.querySelector(".logout")).not.toBeNull();
+
+        trigger.click();
+        expect(dropdown.hidden).toBe(true);
+        expect(trigger.getAttribute("aria-expanded")).toBe("false");
+      });
+
+      it("closes the profile menu when clicking outside", async () => {
+        const UI = await loadHeader();
+        UI.buildHeader(STUDENT);
+        const trigger = document.querySelector(".profile-menu__trigger");
+        const dropdown = document.querySelector(".profile-menu__dropdown");
+
+        trigger.click();
+        expect(dropdown.hidden).toBe(false);
+
+        dropdown.click();
+        expect(dropdown.hidden).toBe(false);
+
+        document.body.click();
+        expect(dropdown.hidden).toBe(true);
+        expect(trigger.getAttribute("aria-expanded")).toBe("false");
+      });
+
+      it("closes the profile menu on Escape key press and restores focus", async () => {
+        const UI = await loadHeader();
+        UI.buildHeader(STUDENT);
+        const trigger = document.querySelector(".profile-menu__trigger");
+        const dropdown = document.querySelector(".profile-menu__dropdown");
+
+        trigger.click();
+        expect(dropdown.hidden).toBe(false);
+
+        document.dispatchEvent(new KeyboardEvent("keydown", { key: "Tab" }));
+        expect(dropdown.hidden).toBe(false);
+
+        document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+        expect(dropdown.hidden).toBe(true);
+        expect(trigger.getAttribute("aria-expanded")).toBe("false");
+
+        document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+        expect(dropdown.hidden).toBe(true);
+      });
+
       it("signs out from the log out button, and cannot be pressed twice", async () => {
         const UI = await loadHeader();
         UI.buildHeader(STUDENT);

@@ -24,7 +24,7 @@
     var esc = UI.escapeHtml;
     var here = UI.normalisePath(window.location.pathname);
     var links = "";
-    var actions = '<button class="btn btn-ghost btn-small theme-toggle" type="button"></button>';
+    var actions = "";
 
     if (user) {
       links = NAV.filter(function (item) {
@@ -35,8 +35,9 @@
       }).join("");
       actions +=
         '<span class="pill pill--info user-chip">' + esc(user.name) +
-        " · " + esc(window.UniSpaceAuth.roleLabel(user.role)) + "</span>" +
-        '<button class="btn btn-ghost btn-small logout" type="button">' + esc(t("header.logout")) + "</button>";
+        " · " + esc(window.UniSpaceAuth.roleLabel(user.role)) + "</span>";
+    } else {
+      actions += '<button class="btn btn-ghost btn-small theme-toggle" type="button"></button>';
     }
 
     var header = document.createElement("header");
@@ -47,40 +48,68 @@
       '<a class="brand" href="/"><img class="brand__mark" src="/public/brand-mark.png" alt="" width="28" height="28" />UniSpace</a>' +
       '<div class="header-actions">' + actions + "</div>" +
       (user ? '<nav id="site-nav" class="nav" aria-label="' + esc(t("header.navAria")) + '">' + links + "</nav>" : "") +
-      "</div>";
+    "</div>";
 
-      var actionsEl = header.querySelector(".header-actions");
-      actionsEl.appendChild(UI.languageToggle());
+    var actionsEl = header.querySelector(".header-actions");
+    actionsEl.appendChild(UI.languageToggle());
 
-      if (user) {
-        if (user.picture) {
-          var img = document.createElement("img");
-          img.className = "user-avatar";
-          img.src = user.picture;
-          img.alt = "";
-          img.width = 32;
-          img.height = 32;
-          img.referrerPolicy = "no-referrer";
-          actionsEl.appendChild(img);
-        } else {
-          var placeholder = document.createElement("span");
-          placeholder.className = "user-avatar user-avatar--placeholder";
-          placeholder.setAttribute("aria-hidden", "true");
-          placeholder.textContent = (user.name || "U").charAt(0).toUpperCase();
-          actionsEl.appendChild(placeholder);
+    if (user) {
+      var avatarHtml = "";
+      if (user.picture) {
+        avatarHtml = '<img class="user-avatar" src="' + esc(user.picture) + '" alt="" width="32" height="32" referrerpolicy="no-referrer" />';
+      } else {
+        avatarHtml = '<span class="user-avatar user-avatar--placeholder" aria-hidden="true">' + esc(user.name.charAt(0).toUpperCase()) + "</span>";
+      }
+
+      var menu = document.createElement("div");
+      menu.className = "profile-menu";
+      menu.innerHTML =
+        '<button class="profile-menu__trigger" type="button" aria-expanded="false" aria-haspopup="true" aria-label="' + esc(t("header.profileMenu")) + '">' +
+        avatarHtml +
+        "</button>" +
+        '<div class="profile-menu__dropdown" hidden>' +
+        '<button class="btn btn-ghost btn-small theme-toggle" type="button"></button>' +
+        '<a class="btn btn-ghost btn-small profile-menu__item" href="/settings">' + esc(t("header.settings")) + "</a>" +
+        '<button class="btn btn-ghost btn-small logout" type="button">' + esc(t("header.logout")) + "</button>" +
+        "</div>";
+      actionsEl.appendChild(menu);
+
+      var trigger = menu.querySelector(".profile-menu__trigger");
+      var dropdown = menu.querySelector(".profile-menu__dropdown");
+
+      trigger.addEventListener("click", function (event) {
+        event.stopPropagation();
+        var open = dropdown.hidden;
+        dropdown.hidden = !open;
+        trigger.setAttribute("aria-expanded", String(open));
+      });
+
+      document.addEventListener("click", function (event) {
+        if (!menu.contains(event.target)) {
+          dropdown.hidden = true;
+          trigger.setAttribute("aria-expanded", "false");
         }
-      }
+      });
 
-      document.body.prepend(header);
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && !dropdown.hidden) {
+          dropdown.hidden = true;
+          trigger.setAttribute("aria-expanded", "false");
+          trigger.focus();
+        }
+      });
+    }
 
-      var logout = header.querySelector(".logout");
-      if (logout) {
-        logout.addEventListener("click", function () {
-          logout.disabled = true;
-          window.UniSpaceAuth.logout();
-        });
-      }
-    };
+    document.body.prepend(header);
+
+    var logout = header.querySelector(".logout");
+    if (logout) {
+      logout.addEventListener("click", function () {
+        logout.disabled = true;
+        window.UniSpaceAuth.logout();
+      });
+    }
+  };
 
     UI.fillUserName = function (user) {
       document.querySelectorAll("[data-user-name]").forEach(function (el) {
