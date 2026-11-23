@@ -36,13 +36,9 @@
     return now.getFullYear() + "-" + pad(now.getMonth() + 1) + "-" + pad(now.getDate());
   }
 
-  function locale() {
-    return window.UniSpaceI18n.current() === "ro" ? "ro-RO" : "en-GB";
-  }
-
   function setStatus(text, isError) {
-    statusLine.textContent = text || "";
-    statusLine.className = isError && text ? "notice notice--error" : "muted";
+    statusLine.textContent = text;
+    statusLine.className = isError ? "notice notice--error" : "muted";
   }
 
   // The index of the module that contains the moment, or the next one during a break.
@@ -77,7 +73,7 @@
 
   function filters() {
     var values = {
-      faculty_id: facultySelect.value || null,
+      faculty_id: facultySelect.value,
       min_capacity: capacityInput.value ? capacityInput.value : null,
       has_projector: projectorInput.checked ? true : null,
       only_verified: verifiedInput.checked ? true : null
@@ -99,13 +95,14 @@
     return values;
   }
 
+  // The room's timetable, opened on the week of the date the list was made for.
   function roomHref(room, date) {
     var params = new URLSearchParams({
       mode: "room",
       faculty_id: room.faculty_id || "campus",
-      id: room.id
+      id: room.id,
+      date: date
     });
-    if (date) params.set("date", date);
     return "/timetable?" + params.toString();
   }
 

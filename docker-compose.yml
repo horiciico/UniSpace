@@ -84,6 +84,18 @@ services:
       db:
         condition: service_healthy
 
+  # Unit tests for the frontend scripts (Vitest, in jsdom). Off unless started with the profile:
+  #   docker compose --profile test run --rm frontend-test
+  frontend-test:
+    image: node:22-alpine
+    profiles: ["test"]
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - frontend-node-modules:/app/node_modules
+    command: sh -c "npm install --no-audit --no-fund && npx vitest run --coverage"
+
 volumes:
   pgdata:
   pgadmin-data:
+  frontend-node-modules:

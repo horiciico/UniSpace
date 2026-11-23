@@ -1,0 +1,42 @@
+# Runs the three test suites (backend, ETL, frontend) on every push and every pull request.
+# The same script runs locally: node scripts/test-all.mjs
+name: tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      # The compose file needs these values. CI uses placeholders: no test reaches Google,
+      # and the database is the throwaway one of the test stack. Never put real secrets here.
+      - name: Create the test stack's .env (placeholders only)
+        run: |
+          cp .env.example .env
+          sed -i \
+            -e 's/^POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=ci-only-password/' \
+            -e 's/^PGADMIN_DEFAULT_PASSWORD=.*/PGADMIN_DEFAULT_PASSWORD=ci-only-password/' \
+            -e 's/^GOOGLE_WEB_CLIENT_ID=.*/GOOGLE_WEB_CLIENT_ID=ci-placeholder/' \
+            -e 's/^GOOGLE_WEB_CLIENT_SECRET=.*/GOOGLE_WEB_CLIENT_SECRET=ci-placeholder/' \
+            -e 's/^SESSION_SECRET_KEY=.*/SESSION_SECRET_KEY=ci-placeholder-session-key/' \
+            .env
+
+      - name: Run all test suites
+        run: node scripts/test-all.mjs
+
+      - name: Upload the test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: output/test-report.md
+          if-no-files-found: warn

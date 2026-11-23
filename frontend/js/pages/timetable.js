@@ -85,10 +85,10 @@
   };
 
   function setStatus(key, isError) {
-    state.statusKey = key || "";
+    state.statusKey = key;
     state.statusError = Boolean(isError);
     statusLine.textContent = key ? t(key) : "";
-    statusLine.className = state.statusError && key ? "notice notice--error" : "muted";
+    statusLine.className = state.statusError ? "notice notice--error" : "muted";
   }
 
   function renderWeek() {
@@ -244,15 +244,14 @@
     });
   }
 
+  // Callers draw only when there are items.
   function drawGrid() {
-    if (!state.items) return;
     grid.render(gridElement, state.items, openDetails);
   }
 
   function openDetails(item) {
     var fill = function (id, text) {
-      var node = document.getElementById(id);
-      if (node) node.textContent = text;
+      document.getElementById(id).textContent = text;
     };
     var kind = KIND_KEYS[item.activity_type] ? t(KIND_KEYS[item.activity_type]) : item.activity_type;
     var day = new Intl.DateTimeFormat(locale(), { weekday: "long", day: "numeric", month: "long" })
@@ -267,7 +266,6 @@
     fill("tt-d-priority", String(item.priority));
     fill("tt-d-parity", t(PARITY_KEYS[item.parity] || "timetable.parityAll"));
     fill("tt-d-recurring", item.is_recurring ? t("timetable.recurring") : t("timetable.oneOff"));
-    if (!dialog) return;
     if (typeof dialog.showModal === "function") dialog.showModal();
     else dialog.setAttribute("open", "");
   }
@@ -353,15 +351,15 @@
       updateUrl();
       loadSchedule();
     });
-    var close = document.getElementById("tt-d-close");
-    if (close && dialog) close.addEventListener("click", function () { dialog.close(); });
+    document.getElementById("tt-d-close").addEventListener("click", function () { dialog.close(); });
 
     api.faculties().then(function (faculties) {
       state.faculties = faculties;
       populateFaculties();
       return loadEntities();
     }).then(function () {
-      if (!state.facultyId || !state.urlEntityId) {
+      // Nothing to look the address up in: no faculty, no entity named, or no list loaded.
+      if (!state.facultyId || !state.urlEntityId || !state.entities.length) {
         updateUrl();
         return;
       }
@@ -387,7 +385,7 @@
     populateFaculties();
     fillEntityList();
     setStatus(state.statusKey, state.statusError);
-    if (dialog && dialog.open) dialog.close();
+    if (dialog.open) dialog.close();
     if (state.items && !body.hidden) drawGrid();
   });
 

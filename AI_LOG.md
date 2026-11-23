@@ -16,6 +16,42 @@ What I did with it: <kept, changed, rejected, merged; where it went>
 
 ---
 
+## 2026-11-23 · GitHub Actions: the three suites on every push and pull request
+Tool: Claude Code (Haiku 5.5), free prompt
+What I asked: a GitHub Action that runs the three test suites on every commit, push or PR.
+What I got: `.github/workflows/tests.yml`, triggered by push (all branches), pull_request and manual dispatch. On ubuntu-latest it creates `.env` from `.env.example` with placeholder values only (no secrets), runs `node scripts/test-all.mjs`, and uploads `output/test-report.md` as an artifact even when a suite fails. YAML checked; not yet run on GitHub.
+What I did with it: not committed or pushed. The first run on GitHub is the real check.
+
+## 2026-11-23 · Live colour progress bars in scripts/test-all.mjs
+Tool: Claude Code (Haiku 5.5), free prompt
+What I asked: visual status with colours and a real-time progress bar per suite.
+What I got: before each suite, a count of its tests (pytest --collect-only, vitest list --json) gives the bar a total. In a terminal the three bars redraw in colour (green, red on failure, yellow while running); with a pipe or in CI one plain line per suite is printed. NO_COLOR turns colour off; TEST_ALL_LIVE=1 forces the live display. Checked by forcing the live display and reading the frames: counts climb to 75/75, 66/66 and 207/207. The failing-test display was not exercised.
+What I did with it: not committed.
+
+## 2026-11-23 · One command for all tests: scripts/test-all.mjs
+Tool: Claude Code (Haiku 5.5), free prompt
+What I asked: a single command that runs all tests and writes a report; whether a terminal runner like the one in the exams project is overengineered.
+What I got: that runner is a 1,645-line terminal UI with its own Postgres and Cypress handling; not used. `scripts/test-all.mjs` (about 130 lines) runs the backend, ETL and frontend suites in Docker in turn, and writes output/test-report.md (totals, a table, the tail of any failing suite). Exit code 0 when all pass. Ran once: 348 tests passed (75 backend, 66 ETL, 207 frontend). output/ added to .gitignore. The failure path was not exercised.
+What I did with it: not committed.
+
+## 2026-11-23 · Decision D-018: frontend unit tests use Vitest and jsdom (approved)
+Tool: Claude Code (Haiku 5.5), free prompt
+What I asked: approval of D-018, the dev-only test tooling, recorded in the decisions ledger.
+What I got: D-018 added to DECISIONS.md (approved, confirmed 2026-11-23) with its index line. The app stays plain HTML, CSS and JavaScript (D-003 unchanged). Ledger lint passes.
+What I did with it: not committed.
+
+## 2026-11-23 · Frontend unit tests extended to every browser script
+Tool: Claude Code (Haiku 5.5), free prompt
+What I asked: add the remaining frontend scripts to the unit tests (the decision to extend the scope).
+What I got: tests for the i18n runtime, the shared components (ui, footer, header, language and theme toggles, toast, app), the session script (auth.js) and the login page. The coverage gate now covers every browser script: 207 tests, 100% statements, branches, functions and lines. No source change in this step. Backend tests pass.
+What I did with it: not committed. The second decision (recording the test tooling as a ledger decision) was not written: it needs approval first.
+
+## 2026-11-23 · Frontend unit tests with Vitest (100% coverage of the new scripts)
+Tool: Claude Code (Haiku 5.5), free prompt
+What I asked: complete unit tests, with full coverage, for the frontend components and functions that are no longer placeholders, using Vite.
+What I got: Vitest (Vite's test runner) in jsdom: `frontend/package.json` (dev-only), `frontend/vitest.config.js` (coverage gate 100% for api, grid, modules, free and timetable), `frontend/tests/` (setup, helpers, and five test files, 110 tests). Tests load the real page markup and dictionaries. A compose service `frontend-test` (profile `test`) runs them in a container. The app is unchanged in how it is served. Small source simplifications so that every branch can be reached: free.js (`roomHref` always gets a date, `setStatus` without fallbacks, unused `locale()` removed), timetable.js (`fill`, `drawGrid`, dialog and close guards that the markup makes unnecessary, and an address lookup that is skipped when no entity list loaded). Result: 110 passed; coverage 100% statements, branches, functions and lines. Backend tests 75 passed. ledger candidate PATTERN-009 added; architecture doc updated.
+What I did with it: not committed. Not covered: the other scripts (auth, header, footer, app, components, login) were not in scope.
+
 ## 2026-11-22 · Header brand shows the logo mark
 Tool: Claude Code (Haiku 5.5), free prompt
 What I asked: the green square next to the UniSpace text should contain the logo.

@@ -89,6 +89,11 @@ script, after the include.
 3. Add the `<script>` and `<link>` to `components/head.html`, in order.
 4. Add a `DS-` entry in `docs/design/registry.yaml`.
 
+**Unit tests.** The scripts that are not placeholders (`api.js`, `grid.js`, `modules.js`, `pages/free.js`,
+`pages/timetable.js`) have tests in `frontend/tests/unit/`, run by Vitest in jsdom with a 100% coverage gate
+(`frontend/vitest.config.js`). The app itself is still plain files served by nginx; the test tooling is a
+dev-only compose service (`frontend-test`, profile `test`). Run: `docker compose --profile test run --rm frontend-test`.
+
 **Styling rules.** No `style=""` attributes in pages (a test enforces it). Use a component
 class, or a utility when the change is only spacing or alignment. The timetable sets grid
 positions from JavaScript, the one allowed exception.

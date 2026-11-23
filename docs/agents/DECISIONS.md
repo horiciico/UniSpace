@@ -24,6 +24,7 @@
 - D-015 · Imported activities are bound to a planning unit; the ETL skips manually modified rows
 - D-016 · One-off changes are exceptions; permanent changes go through an admin request
 - D-017 · Admin off-limits marks are stored in an off_limits table
+- D-018 · Frontend unit tests use Vitest and jsdom, as dev-only tools; the app stays plain files
 
 ---
 
@@ -194,3 +195,13 @@
 - **Evidence:** docs/agents/OPEN-QUESTIONS.md (Q-010, Q-014)
 - **Source:** user · confidence high
 - **Confirmed:** 2026-11-19
+
+## D-018 · Frontend unit tests use Vitest and jsdom, as dev-only tools; the app stays plain files
+- **Status:** approved
+- **Date:** 2026-11-23
+- **Rule:** The frontend stays plain HTML, CSS and JavaScript with no framework and no bundler (D-003). Its unit tests use Vitest (the test runner of the Vite family) with jsdom. Both are devDependencies in `frontend/package.json`, run only in the `frontend-test` compose service (profile `test`), and are never loaded by a page. nginx serves the same files as before.
+- **Why:** The user asked for unit tests with full coverage of the browser scripts, using Vite. Vitest is Vite's own test runner, so no bundler is added to the app.
+- **Rejected:** a bundler or framework for the app; a browser-only test run without a DOM library.
+- **Evidence:** frontend/package.json, frontend/vitest.config.js, frontend/tests/, docker-compose.yml (service `frontend-test`), docs/agents/ARCHITECTURE.md (Unit tests)
+- **Source:** user · confidence high
+- **Confirmed:** 2026-11-23

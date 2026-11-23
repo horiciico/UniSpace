@@ -13,6 +13,7 @@
 - PATTERN-005 · Database tests run the real migration and roll back · candidate
 - PATTERN-006 · Mock the identity provider at the authlib client, keep the database real · candidate
 - PATTERN-007 · Check the signed-in UI in headless Chrome over the DevTools protocol · candidate
+- PATTERN-009 · Frontend unit tests load the real page markup, dictionaries and scripts in jsdom · candidate
 - PATTERN-008 · Keep the translation dictionaries complete with a test that reads the pages · candidate
 
 ---
@@ -72,6 +73,14 @@
 - **Example:** none in the repo (the script was a throwaway in the temp folder)
 - **Why:** Real browser, real cookies, no new dependency.
 - **Source:** code · confidence low
+
+## PATTERN-009 · Frontend unit tests load the real page markup, dictionaries and scripts in jsdom
+- **Status:** candidate
+- **Use when:** a browser script (an IIFE on `window`) needs unit tests with full coverage.
+- **How:** Vitest (Vite's test runner) in jsdom, config in `frontend/vitest.config.js`, helpers in `frontend/tests/helpers.js`. Each test mounts the page's `<body>` from its HTML file, loads the i18n runtime and dictionaries, then imports the script after `vi.resetModules()`. `fetch` is stubbed by route; time is faked with `vi.useFakeTimers({ toFake: ["Date", ...] })`. A setup file removes the listeners a script adds to `document` and `window`. Coverage gate: 100% of lines, branches, functions and statements for the listed scripts. Run with `docker compose --profile test run --rm frontend-test`.
+- **Example:** frontend/tests/unit/free.test.js, frontend/tests/unit/timetable.test.js
+- **Why:** The tests check what the user sees (text, classes, requests), in the same markup and language the pages use, and nothing needs a bundler or a browser.
+- **Source:** code · confidence medium
 
 ## PATTERN-008 · Keep the translation dictionaries complete with a test that reads the pages
 - **Status:** candidate
