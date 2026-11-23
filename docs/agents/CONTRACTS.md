@@ -12,6 +12,7 @@
 - C-001 · GET /health · provided
 - C-002 · Auth routes (Google sign-in and admin sign-in) · provided
 - C-003 · Timetable and free-room API (/api/*) · provided
+- C-004 · PUT /api/me/study-profile · provided
 
 ---
 
@@ -30,8 +31,9 @@
 - **Status:** approved
 - **Interface:** HTTP on the backend, no `/api` prefix, also proxied by nginx on the frontend origin (`:8080` locally): `GET /auth/login` (redirect to Google), `GET /auth/callback` (Google redirect URI; resolves the role, sets the session cookie, 303 to `POST_LOGIN_URL`), `POST /auth/admin-login` (admin sign-in with `.env` credentials, D-021), `GET /auth/me`, `GET /auth/admin` (204 for ADMIN, 403 otherwise, 401 signed out), `POST /auth/logout`.
 - **Consumers:** nginx (`infra/nginx/default.conf`: `auth_request` on `/auth/me` and `/auth/admin`; turns `/auth/callback` 403 and 400 into `/login?error=denied|failed`); the frontend (`frontend/js/auth.js` reads `/auth/me` and posts `/auth/logout`; `frontend/pages/shared/login.html` links `/auth/login`).
-- **Shape:** `/auth/me` returns 200 `{"id", "email", "name", "role"}` or 401. `/auth/logout` returns 204. `/auth/admin-login` takes `{"username", "password"}`: 200 with the same user shape and the session cookie, or 401 `{"detail": "Invalid admin credentials."}`. Rejections are 403 `{"detail": ...}` with the text "Access denied. Login is restricted to @ulbsibiu.ro accounts or registered faculty members." Google failures are 400.
+- **Shape:** `/auth/me` returns 200 `{"id", "email", "name", "role", "faculty_id", "study_formation_id", "needs_onboarding"}` or 401 (the last three are set for students only; D-022). `/auth/logout` returns 204. `/auth/admin-login` takes `{"username", "password"}`: 200 with the same user shape and the session cookie, or 401 `{"detail": "Invalid admin credentials."}`. Rejections are 403 `{"detail": ...}` with the text "Access denied. Login is restricted to @ulbsibiu.ro accounts or registered faculty members." Google failures are 400.
 - **Rules:** the role is resolved on every sign-in as in D-020. An email in `professors` is a PROFESSOR on any domain; an `@ulbsibiu.ro` address with the matching `hd` claim is a STUDENT; anything else is a 403. Google accounts must have a verified email. Linking a seeded row with no Google id is allowed when the rule above admits it.
+- **Change 2026-11-23:** `/auth/me` and the sign-in responses carry `faculty_id`, `study_formation_id` and `needs_onboarding` (D-022). Consumer: `frontend/components/onboarding.js`; the rest of the frontend reads the user as before.
 - **Evidence:** backend/app/routers/auth.py, backend/app/auth.py, backend/app/routers/auth.py (admin_login), infra/nginx/default.conf (`location /auth/`)
 - **Source:** user (decisions D-020 and D-021, 2026-11-23) · code · confidence high
 - **Confirmed:** 2026-11-23
@@ -53,6 +55,16 @@
 - **Source:** user (asked for the endpoints and their gating, 2026-11-22) · code · confidence high
 - **Change 2026-11-22 (2):** free-room search uses whole modules; `free_until` is never null (21:10 when nothing follows); `/api/classrooms/free` refuses times that are not module boundaries and any search after 21:10. Consumers: `frontend/js/pages/free.js`, `frontend/js/modules.js`. (user request)
 - **Confirmed:** 2026-11-22
+
+### C-004 · PUT /api/me/study-profile
+- **Status:** approved
+- **Interface:** HTTP `PUT /api/me/study-profile` on the backend, through nginx at `/api/` (signed in only). Body: `{"faculty_id": UUID, "study_formation_id": UUID}`.
+- **Consumers:** `frontend/js/api.js` (`saveStudyProfile`); `frontend/components/onboarding.js` (the first-sign-in dialog).
+- **Shape:** 200 with the user shape of C-002 (`needs_onboarding` false once saved). 401 when signed out. 403 `{"detail": "Only students choose a faculty and a study formation."}` for a non-student. 422 `{"detail": "That study formation is not in the chosen faculty."}` when the formation is not in the faculty's list (`GET /api/groups?faculty_id=`, C-003).
+- **Rules:** only a STUDENT may save; the formation must belong to the faculty. A later sign-in keeps the saved choice. Nothing else on the user changes.
+- **Evidence:** backend/app/routers/study_profile.py, backend/app/routers/lookups.py (faculty_groups), backend/tests/test_study_profile.py
+- **Source:** user (plan approved, 2026-11-23; decision D-022) · code · confidence high
+- **Confirmed:** 2026-11-23
 
 ## Consumed
 

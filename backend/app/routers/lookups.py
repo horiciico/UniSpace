@@ -18,10 +18,9 @@ def list_faculties(db: Session = Depends(get_db)) -> list[dict]:
     ]
 
 
-@router.get("/groups")
-def list_groups(faculty_id: uuid.UUID, db: Session = Depends(get_db)) -> list[dict]:
-    """Student groups with at least one activity in a planning unit of the faculty."""
-    stmt = (
+def faculty_groups(faculty_id: uuid.UUID):
+    """The statement behind the study formations of a faculty: groups with an activity in one of its units."""
+    return (
         select(StudentGroup)
         .join(ActivityGroup, ActivityGroup.group_id == StudentGroup.id)
         .join(Activity, Activity.id == ActivityGroup.activity_id)
@@ -30,9 +29,14 @@ def list_groups(faculty_id: uuid.UUID, db: Session = Depends(get_db)) -> list[di
         .distinct()
         .order_by(StudentGroup.name)
     )
+
+
+@router.get("/groups")
+def list_groups(faculty_id: uuid.UUID, db: Session = Depends(get_db)) -> list[dict]:
+    """Student groups with at least one activity in a planning unit of the faculty."""
     return [
         {"id": str(group.id), "name": group.name, "faculty_id": str(faculty_id)}
-        for group in db.scalars(stmt).all()
+        for group in db.scalars(faculty_groups(faculty_id)).all()
     ]
 
 

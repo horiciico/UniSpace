@@ -82,4 +82,20 @@ describe("api.js: fetch wrappers for /api/*", () => {
       Object.defineProperty(window, "location", { configurable: true, value: location });
     }
   });
+
+  it("saves the student's faculty and study formation with a PUT and resolves with the user", async () => {
+    const fetch = stubFetch({ "/api/me/study-profile": () => response({ id: "u1", needs_onboarding: false }) });
+    await expect(api.saveStudyProfile("f1", "g1")).resolves.toEqual({ id: "u1", needs_onboarding: false });
+    const [url, options] = fetch.mock.calls[0];
+    expect(url).toBe("/api/me/study-profile");
+    expect(options.method).toBe("PUT");
+    expect(options.headers["Content-Type"]).toBe("application/json");
+    expect(JSON.parse(options.body)).toEqual({ faculty_id: "f1", study_formation_id: "g1" });
+  });
+
+  it("rejects a refused save with the HTTP status", async () => {
+    stubFetch({ "/api/me/study-profile": () => response({ detail: "not in the faculty" }, 422) });
+    const error = await api.saveStudyProfile("f1", "g9").catch((e) => e);
+    expect(error.status).toBe(422);
+  });
 });

@@ -27,6 +27,7 @@
 - D-019 · One email is one professor; the stored id is kept when the API changes it
 - D-020 · Role on every sign-in: professor list, then university address, otherwise rejected
 - D-021 · The admin signs in with one .env credential pair; the session is the same as Google's
+- D-022 · A student chooses a faculty and a study formation on first sign-in
 
 ---
 
@@ -231,4 +232,14 @@
 - **Rejected:** credentials hard-coded in the source (AGENTS.md forbids secrets in files); `/api/auth/admin-login` (nginx would refuse it to a signed-out admin); a role field in the session cookie (changes D-009).
 - **Evidence:** backend/app/routers/auth.py (admin_login), backend/app/config.py, .env.example, infra/nginx/default.conf (`location /auth/`)
 - **Source:** user (chose option a and plain text, 2026-11-23) · confidence high
+- **Confirmed:** 2026-11-23
+
+## D-022 · A student chooses a faculty and a study formation on first sign-in
+- **Status:** approved
+- **Date:** 2026-11-23
+- **Rule:** On sign-in, a STUDENT whose `users.faculty_id` is empty is asked for a faculty, then for one of that faculty's study formations, in a dialog that cannot be closed. Both are saved on the user row: `faculty_id` (FK to `faculties`) and `study_formation_id` (FK to `student_groups`, ON DELETE SET NULL). Both are nullable and filled only for students. The formation must be one of the faculty's formations (the list of `GET /api/groups?faculty_id=`). Other roles are not asked.
+- **Why:** The ULBS data gives no student emails, so a course change cannot be sent to students directly. The faculty and formation on record are what the warnings will be based on. (user request, 2026-11-23)
+- **Rejected:** a single column for the formation only (a formation can appear under more than one faculty in the data, so the faculty would be a guess); a dialog the student can skip; a new `student_groups.faculty_id` column (a schema and loader change for a list the existing lookup already gives).
+- **Evidence:** backend/alembic/versions/20261123_b0f9c8035187_user_study_profile_faculty_and_formation.py, backend/app/models/user.py (needs_onboarding), backend/app/routers/study_profile.py, backend/app/routers/lookups.py (faculty_groups), frontend/components/onboarding.js
+- **Source:** user (request and answers, 2026-11-23) · confidence high
 - **Confirmed:** 2026-11-23

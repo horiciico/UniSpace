@@ -18,8 +18,9 @@
     return parts.length ? "?" + parts.join("&") : "";
   }
 
-  function get(path, params) {
-    return fetch("/api" + path + query(params), { headers: { Accept: "application/json" } })
+  // One request to /api. A 401 sends the visitor to sign in again; any other failure rejects.
+  function call(path, options) {
+    return fetch("/api" + path, options)
       .then(function (response) {
         if (response.status === 401) {
           // Signed out (the session ended): send the visitor to sign in again.
@@ -32,6 +33,18 @@
         }
         return response.json();
       });
+  }
+
+  function get(path, params) {
+    return call(path + query(params), { headers: { Accept: "application/json" } });
+  }
+
+  function put(path, body) {
+    return call(path, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify(body)
+    });
   }
 
   window.UniSpaceApi = {
@@ -52,6 +65,10 @@
     },
     schedule: function (params) {
       return get("/schedule", params);
+    },
+    // The student's faculty and study formation (D-022). Resolves with the user.
+    saveStudyProfile: function (facultyId, formationId) {
+      return put("/me/study-profile", { faculty_id: facultyId, study_formation_id: formationId });
     }
   };
 })();
