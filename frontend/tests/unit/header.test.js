@@ -180,6 +180,20 @@ describe("header.js: the site header", () => {
         expect(window.UniSpaceAuth.logout).toHaveBeenCalledTimes(1);
       });
 
+      it("removes document listeners when rebuilding the header", async () => {
+        const UI = await loadHeader();
+        const removeSpy = vi.spyOn(document, "removeEventListener");
+        UI.buildHeader(STUDENT);
+        expect(removeSpy).not.toHaveBeenCalled();
+        UI.buildHeader(STUDENT);
+        expect(removeSpy).toHaveBeenCalledWith("click", expect.any(Function));
+        expect(removeSpy).toHaveBeenCalledWith("keydown", expect.any(Function));
+        removeSpy.mockClear();
+        UI.buildHeader(null);
+        expect(removeSpy).toHaveBeenCalledWith("click", expect.any(Function));
+        expect(removeSpy).toHaveBeenCalledWith("keydown", expect.any(Function));
+      });
+
       it("builds a fresh header each time, one after another", async () => {
         const UI = await loadHeader();
         UI.buildHeader(STUDENT);

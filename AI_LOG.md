@@ -8,6 +8,15 @@ Each entry follows the same shape:
 
 ```
 
+## 2026-11-24 · Header listener cleanup and Google picture removal synchronization
+Tool: Antigravity, free prompt
+What I asked: clean up document-level click and keydown listeners across header rebuilds to prevent detached DOM retention and duplicate handling; update Google sign-in to assign the picture claim unconditionally on every login so omitting the picture claim clears any previous avatar URL.
+What I got:
+- In `backend/app/auth.py`: updated `resolve_user` to unconditionally set `user.picture = picture`, correctly clearing the avatar when Google omits the claim on subsequent logins. Added regression test `test_google_login_clears_picture_when_claim_is_omitted` in `backend/tests/test_auth.py`.
+- In `frontend/components/header.js`: maintained references to the active document-level `click` and `keydown` handlers (`activeCloseMenu`, `activeKeyDown`) and added `teardownMenuListeners()` called at the start of `UI.buildHeader` and exposed on `UI.teardownHeader`.
+- In `frontend/tests/unit/header.test.js`: added unit test asserting listener removal across header rebuilds. 100% frontend coverage maintained.
+What I did with it: On branch `fix/header-row-swap`. Tests passing across backend and frontend suites.
+
 ## 2026-11-24 · Header profile dropdown and user picture
 Tool: Antigravity, free prompt
 What I asked: remove the menu button; add the user profile picture obtained through Google OAuth in the top right corner; move the theme and logout buttons from the header into a dropdown unfolding under the profile picture on click, along with routing to a placeholder settings page. Keep button functionalities intact.

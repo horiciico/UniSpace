@@ -95,6 +95,18 @@ def test_google_login_saves_and_returns_picture(client, db, monkeypatch) -> None
     assert me["picture"] == "https://lh3.googleusercontent.com/photo.jpg"
 
 
+def test_google_login_clears_picture_when_claim_is_omitted(client, db, monkeypatch) -> None:
+    google_returns(monkeypatch, picture="https://lh3.googleusercontent.com/photo.jpg")
+    callback(client)
+    me = client.get("/auth/me").json()
+    assert me["picture"] == "https://lh3.googleusercontent.com/photo.jpg"
+
+    google_returns(monkeypatch, picture=None)
+    callback(client)
+    me = client.get("/auth/me").json()
+    assert me["picture"] is None
+
+
 def test_session_cookie_flags(client, db, monkeypatch) -> None:
     google_returns(monkeypatch)
     cookie = callback(client).headers["set-cookie"].lower()

@@ -8,6 +8,22 @@
 
   var UI = (window.UniSpaceUI = window.UniSpaceUI || {});
 
+  var activeCloseMenu = null;
+  var activeKeyDown = null;
+
+  function teardownMenuListeners() {
+    if (activeCloseMenu) {
+      document.removeEventListener("click", activeCloseMenu);
+      activeCloseMenu = null;
+    }
+    if (activeKeyDown) {
+      document.removeEventListener("keydown", activeKeyDown);
+      activeKeyDown = null;
+    }
+  }
+
+  UI.teardownHeader = teardownMenuListeners;
+
   var NAV = [
     { href: "/timetable", key: "nav.timetable" },
     { href: "/rooms/", key: "nav.rooms" },
@@ -20,6 +36,7 @@
   ];
 
   UI.buildHeader = function (user) {
+    teardownMenuListeners();
     var t = window.UniSpaceI18n.t;
     var esc = UI.escapeHtml;
     var here = UI.normalisePath(window.location.pathname);
@@ -84,20 +101,22 @@
         trigger.setAttribute("aria-expanded", String(open));
       });
 
-      document.addEventListener("click", function (event) {
+      activeCloseMenu = function (event) {
         if (!menu.contains(event.target)) {
           dropdown.hidden = true;
           trigger.setAttribute("aria-expanded", "false");
         }
-      });
+      };
+      document.addEventListener("click", activeCloseMenu);
 
-      document.addEventListener("keydown", function (event) {
+      activeKeyDown = function (event) {
         if (event.key === "Escape" && !dropdown.hidden) {
           dropdown.hidden = true;
           trigger.setAttribute("aria-expanded", "false");
           trigger.focus();
         }
-      });
+      };
+      document.addEventListener("keydown", activeKeyDown);
     }
 
     document.body.prepend(header);

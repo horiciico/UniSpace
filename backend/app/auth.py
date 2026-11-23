@@ -103,8 +103,7 @@ def resolve_user(db: Session, claims: dict) -> User:
                 user.google_sub = sub
             user.role = role
             user.professor_id = professor_id
-            if picture:
-                user.picture = picture
+            user.picture = picture
         db.commit()
     except IntegrityError:
         # A concurrent callback created the same account first.
