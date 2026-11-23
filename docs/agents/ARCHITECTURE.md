@@ -171,6 +171,8 @@ Local only so far. Deploy is not defined (Q-005). See AGENTS.md sections 2 and 5
 - Sign-in is Google OAuth with a session cookie (C-002, D-009). The role is resolved on every sign-in:
   professor list, then the student association hook, then a university address, otherwise 403 (D-020).
   The admin signs in with the `.env` credentials at `POST /auth/admin-login` (D-021).
+  A student picks a faculty and a study formation on first sign-in; the dialog is in
+  `components/onboarding.js`, the choice is saved with `PUT /api/me/study-profile` (D-022, C-004).
 - Pages are gated by nginx: `auth_request` asks the backend (`/auth/me`, `/auth/admin` for
   `/admin/`) before any page is served, so a typed URL does not get around it (D-010).
   Public: `/login` (its page `pages/shared/login.html`), `/styles/`, `/components/`, `/js/`,

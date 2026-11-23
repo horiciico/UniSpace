@@ -29,6 +29,9 @@ class UserOut(BaseModel):
     email: str
     name: str
     role: Role
+    faculty_id: uuid.UUID | None = None  # students only (D-022)
+    study_formation_id: uuid.UUID | None = None  # students only (D-022)
+    needs_onboarding: bool = False
 
 
 @router.get("/auth/login")
