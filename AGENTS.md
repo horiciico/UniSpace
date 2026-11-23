@@ -55,6 +55,12 @@ without new evidence. A rejected proposal is added there with the reason.
   refactor needs a concrete reason today. Never at the cost of tests or error handling.
 - Tests first where the repo has tests. Never change what an existing test asserts
   to make code pass; an assertion you think is wrong goes to the user.
+- After every code change, run all the tests: `node scripts/test-all.mjs` (backend, ETL and
+  frontend suites, with the report in `output/test-report.md`). Fix what the change broke.
+  If an existing test fails because the new behaviour is intended, update that test to the
+  new behaviour and name each updated test in the report. If the code is wrong, fix the code.
+  If the test is wrong or you are unsure which side is wrong, stop and ask the user.
+  Never delete a test to get green, and never weaken an assertion without saying so.
 - Never write a secret, token, password or personal data into a file, commit or log.
 - Never push, tag, release, or deploy without the user's go for that action.
 - When you cite past work, label the intent: **replicate** (only for an `approved`
@@ -80,7 +86,7 @@ without new evidence. A rejected proposal is added there with the reason.
 
 ### Every feature (all agents, every time)
 After each feature, before you report it done:
-1. Add or update the tests the feature needs, then run every suite: `docker compose run --rm backend pytest` (this includes the i18n key check in `backend/tests/test_i18n.py`). Report the results, including failures.
+1. Add or update the tests the feature needs, then run every suite: `node scripts/test-all.mjs` (backend, ETL and frontend; the backend part includes the i18n key check in `backend/tests/test_i18n.py`). Report the results, including failures.
 2. Every new visible text gets an entry in **both** `frontend/i18n/ro.js` and `frontend/i18n/en.js`, used through a `data-i18n`, `data-i18n-attr` or `UniSpaceI18n.t()` key. No text is left hard-coded in one language. Records that come from the backend are not added (D-012).
 3. A feature is not done until steps 1 and 2 pass.
 4. Log the prompt in `AI_LOG.md` (newest entry first, format at the top of the file): the tool and model, what was asked, what came back, and what was done with it. Only prompts that changed something are logged; questions and clarification requests are not.
@@ -96,7 +102,8 @@ Python 3.12 + FastAPI · HTML/CSS/JS · PostgreSQL 16 + Alembic · Docker Compos
 ```bash
 cp .env.example .env                                  # first time only; then set the values
 docker compose up --build                             # db, backend (:8000), frontend (:8080)
-docker compose run --rm backend pytest                # tests
+node scripts/test-all.mjs                             # all tests: backend, ETL, frontend (report in output/)
+docker compose run --rm backend pytest                # backend tests only
 docker compose run --rm backend alembic upgrade head  # apply migrations
 docker compose run --rm backend alembic revision --autogenerate -m "describe the change"
 docker compose config                                 # validate the compose file
@@ -125,5 +132,6 @@ decided: no tags, no releases, no deploys, and only with the user's go.
 ## 6. Definition of done
 - `docker compose run --rm backend pytest` passes.
 - `docker compose config` and `docker compose build backend` pass.
+- `node scripts/test-all.mjs` passes, with every existing test run after the last change.
 - UI changes: until Q-003 is answered, check the page in a browser and name the check in the report.
 - New practices recorded as candidate patterns; open points recorded as Q- entries.

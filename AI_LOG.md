@@ -16,6 +16,12 @@ What I did with it: <kept, changed, rejected, merged; where it went>
 
 ---
 
+## 2026-11-23 · AGENTS.md: run and update all tests after every change
+Tool: Claude Code (Haiku 5.5), free prompt
+What I asked: an instruction, in the agent instruction file, to verify all existing tests after every code change and update them where needed.
+What I got: AGENTS.md hard rules: after every code change run `node scripts/test-all.mjs`; fix what the change broke; update a test only when the new behaviour is intended, and name each updated test in the report; never delete a test to get green or weaken an assertion silently; ask the user when unsure which side is wrong. Also added to the definition of done and the commands list.
+What I did with it: not committed.
+
 ## 2026-11-23 · GitHub Actions: the three suites on every push and pull request
 Tool: Claude Code (Haiku 5.5), free prompt
 What I asked: a GitHub Action that runs the three test suites on every commit, push or PR.
