@@ -1,5 +1,8 @@
 # Runs the three test suites (backend, ETL, frontend) on every push and every pull request.
-# The same script runs locally: node scripts/test-all.mjs
+# Each suite runs as its own parallel job in CI.
+# Local runs:
+#   node scripts/test-all.mjs           # all suites
+#   node scripts/test-all.mjs <suite>   # single suite (backend | etl | frontend)
 name: tests
 
 on:
@@ -12,8 +15,19 @@ permissions:
 
 jobs:
   test:
+    name: ${{ matrix.name }}
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - suite: backend
+            name: Backend Tests
+          - suite: etl
+            name: ETL Tests
+          - suite: frontend
+            name: Frontend Tests
     steps:
       - uses: actions/checkout@v4
 
@@ -30,13 +44,13 @@ jobs:
             -e 's/^SESSION_SECRET_KEY=.*/SESSION_SECRET_KEY=ci-placeholder-session-key/' \
             .env
 
-      - name: Run all test suites
-        run: node scripts/test-all.mjs
+      - name: Run ${{ matrix.name }}
+        run: node scripts/test-all.mjs ${{ matrix.suite }}
 
-      - name: Upload the test report
+      - name: Upload test report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-report
+          name: test-report-${{ matrix.suite }}
           path: output/test-report.md
           if-no-files-found: warn

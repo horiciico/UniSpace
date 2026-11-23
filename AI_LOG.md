@@ -8,6 +8,16 @@ Each entry follows the same shape:
 
 ```
 
+## 2026-11-24 · CI workflow split into 3 parallel test suites
+Tool: Antigravity, free prompt
+What I asked: modify GitHub workflows to run on push and PR; divide the test suite into the 3 configured test suites (backend, ETL, frontend) and run all 3.
+What I got:
+- Updated `.github/workflows/tests.yml` to run on `push` and `pull_request` (plus `workflow_dispatch`).
+- Split the test execution into 3 parallel jobs (`Backend Tests`, `ETL Tests`, `Frontend Tests`) using a matrix with `fail-fast: false`.
+- Updated `scripts/test-all.mjs` to support an optional suite argument (`node scripts/test-all.mjs [backend | etl | frontend]`) while preserving full run behavior when invoked without arguments.
+- Updated artifact uploads to save separate reports (`test-report-backend`, `test-report-etl`, `test-report-frontend`).
+What I did with it: On branch `fix/header-row-swap`. Tested argument handling and workflow configuration.
+
 ## 2026-11-24 · Header listener cleanup and Google picture removal synchronization
 Tool: Antigravity, free prompt
 What I asked: clean up document-level click and keydown listeners across header rebuilds to prevent detached DOM retention and duplicate handling; update Google sign-in to assign the picture claim unconditionally on every login so omitting the picture claim clears any previous avatar URL.

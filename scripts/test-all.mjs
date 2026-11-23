@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /*
- * Runs every test suite and writes one report: output/test-report.md.
+ * Runs every test suite (or a single suite) and writes one report: output/test-report.md.
  *
- *   node scripts/test-all.mjs
+ *   node scripts/test-all.mjs [backend | etl | frontend]
  *
  * Suites (each runs in Docker, as AGENTS.md asks):
  *   backend   pytest in the backend container (backend/tests)
@@ -139,7 +139,17 @@ function capture(args) {
 
 // ---- Live display ---------------------------------------------------------------------
 
-const rows = SUITES.map((suite) => ({
+const requestedSuite = process.argv[2];
+const activeSuites = requestedSuite
+  ? SUITES.filter((suite) => suite.name.toLowerCase() === requestedSuite.toLowerCase())
+  : SUITES;
+
+if (requestedSuite && activeSuites.length === 0) {
+  console.error(`Unknown suite "${requestedSuite}". Expected one of: ${SUITES.map((s) => s.name).join(", ")}`);
+  process.exit(1);
+}
+
+const rows = activeSuites.map((suite) => ({
   ...suite, status: "waiting", total: 0, done: 0, failed: 0, started: 0, seconds: 0, text: "", output: "",
 }));
 
@@ -259,7 +269,9 @@ async function main() {
   const restore = () => { if (TTY) process.stdout.write("\x1b[?25h"); };
   process.on("SIGINT", () => { restore(); process.exit(130); });
 
-  if (!TTY) console.log("Running all test suites in Docker.");
+  if (!TTY) {
+    console.log(`Running ${requestedSuite ? requestedSuite + " test suite" : "all test suites"} in Docker.`);
+  }
   const ticker = TTY ? setInterval(draw, REFRESH_MS) : null;
   if (TTY) draw();
 
