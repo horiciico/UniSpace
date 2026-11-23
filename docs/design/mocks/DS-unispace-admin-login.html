@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ro">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MOCK · DS-unispace-admin-login · draft</title>
+    <!-- Mock only: the real change goes to frontend/pages/shared/login.html and frontend/components/admin-login.js.
+         It uses the app's own tokens and base CSS. Three states are shown: link, modal, modal with a 401 error. -->
+    <link rel="stylesheet" href="../../../frontend/styles/tokens.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/base.css" />
+    <style>
+      /* Mock scaffolding only */
+      .mock-label {
+        margin: var(--space-7) 0 var(--space-2);
+        font-size: var(--text-sm);
+        font-weight: 700;
+        color: var(--color-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      .mock-bar {
+        padding: var(--space-3) var(--space-4);
+        background: var(--color-warning-bg);
+        color: var(--color-warning-text);
+      }
+
+      /* The additions the real page needs (tokens only). They go to frontend/styles/components/admin-login.css. */
+      .admin-link {
+        display: inline-block;
+        margin-top: var(--space-4);
+        background: none;
+        border: 0;
+        padding: var(--space-1) 0;
+        font: inherit;
+        font-size: var(--text-sm);
+        color: var(--color-muted);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        cursor: pointer;
+      }
+      .admin-link:hover { color: var(--color-link); }
+      .admin-link:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; border-radius: var(--radius-sm); }
+
+      .modal-backdrop {
+        position: relative;
+        display: grid;
+        place-items: center;
+        min-height: 420px;
+        padding: var(--space-5);
+        background: var(--color-bg);
+        border-radius: var(--radius-lg);
+      }
+      .modal {
+        width: min(100%, 380px);
+        padding: var(--space-5);
+        background: var(--color-surface);
+        color: var(--color-text);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        box-shadow: 0 1px 0 var(--color-border), 0 12px 32px var(--color-shadow);
+      }
+      .modal h2 { margin: 0 0 var(--space-2); font-size: var(--text-xl); line-height: var(--leading-tight); }
+      .modal__lead { margin: 0 0 var(--space-4); font-size: var(--text-sm); color: var(--color-muted); }
+      .field { display: grid; gap: var(--space-2); margin-bottom: var(--space-4); }
+      .field label { font-size: var(--text-sm); font-weight: 600; }
+      .field input {
+        min-height: 44px;
+        padding: var(--space-2) var(--space-3);
+        font: inherit;
+        color: var(--color-text);
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-sm);
+      }
+      .field input:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 1px; }
+      .field input[aria-invalid="true"] { border-color: var(--color-danger-text); }
+      .modal__actions { display: flex; gap: var(--space-3); justify-content: flex-end; margin-top: var(--space-5); }
+      .btn-quiet {
+        min-height: 44px;
+        padding: var(--space-2) var(--space-4);
+        font: inherit;
+        font-weight: 600;
+        color: var(--color-link);
+        background: none;
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-pill);
+        cursor: pointer;
+      }
+      .modal .btn-primary-mock {
+        min-height: 44px;
+        padding: var(--space-2) var(--space-5);
+        font: inherit;
+        font-weight: 600;
+        color: var(--color-on-primary);
+        background: var(--color-primary);
+        border: 0;
+        border-radius: var(--radius-pill);
+        cursor: pointer;
+      }
+      .modal .btn-primary-mock:focus-visible,
+      .btn-quiet:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+      .field-error { margin: 0; font-size: var(--text-sm); color: var(--color-danger-text); }
+      .notice--error-inline {
+        margin: 0 0 var(--space-4);
+        padding: var(--space-3) var(--space-4);
+        background: var(--color-danger-bg);
+        color: var(--color-danger-text);
+        border-radius: var(--radius-md);
+        font-size: var(--text-sm);
+      }
+    </style>
+  </head>
+  <body>
+    <main class="container">
+      <p class="mock-bar">MOCK · DS-unispace-admin-login · draft. Not built. Build starts after the user confirms it (DESIGN.md → Procedure).</p>
+
+      <p class="mock-label">State 1 · the login page, with the discreet link under the card</p>
+      <div class="card form-card">
+        <p class="muted">Folosește contul @ulbsibiu.ro. Cadrele didactice înregistrate pot folosi propriul cont Google.</p>
+        <button class="admin-link" type="button" aria-haspopup="dialog">Acces administrator</button>
+      </div>
+
+      <p class="mock-label">State 2 · the modal, opened from the link</p>
+      <div class="modal-backdrop">
+        <form class="modal" role="dialog" aria-modal="true" aria-labelledby="admin-title" novalidate>
+          <h2 id="admin-title">Acces administrator</h2>
+          <p class="modal__lead">Introdu datele administratorului. Nu se folosește contul Google.</p>
+          <div class="field">
+            <label for="admin-user">Nume de utilizator</label>
+            <input id="admin-user" name="username" type="text" autocomplete="username" required />
+          </div>
+          <div class="field">
+            <label for="admin-pass">Parolă</label>
+            <input id="admin-pass" name="password" type="password" autocomplete="current-password" required />
+          </div>
+          <div class="modal__actions">
+            <button class="btn-quiet" type="button">Anulează</button>
+            <button class="btn-primary-mock" type="submit">Autentificare</button>
+          </div>
+        </form>
+      </div>
+
+      <p class="mock-label">State 3 · after a 401: inline error, focus stays in the form</p>
+      <div class="modal-backdrop">
+        <form class="modal" role="dialog" aria-modal="true" aria-labelledby="admin-title-2" novalidate>
+          <h2 id="admin-title-2">Acces administrator</h2>
+          <p class="modal__lead">Introdu datele administratorului. Nu se folosește contul Google.</p>
+          <p class="notice--error-inline" role="alert">Nume de utilizator sau parolă incorecte. Verifică datele și încearcă din nou.</p>
+          <div class="field">
+            <label for="admin-user-2">Nume de utilizator</label>
+            <input id="admin-user-2" name="username" type="text" autocomplete="username" value="admin" aria-invalid="true" />
+          </div>
+          <div class="field">
+            <label for="admin-pass-2">Parolă</label>
+            <input id="admin-pass-2" name="password" type="password" autocomplete="current-password" aria-invalid="true" />
+          </div>
+          <div class="modal__actions">
+            <button class="btn-quiet" type="button">Anulează</button>
+            <button class="btn-primary-mock" type="submit">Autentificare</button>
+          </div>
+        </form>
+      </div>
+
+      <p class="mock-label">Copy (both languages go to ro.js and en.js)</p>
+      <table>
+        <thead><tr><th>Key</th><th>RO (shown)</th><th>EN</th></tr></thead>
+        <tbody>
+          <tr><td>admin.open</td><td>Acces administrator</td><td>Administrator access</td></tr>
+          <tr><td>admin.lead</td><td>Introdu datele administratorului. Nu se folosește contul Google.</td><td>Enter the administrator details. Your Google account is not used.</td></tr>
+          <tr><td>admin.username</td><td>Nume de utilizator</td><td>Username</td></tr>
+          <tr><td>admin.password</td><td>Parolă</td><td>Password</td></tr>
+          <tr><td>admin.submit</td><td>Autentificare</td><td>Sign in</td></tr>
+          <tr><td>admin.cancel</td><td>Anulează</td><td>Cancel</td></tr>
+          <tr><td>admin.invalid</td><td>Nume de utilizator sau parolă incorecte. Verifică datele și încearcă din nou.</td><td>The username or password is wrong. Check them and try again.</td></tr>
+          <tr><td>admin.failed</td><td>Nu am putut ajunge la server. Încearcă din nou.</td><td>Could not reach the server. Try again.</td></tr>
+        </tbody>
+      </table>
+    </main>
+  </body>
+</html>

@@ -7,7 +7,14 @@ from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy.orm import Session
 
-from app.auth import get_current_user, oauth, resolve_user, start_session
+from app.auth import (
+    admin_credentials_match,
+    ensure_admin_user,
+    get_current_user,
+    oauth,
+    resolve_user,
+    start_session,
+)
 from app.config import GOOGLE_REDIRECT_URI, POST_LOGIN_URL
 from app.db import get_db
 from app.models import Role, User
@@ -42,6 +49,21 @@ async def callback(request: Request, db: Session = Depends(get_db)):
     user = await run_in_threadpool(resolve_user, db, dict(claims))
     start_session(request, user)
     return RedirectResponse(POST_LOGIN_URL, status_code=303)
+
+
+class AdminLogin(BaseModel):
+    username: str
+    password: str
+
+
+@router.post("/auth/admin-login", response_model=UserOut)
+def admin_login(body: AdminLogin, request: Request, db: Session = Depends(get_db)) -> User:
+    """The admin sign-in (D-021): the same session cookie as Google sign-in, with role ADMIN."""
+    if not admin_credentials_match(body.username, body.password):
+        raise HTTPException(401, "Invalid admin credentials.")
+    user = ensure_admin_user(db, body.username)
+    start_session(request, user)
+    return user
 
 
 @router.get("/auth/me", response_model=UserOut)

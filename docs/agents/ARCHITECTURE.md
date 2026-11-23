@@ -29,7 +29,7 @@ browser ──> frontend (nginx :8080) ──> backend (FastAPI :8000) ──> d
 | Frontend styles | `frontend/styles/` | design tokens, base, one CSS file per component | the pages and components |
 | Frontend scripts | `frontend/js/`, `frontend/i18n/` | session service, single-page scripts, i18n runtime and dictionaries | the pages and components |
 | Web routing | `infra/nginx/default.conf` | clean URLs, 404 page, proxy of `/health` (public) and `/api/` (signed in) to the backend | nginx, backend |
-| ETL pipeline | `etl/` (`downloader.py`, `loader.py`) | imports the ULBS schedule API into PostgreSQL in four steps | ULBS API (HTTP), `data/schedules/`, PostgreSQL (backend models) |
+| ETL pipelines | `etl/professors/` (on demand, `professors` table), `etl/schedule/` (`cli.py`, `sync.py` steps 1-2, `download.py` step 3, `loader.py` step 4, `common.py`, `tests/`), `etl/professors/` (step 2 of the professors plan, not built yet) | imports the ULBS schedule API into PostgreSQL in four steps | ULBS API (HTTP), `data/schedules/`, PostgreSQL (backend models) |
 | Stack | `docker-compose.yml` | runs db, backend, frontend | Docker |
 
 ## Frontend structure
@@ -112,6 +112,26 @@ Standalone: not wired into FastAPI. Runs as the compose service `etl` (profile `
 Run it: `docker compose --profile etl run --rm etl` (all four steps). Options: `--faculty <code>`,
 `--step sync|schedules|load`.
 
+### Professors pipeline (`etl/professors/`)
+A separate pipeline, run by an admin on demand (not on a schedule). Source: the ULBS professors API.
+It does not depend on the schedule pipeline; it reads the faculty codes from `faculties`.
+
+| Step | What it does | Writes |
+|---|---|---|
+| extract | `GET /api/faculties/{code}/professors` per faculty, all pages (500 per page) | `data/professors/<code>.json` (normalized records and the skipped ones) |
+| load | reads the files; upserts by `id`; deletes nothing | `professors` |
+
+Run it (migrations first):
+`docker compose --profile etl run --rm --entrypoint sh etl -c "alembic upgrade head && python -m etl.professors.cli"`.
+Options: `--step extract|load`, `--faculty <code>`.
+
+Rules (D-019): the email is stripped and lower-cased; a null, empty or blank email is skipped; the same
+professor in several faculties is stored once. Records that share a normalized email are one person:
+one id is kept (the id already stored for that email, else one used by an activity, else the smallest)
+and each other id is logged as a warning. If the API replaces a stored id with a new id for the same
+email, the row takes the new id and the users and activities that pointed at the old one are moved (full
+runs only). Emails are not printed or logged.
+
 Rules the loader applies (decisions D-014 to D-017 and the ETL answers in OPEN-QUESTIONS):
 - one `activities` row per (room, day, parity, start, end); every entry in that slot is merged into it.
 - every study group of a merged slot is linked in `activity_groups`; `activities.group_id` keeps the lowest group id.
@@ -148,7 +168,9 @@ Local only so far. Deploy is not defined (Q-005). See AGENTS.md sections 2 and 5
 ## Boundaries
 - The database is reachable only inside the compose network by default; the host port
   mapping is for local tools. Guards: D-005 (credentials stay out of the repo).
-- Sign-in is Google OAuth with a session cookie (C-002, D-009). Q-007 awaits confirmation.
+- Sign-in is Google OAuth with a session cookie (C-002, D-009). The role is resolved on every sign-in:
+  professor list, then the student association hook, then a university address, otherwise 403 (D-020).
+  The admin signs in with the `.env` credentials at `POST /auth/admin-login` (D-021).
 - Pages are gated by nginx: `auth_request` asks the backend (`/auth/me`, `/auth/admin` for
   `/admin/`) before any page is served, so a typed URL does not get around it (D-010).
   Public: `/login` (its page `pages/shared/login.html`), `/styles/`, `/components/`, `/js/`,

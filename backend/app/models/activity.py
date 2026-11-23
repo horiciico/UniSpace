@@ -14,6 +14,7 @@ from sqlalchemy import (
     String,
     Time,
     UniqueConstraint,
+    Uuid,
     text,
 )
 from sqlalchemy.dialects.postgresql import INT4RANGE, Range
@@ -88,6 +89,9 @@ class Activity(Base):
     )
     specific_date: Mapped[date | None] = mapped_column(Date)  # set = a one-off row, NULL = weekly rule
     professor_name: Mapped[str | None] = mapped_column(String(255))
+    # ULBS professorId, set when every entry merged into the row has the same professor. No foreign key to
+    # professors: the two ETL steps are decoupled and can run in either order (professors without email are absent).
+    professor_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, index=True)
 
     user: Mapped["User | None"] = relationship(back_populates="activities")  # noqa: F821
     group: Mapped["StudentGroup | None"] = relationship(back_populates="activities")  # noqa: F821

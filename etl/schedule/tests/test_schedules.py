@@ -5,14 +5,14 @@ from datetime import date
 
 import httpx
 
-from etl.downloader import (
+from etl.schedule.download import (
     CurrentUnit,
     DownloadResult,
     _download_one,
     build_envelope,
     schedule_filename,
-    write_json_atomic,
 )
+from etl.common import write_json_atomic
 
 UNIT = CurrentUnit(
     faculty_code="sti",

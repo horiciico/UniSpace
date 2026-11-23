@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 
 from app.db import engine
 from app.models import Faculty, PlanningTimeUnit, PlanningUnitType
-from etl.downloader import load_current_units
+from etl.schedule.download import load_current_units
 
 
 @pytest.fixture(scope="session")

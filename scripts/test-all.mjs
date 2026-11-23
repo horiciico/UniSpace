@@ -6,7 +6,7 @@
  *
  * Suites (each runs in Docker, as AGENTS.md asks):
  *   backend   pytest in the backend container (backend/tests)
- *   etl       pytest for the schedule importer (etl/tests), with etl/ and data/ mounted
+ *   etl       pytest for the ETL pipelines (etl/), with etl/ and data/ mounted
  *   frontend  Vitest in jsdom, with the 100% coverage gate (frontend/tests)
  *
  * Before each suite, a count of its tests is taken, so the progress bar has a total.
@@ -58,8 +58,8 @@ const SUITES = [
     name: "etl",
     label: "ETL",
     detail: "pytest, schedule importer tests",
-    count: ["compose", "run", "--rm", ...ETL_MOUNTS, "backend", "pytest", "--collect-only", "-q", "etl/tests"],
-    run: ["compose", "run", "--rm", "-e", "PYTHONUNBUFFERED=1", ...ETL_MOUNTS, "backend", "pytest", "-q", "etl/tests"],
+    count: ["compose", "run", "--rm", ...ETL_MOUNTS, "backend", "pytest", "--collect-only", "-q", "etl"],
+    run: ["compose", "run", "--rm", "-e", "PYTHONUNBUFFERED=1", ...ETL_MOUNTS, "backend", "pytest", "-q", "etl"],
     parse: parsePytestLine,
     summary: parsePytest,
   },

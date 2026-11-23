@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 
 from app.db import engine
 from app.models import Faculty, PlanningTimeUnit
-from etl.downloader import ActiveUnit, upsert_planning_unit
+from etl.schedule.sync import ActiveUnit, upsert_planning_unit
 
 
 @pytest.fixture(scope="session")

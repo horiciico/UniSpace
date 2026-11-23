@@ -14,3 +14,7 @@ COOKIE_SECURE: bool = os.environ.get("COOKIE_SECURE", "false").lower() == "true"
 SESSION_MAX_AGE_SECONDS: int = 8 * 60 * 60
 # Where the browser lands after a successful sign-in (the frontend, which is on another port locally).
 POST_LOGIN_URL: str = os.environ.get("POST_LOGIN_URL", "/")
+
+# Admin sign-in (D-021): one credential pair, plain text for now. Empty values turn the admin sign-in off.
+ADMIN_USERNAME: str = os.environ.get("ADMIN_USERNAME", "")
+ADMIN_PASSWORD: str = os.environ.get("ADMIN_PASSWORD", "")

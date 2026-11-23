@@ -4,7 +4,7 @@ from datetime import date
 
 import httpx
 
-from etl.downloader import fetch_active_planning_unit, pick_current
+from etl.schedule.sync import fetch_active_planning_unit, pick_current
 
 TODAY = date(2026, 11, 19)
 
