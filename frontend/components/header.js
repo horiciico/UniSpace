@@ -45,12 +45,13 @@
       '<a class="skip-link" href="#main">' + esc(t("header.skip")) + "</a>" +
       '<div class="site-header__inner">' +
       '<a class="brand" href="/"><img class="brand__mark" src="/public/brand-mark.png" alt="" width="28" height="28" />UniSpace</a>' +
+      '<div class="header-actions">' + actions + "</div>" +
       (user
         ? '<button class="btn btn-ghost btn-small nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">' +
-          esc(t("header.menu")) + "</button>" +
-          '<nav id="site-nav" class="nav" aria-label="' + esc(t("header.navAria")) + '">' + links + "</nav>"
+        esc(t("header.menu")) + "</button>" +
+        '<nav id="site-nav" class="nav" aria-label="' + esc(t("header.navAria")) + '">' + links + "</nav>"
         : "") +
-      '<div class="header-actions">' + actions + "</div></div>";
+    "</div>";
     // The language toggle is last, so it sits in the top right corner.
     header.querySelector(".header-actions").appendChild(UI.languageToggle());
     document.body.prepend(header);
