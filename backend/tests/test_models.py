@@ -1,4 +1,5 @@
 """Scheduling schema tests. Most need PostgreSQL (compose `db`); see conftest.py."""
+import uuid
 from datetime import time
 
 import pytest
@@ -14,6 +15,7 @@ from app.models import (
     ActivityException,
     Parity,
     Priority,
+    Professor,
     Role,
     Status,
     StudentGroup,
@@ -24,7 +26,7 @@ from app.models import (
 def test_all_tables_and_enums_registered() -> None:
     assert set(Base.metadata.tables) == {
         "users", "student_groups", "classrooms", "activities", "activity_exceptions", "invitations",
-        "faculties", "planning_time_units", "rule_change_requests", "activity_groups",
+        "faculties", "planning_time_units", "rule_change_requests", "activity_groups", "professors",
     }
     assert [p.value for p in Priority] == [1, 2, 3, 4, 5]
     assert Priority.COURSE > Priority.EXAM > Priority.OFFICIAL_FACULTY > Priority.STUDENT_ORG > Priority.STUDENT
@@ -122,3 +124,25 @@ def test_email_is_unique(db: Session) -> None:
         with db.begin_nested():
             db.add(User(email="x@uni.ro", name="B", role=Role.STUDENT))
             db.flush()
+
+
+def test_professor_list_is_unique_by_email(db: Session) -> None:
+    db.add(Professor(id=uuid.uuid4(), name="Popescu Ana", email="ana.popescu@ulbsibiu.ro"))
+    db.flush()
+    with pytest.raises(IntegrityError):
+        with db.begin_nested():
+            db.add(Professor(id=uuid.uuid4(), name="Popescu Ana 2", email="ana.popescu@ulbsibiu.ro"))
+            db.flush()
+
+
+def test_professor_links_are_optional_and_not_foreign_keys(db: Session) -> None:
+    """activities.professor_id and users.professor_id are plain nullable UUIDs (decoupled from professors)."""
+    user = User(email="prof@uni.ro", name="Prof", role=Role.PROFESSOR)
+    assert user.professor_id is None
+    db.add(user)
+    db.flush()
+    assert user.professor_id is None
+
+    fk_targets = {fk.column.table.name for fk in Base.metadata.tables["activities"].columns["professor_id"].foreign_keys}
+    assert fk_targets == set()
+    assert Base.metadata.tables["users"].columns["professor_id"].foreign_keys == set()

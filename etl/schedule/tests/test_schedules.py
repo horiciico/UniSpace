@@ -5,7 +5,7 @@ from datetime import date
 
 import httpx
 
-from etl.downloader import (
+from etl.schedule.downloader import (
     CurrentUnit,
     DownloadResult,
     _download_one,

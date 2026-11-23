@@ -29,7 +29,7 @@ browser ──> frontend (nginx :8080) ──> backend (FastAPI :8000) ──> d
 | Frontend styles | `frontend/styles/` | design tokens, base, one CSS file per component | the pages and components |
 | Frontend scripts | `frontend/js/`, `frontend/i18n/` | session service, single-page scripts, i18n runtime and dictionaries | the pages and components |
 | Web routing | `infra/nginx/default.conf` | clean URLs, 404 page, proxy of `/health` (public) and `/api/` (signed in) to the backend | nginx, backend |
-| ETL pipeline | `etl/` (`downloader.py`, `loader.py`) | imports the ULBS schedule API into PostgreSQL in four steps | ULBS API (HTTP), `data/schedules/`, PostgreSQL (backend models) |
+| ETL pipelines | `etl/schedule/` (`downloader.py`, `loader.py`, `tests/`), `etl/professors/` (step 2 of the professors plan, not built yet) | imports the ULBS schedule API into PostgreSQL in four steps | ULBS API (HTTP), `data/schedules/`, PostgreSQL (backend models) |
 | Stack | `docker-compose.yml` | runs db, backend, frontend | Docker |
 
 ## Frontend structure

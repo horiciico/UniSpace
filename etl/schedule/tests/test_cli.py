@@ -1,5 +1,5 @@
 """Command-line defaults. No network, no database."""
-from etl.downloader import _parse_args
+from etl.schedule.downloader import _parse_args
 
 
 def test_no_arguments_runs_all_steps_for_all_faculties() -> None:

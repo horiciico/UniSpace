@@ -4,7 +4,7 @@ from datetime import time
 import pytest
 
 from app.models import ActivityType, Parity, Priority
-from etl.loader import (
+from etl.schedule.loader import (
     DIDACTIC_ACTIVITY_NAME,
     NotStored,
     RoomInfo,
@@ -34,6 +34,31 @@ def entry(**overrides) -> dict:
     }
     base.update(overrides)
     return base
+
+
+PROF_A = "3601532c-3e19-4edf-a41f-d1b996f6487b"
+PROF_B = "99cc2327-bf8e-439a-8d33-c0f9bb2ddb37"
+
+
+def test_professor_id_is_read_as_a_lowercase_uuid() -> None:
+    block = parse_item(entry(professorId=PROF_A.upper()))[0]
+    assert block.professor_id == PROF_A
+
+
+def test_missing_or_unreadable_professor_id_is_none() -> None:
+    assert parse_item(entry())[0].professor_id is None
+    assert parse_item(entry(professorId="not-a-uuid"))[0].professor_id is None
+
+
+def test_merged_row_keeps_professor_id_only_when_all_entries_agree() -> None:
+    same = parse_item(entry(id=1, professorId=PROF_A)) + parse_item(entry(id=2, professorId=PROF_A))
+    assert activity_values(same)["professor_id"] == PROF_A
+
+    two = parse_item(entry(id=1, professorId=PROF_A)) + parse_item(entry(id=2, professorId=PROF_B))
+    assert activity_values(two)["professor_id"] is None
+
+    one_missing = parse_item(entry(id=1, professorId=PROF_A)) + parse_item(entry(id=2))
+    assert activity_values(one_missing)["professor_id"] is None
 
 
 def test_day_names_map_to_iso_numbers() -> None:

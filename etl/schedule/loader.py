@@ -47,7 +47,7 @@ from app.models import (
     Status,
     StudentGroup,
 )
-from etl.downloader import SCHEDULES_DIR, TIMEOUT_SECONDS
+from etl.schedule.downloader import SCHEDULES_DIR, TIMEOUT_SECONDS
 
 # The path's faculty is ignored by the API; `?faculty=` selects the owning faculty's rooms.
 # Owner-less rooms only appear in the list without the parameter, so both are read.
@@ -109,6 +109,7 @@ class Block:
     group_name: str
     professor: str | None
     type_missing: bool = False
+    professor_id: str | None = None  # ULBS professorId as a lowercase UUID string; None when absent or unreadable
 
 
 GroupKey = tuple[str, int, Parity, time, time]
@@ -125,6 +126,16 @@ def merge_contiguous(pairs: list[tuple[time, time]]) -> list[tuple[time, time]]:
         else:
             merged.append((start, end))
     return merged
+
+
+def read_professor_id(raw: object) -> str | None:
+    """The professorId as a lowercase UUID string, or None when it is missing or not a UUID."""
+    if not isinstance(raw, str):
+        return None
+    try:
+        return str(uuid.UUID(raw))
+    except ValueError:
+        return None
 
 
 def parse_item(item: dict) -> list[Block]:
@@ -168,6 +179,7 @@ def parse_item(item: dict) -> list[Block]:
     group_id = group.get("id") if isinstance(group.get("id"), int) else None
     group_name = (group.get("name") or "")[:GROUP_NAME_MAX]
     professor = item.get("professor") or None
+    professor_id = read_professor_id(item.get("professorId"))
 
     return [
         Block(
@@ -185,6 +197,7 @@ def parse_item(item: dict) -> list[Block]:
             group_name=group_name,
             professor=professor,
             type_missing=type_missing,
+            professor_id=professor_id,
         )
         for start, end in blocks
     ]
@@ -213,6 +226,9 @@ def activity_values(members: list[Block]) -> dict:
     group = min(with_group, key=lambda b: (b.group_id, b.item_id or 0)) if with_group else None
     types = {b.activity_type for b in members}
     professors = sorted({b.professor for b in members if b.professor})
+    # One professor for the whole row, or none: a merged slot with two teachers (or one unknown) has no id.
+    professor_ids = {b.professor_id for b in members}
+    professor_id = professor_ids.pop() if len(professor_ids) == 1 else None
     # Every study group in the slot, by API id; the first one is also stored on the row.
     groups = {b.group_id: b.group_name for b in with_group}
     return {
@@ -228,6 +244,7 @@ def activity_values(members: list[Block]) -> dict:
         "end_time": first.end,
         "parity": first.parity,
         "professor_name": (" / ".join(professors))[:PROFESSOR_MAX] or None,
+        "professor_id": professor_id,
     }
 
 
@@ -372,6 +389,7 @@ def upsert_activity(db: Session, unit_id: uuid.UUID, external_id: str, values: d
         "end_time": values["end_time"],
         "parity": values["parity"],
         "professor_name": values["professor_name"],
+        "professor_id": uuid.UUID(values["professor_id"]) if values["professor_id"] else None,
     }
     existing = db.scalar(
         select(Activity).where(

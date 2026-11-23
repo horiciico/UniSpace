@@ -24,7 +24,7 @@ from app.models import (
     PlanningUnitType,
     StudentGroup,
 )
-from etl.loader import LoadContext, LoadReport, RoomInfo, load_envelope
+from etl.schedule.loader import LoadContext, LoadReport, RoomInfo, load_envelope
 
 
 @pytest.fixture(scope="session")
@@ -114,6 +114,27 @@ def test_first_load_stores_one_row_per_slot_and_the_capacity_rule(db: Session) -
     unknown = db.scalar(select(Classroom).where(Classroom.external_id == room_unknown))
     assert unknown.capacity is None and unknown.name == "B208"
     assert db.scalar(select(StudentGroup).where(StudentGroup.external_id == 7)).name == "GRUP_7"
+
+
+def test_row_stores_the_professor_id_when_its_entries_agree(db: Session) -> None:
+    faculty, unit = setup_faculty_and_unit(db, "tstp")
+    room = str(uuid.uuid4())
+    prof = "3601532c-3e19-4edf-a41f-d1b996f6487b"
+    ctx = LoadContext(rooms={room: RoomInfo("Sala A", 30, "tstp")}, faculty_ids={"tstp": faculty.id})
+    env = envelope("tstp", unit.id, {
+        "Monday": [
+            {**entry(1, room), "professorId": prof},
+            {**entry(2, room, group=8), "professorId": prof},  # same slot, same professor
+        ],
+        "Tuesday": [{**entry(3, room, day="Tuesday"), "professorId": prof},
+                    {**entry(4, room, day="Tuesday", group=8), "professorId": str(uuid.uuid4())}],
+    })
+
+    run(db, env, ctx)
+
+    rows = {r.day_of_week: r for r in db.scalars(select(Activity).where(Activity.planning_time_unit_id == unit.id))}
+    assert str(rows[1].professor_id) == prof
+    assert rows[2].professor_id is None  # two professors in one slot: left empty
 
 
 def test_running_twice_creates_nothing_new(db: Session) -> None:

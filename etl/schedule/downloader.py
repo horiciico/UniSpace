@@ -472,7 +472,7 @@ async def _run_schedules(args: argparse.Namespace) -> bool:
 
 async def _run_load(args: argparse.Namespace) -> None:
     """Step 4. Imported here so that the downloader does not depend on the loader at import time."""
-    from etl.loader import format_report, load_all
+    from etl.schedule.loader import format_report, load_all
 
     report = await load_all(args.faculty)
     if not report.files_loaded and not report.errors:

@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 
 from app.db import engine
 from app.models import Faculty
-from etl.downloader import faculty_rows, upsert_faculties
+from etl.schedule.downloader import faculty_rows, upsert_faculties
 
 
 @pytest.fixture(scope="session")

@@ -3,7 +3,7 @@ import asyncio
 import httpx
 import pytest
 
-from etl.downloader import FACULTIES_URL, _data_list, fetch_faculties
+from etl.schedule.downloader import FACULTIES_URL, _data_list, fetch_faculties
 
 SAMPLE = {
     "success": True,

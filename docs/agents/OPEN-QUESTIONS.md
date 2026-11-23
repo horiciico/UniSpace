@@ -23,6 +23,7 @@
 - Q-012 · Does a permanent rule change go through a request table, or does the admin edit directly? · _answered_
 - Q-013 · What does the ULBS schedule JSON look like (row per course or per occurrence, id types)? · _answered_
 - Q-014 · Is a day-level off-limits mark for the whole university or for one faculty? · _answered_
+- Q-015 · Where do the professors and their emails come from? · _answered_
 
 ---
 
@@ -115,4 +116,10 @@
 - **Answer (user, 2026-11-22):** the admin selects the scope when setting the mark.
 - **Still open:** whether "the whole duration" means the whole semester or the whole academic year.
 - **Blocks:** the duration wording of the `off_limits` table; the scope column itself is no longer blocked.
+- **Who answers:** the user
+
+## Q-015 · Where do the professors and their emails come from?
+- **Status:** answered
+- **Answer (user, 2026-11-23):** A list of professors comes from an API and is loaded in Step 2 of the professors pipeline. The schedule files carry `professorId` and the name, but no email, so the email comes from that list.
+- **Blocks:** the `professors` table contents (Step 2) and the automatic PROFESSOR role (the role rule is not decided yet; a PROPOSAL is pending).
 - **Who answers:** the user
