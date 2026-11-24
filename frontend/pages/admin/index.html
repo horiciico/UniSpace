@@ -6,6 +6,7 @@
     <script src="/js/bookings.js" defer></script>
     <script src="/js/pages/admin-bookings.js" defer></script>
     <script src="/js/pages/admin-history.js" defer></script>
+    <script src="/js/pages/admin-rooms.js" defer></script>
   </head>
   <body>
     <main id="main" class="container">
@@ -16,6 +17,7 @@
       <div class="tabs my-5" role="tablist" aria-label="Vizualizări">
         <button class="tab" role="tab" type="button" id="tab-pending" data-tab="pending" aria-controls="panel-pending" aria-selected="true" data-i18n="admin.tabPending">Cereri în așteptare</button>
         <button class="tab" role="tab" type="button" id="tab-history" data-tab="history" aria-controls="panel-history" aria-selected="false" data-i18n="admin.tabHistory">Istoric rezervări</button>
+        <button class="tab" role="tab" type="button" id="tab-rooms" data-tab="rooms" aria-controls="panel-rooms" aria-selected="false" data-i18n="admin.tabRooms">Săli</button>
       </div>
       <div role="tabpanel" id="panel-pending" aria-labelledby="tab-pending">
         <section class="section" aria-labelledby="queue-title">
@@ -91,6 +93,87 @@
             <span class="muted" id="hist-range"></span>
             <button class="btn btn-small" type="button" id="hist-next" data-i18n="adminHistory.next">Următor</button>
           </nav>
+        </section>
+      </div>
+
+      <div role="tabpanel" id="panel-rooms" aria-labelledby="tab-rooms" hidden>
+        <section class="section" aria-labelledby="rooms-title">
+          <h2 id="rooms-title" data-i18n="adminRooms.title">Săli</h2>
+          <p class="muted mt-3" data-i18n="adminRooms.intro">Notează ce are fiecare sală și cum se intră în ea. Studenții văd proiectorul și accesul pe pagina Liber acum.</p>
+          <div class="filter-bar mt-3">
+            <label class="field">
+              <span class="field__label" data-i18n="rooms.faculty">Facultate</span>
+              <select id="rooms-faculty"></select>
+            </label>
+            <label class="field">
+              <span class="field__label" data-i18n="rooms.searchLabel">Caută după numele sălii</span>
+              <input id="rooms-search" type="search" />
+            </label>
+          </div>
+          <p class="notice mt-3" id="rooms-status" role="status" aria-live="polite" hidden></p>
+          <div class="table-wrap mt-3">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col" data-i18n="rooms.colRoom">Sală</th>
+                  <th scope="col" data-i18n="rooms.colFaculty">Facultate</th>
+                  <th scope="col" data-i18n="rooms.colSeats">Locuri</th>
+                  <th scope="col" data-i18n="rooms.colBookable">Rezervabilă</th>
+                  <th scope="col" data-i18n="rooms.colProjector">Proiector</th>
+                  <th scope="col" data-i18n="rooms.colBoard">Tablă</th>
+                  <th scope="col" data-i18n="rooms.colAccess">Acces</th>
+                  <th scope="col"><span class="visually-hidden" data-i18n="rooms.colEdit">Editează</span></th>
+                </tr>
+              </thead>
+              <tbody id="rooms-body"></tbody>
+            </table>
+          </div>
+          <section class="card mt-5" id="rooms-empty" hidden>
+            <p data-i18n="rooms.empty">Nicio sală nu corespunde filtrelor.</p>
+          </section>
+
+          <section class="card mt-5" id="rooms-edit" aria-labelledby="rooms-edit-title" hidden>
+            <h2 id="rooms-edit-title"></h2>
+            <p class="muted" id="rooms-edit-sub"></p>
+            <form id="rooms-form" class="room-form mt-3">
+              <label class="check">
+                <input id="rooms-bookable" type="checkbox" />
+                <span data-i18n="rooms.bookable">Studenții pot cere această sală</span>
+              </label>
+              <label class="field">
+                <span class="field__label" data-i18n="rooms.projector">Proiector</span>
+                <select id="rooms-projector">
+                  <option value="" data-i18n="rooms.unspecified">Nespecificat</option>
+                  <option value="yes" data-i18n="rooms.yes">Da</option>
+                  <option value="no" data-i18n="rooms.no">Nu</option>
+                </select>
+              </label>
+              <label class="field">
+                <span class="field__label" data-i18n="rooms.board">Tip de tablă</span>
+                <select id="rooms-board">
+                  <option value="" data-i18n="rooms.unspecified">Nespecificat</option>
+                  <option value="whiteboard" data-i18n="rooms.boardWhiteboard">Tablă albă</option>
+                  <option value="blackboard" data-i18n="rooms.boardBlackboard">Tablă neagră</option>
+                  <option value="smartboard" data-i18n="rooms.boardSmartboard">Tablă interactivă</option>
+                  <option value="none" data-i18n="rooms.boardNone">Fără tablă</option>
+                </select>
+              </label>
+              <label class="field">
+                <span class="field__label" data-i18n="rooms.accessNotes">Note de acces</span>
+                <input id="rooms-access" type="text" maxlength="255" />
+                <span class="muted" data-i18n="rooms.accessHint">Pe scurt, de exemplu: Cheia de la portar, parterul.</span>
+              </label>
+              <label class="field">
+                <span class="field__label" data-i18n="rooms.equipment">Dotări și inventar</span>
+                <textarea id="rooms-equipment" maxlength="500"></textarea>
+                <span class="muted" data-i18n="rooms.equipmentHint">Doar pentru administratori. Nu apare pe Liber acum.</span>
+              </label>
+              <div class="btn-group">
+                <button class="btn" type="submit" id="rooms-save" data-i18n="rooms.save">Salvează</button>
+                <button class="btn btn-secondary" type="button" id="rooms-cancel" data-i18n="rooms.cancel">Renunță</button>
+              </div>
+            </form>
+          </section>
         </section>
       </div>
     </main>

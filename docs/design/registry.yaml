@@ -79,7 +79,7 @@ designs:
       - docs/design/screens/DS-unispace-free-rooms.light.png
       - docs/design/screens/DS-unispace-free-rooms.dark.png
     design_ref: docs/design/mocks/DS-unispace-free-rooms.html
-    status: implemented  # built in steps 3-4; mock confirmed 2026-11-24; screenshots light and dark. Draft change (2026-11-24): Projector badge, mock not confirmed, not built
+    status: implemented  # built in steps 3-4; mock confirmed 2026-11-24; change 2026-11-24 (verified-only filter removed; projector tag kept), built on the user's instruction to implement; screenshots light and dark refreshed
 
   - id: DS-unispace-bookings
     kind: screen
@@ -131,9 +131,14 @@ designs:
 
   - id: DS-unispace-admin-rooms
     kind: screen
-    source: frontend/pages/admin/index.html  # the Rooms tab, not built yet
+    source: frontend/pages/admin/index.html  # the Rooms tab; script frontend/js/pages/admin-rooms.js
+    screenshots:
+      - docs/design/screens/DS-unispace-admin-rooms.light.png
+      - docs/design/screens/DS-unispace-admin-rooms.dark.png
+      - docs/design/screens/DS-unispace-admin-rooms.small.png
+      - docs/design/screens/DS-unispace-admin-rooms.editor.light.png
     design_ref: docs/design/mocks/DS-unispace-admin-rooms.html
-    status: draft  # mock drawn 2026-11-24; build only after the user confirms it
+    status: implemented  # mock drawn 2026-11-24; built on the user's instruction to implement (2026-11-24); tests in frontend/tests/unit/admin-rooms.test.js
 
   - id: DS-unispace-not-found
     kind: screen

@@ -94,6 +94,15 @@
     adminCancelBooking: function (id, body) {
       return send("POST", "/admin/bookings/" + encodeURIComponent(id) + "/cancel", body);
     },
+    // Rooms for the admin Rooms tab (C-007). params: faculty_id (UUID or "campus"). Resolves with the rooms.
+    adminClassrooms: function (facultyId) {
+      return get("/admin/classrooms", { faculty_id: facultyId });
+    },
+    // Changes only the fields sent: { is_bookable?, has_projector?, board_type?, access_notes?, equipment_notes? }.
+    // A null clears a field. Resolves with the room.
+    patchAdminClassroom: function (id, body) {
+      return send("PATCH", "/admin/classrooms/" + encodeURIComponent(id), body);
+    },
     // Decides a request: { decision: "approve" | "reject", message? }. Resolves with the booking.
     decideBooking: function (id, body) {
       return send("POST", "/admin/bookings/" + encodeURIComponent(id) + "/decision", body);

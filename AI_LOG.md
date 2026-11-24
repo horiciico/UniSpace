@@ -8,6 +8,19 @@ Each entry follows the same shape:
 
 ```
 
+## 2026-11-24 · Classroom attributes: admin Rooms tab and Free Now (frontend)
+Tool: Claude Code (Haiku 5.5), build
+What I asked: "do not merge, but implement what you said": build the admin Rooms tab and the Free Now changes from the drawn mocks.
+What I got:
+- Admin page: a third tab, Rooms (`frontend/pages/admin/index.html`, script `frontend/js/pages/admin-rooms.js`). Filter by faculty (all, campus, faculties) and by name. Edit panel: bookable, projector (unspecified, yes, no), board type, access notes (255), equipment notes (500). Save sends the form; unspecified clears to null.
+- Client: `api.js` gains `adminClassrooms` and `patchAdminClassroom`. `admin-history.js` hides the Rooms panel when another tab is chosen.
+- Free Now: the "verified only" checkbox is removed (the spec says only Faculty, Min seats and Projector). The projector tag stays as it was. Access and board are not shown on the card.
+- Dictionaries: new `adminRooms.*` and `rooms.*` labels in ro and en; `free.verifiedOnly` removed. Two new keys first clashed with existing `rooms.title` and `rooms.intro` (the student Rooms page); renamed to `adminRooms.*` before the commit.
+- Tests first: `frontend/tests/unit/admin-rooms.test.js` (new, 15 tests), `api.test.js` (1 new), `free.test.js` (the verified-filter assertion changed to assert the checkbox is gone; named here).
+- Mocks: `DS-unispace-admin-rooms.html` and `DS-unispace-free-rooms.html` brought in line with the build.
+- Screenshots (headless Chrome, admin and student sessions): `docs/design/screens/DS-unispace-admin-rooms.{light,dark,small,editor.light}.png`, `DS-unispace-free-rooms.{light,dark}.png` (refreshed).
+What I did with it: on branch `feature/classroom-attributes-equipment`. Suites: backend 177, ETL 114, frontend 363 (654). Coverage gate passed. Not committed or pushed yet at the time of this entry.
+
 ## 2026-11-24 · Classroom attributes: schema, ETL protection, admin and Free Now API (backend), mocks for the UI
 Tool: Claude Code (Haiku 5.5), /plan then build
 What I asked: a simplified spec. Keep has_projector nullable (backfill NULL), add board_type (enum), access_notes (VARCHAR 255), equipment_notes (free text, VARCHAR 500). No access_type column, no equipment tables. Admin list and PATCH of room attributes; Free Now returns the attributes and filters by min capacity and projector. ETL must not overwrite the admin fields. Then the UI, after confirmation.

@@ -55,6 +55,19 @@ describe("api.js: fetch wrappers for /api/*", () => {
     expect(fetch.mock.calls[0][0]).toBe("/api/faculties");
   });
 
+  it("lists the rooms for the admin and sends a PATCH with the changed fields", async () => {
+    const fetch = stubFetch({
+      "/api/admin/classrooms": () => response([]),
+      "/api/admin/classrooms/r1": () => response({ id: "r1" })
+    });
+    await api.adminClassrooms("campus");
+    await api.patchAdminClassroom("r1", { is_bookable: false, board_type: null });
+    expect(queryOf(fetch.mock.calls[0][0])).toEqual({ faculty_id: "campus" });
+    expect(fetch.mock.calls[1][0]).toBe("/api/admin/classrooms/r1");
+    expect(fetch.mock.calls[1][1].method).toBe("PATCH");
+    expect(JSON.parse(fetch.mock.calls[1][1].body)).toEqual({ is_bookable: false, board_type: null });
+  });
+
   it("encodes parameter values", async () => {
     const fetch = stubFetch({ "/api/schedule": () => response({}) });
     await api.schedule({ professor: "Ana Pop & Ion" });
