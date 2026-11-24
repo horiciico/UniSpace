@@ -473,3 +473,42 @@ def test_a_moved_course_blocks_its_new_time_and_frees_its_old_one(db, world, mon
 
     assert old_slot.status_code == 201
     assert new_slot.status_code == 409
+
+
+def test_an_approved_booking_shows_in_the_room_timetable(db, world, monkeypatch) -> None:
+    client = make_client(db)
+    user = sign_in(db, client, monkeypatch, "sub-tt", "timetable.booking@ulbsibiu.ro")
+    room = world["room"].id
+    db.add_all([
+        Booking(user_id=user.id, classroom_id=room, specific_date=date(2026, 12, 14), start_time=time(13, 0),
+                end_time=time(14, 30), title="Approved gala", status=BookingStatus.APPROVED),
+        Booking(user_id=user.id, classroom_id=room, specific_date=date(2026, 12, 14), start_time=time(15, 0),
+                end_time=time(16, 30), title="Still pending", status=BookingStatus.PENDING),
+        Booking(user_id=user.id, classroom_id=room, specific_date=date(2026, 12, 14), start_time=time(9, 40),
+                end_time=time(11, 10), title="Cancelled", status=BookingStatus.CANCELLED),
+    ])
+    db.flush()
+
+    data = make_client(db).get("/api/schedule", params={"room_id": str(room), "date": MON_ODD}).json()
+
+    booked = [item for item in data["items"] if item["activity_type"] == "BOOKING"]
+    assert [(i["title"], i["date"], i["day_of_week"], i["start_time"], i["end_time"]) for i in booked] == [
+        ("Approved gala", MON_ODD, 1, "13:00", "14:30"),
+    ]
+    assert booked[0]["room_id"] == str(room)
+    assert booked[0]["is_recurring"] is False
+    assert booked[0]["groups"] == [] and booked[0]["professor"] is None
+    assert "timetable.booking@ulbsibiu.ro" not in str(booked[0])  # no one's identity on the timetable
+
+
+def test_bookings_are_not_added_to_a_group_or_professor_timetable(db, world, monkeypatch) -> None:
+    client = make_client(db)
+    user = sign_in(db, client, monkeypatch, "sub-tt2", "timetable.booking2@ulbsibiu.ro")
+    db.add(Booking(user_id=user.id, classroom_id=world["room"].id, specific_date=date(2026, 12, 14),
+                   start_time=time(13, 0), end_time=time(14, 30), title="Gala", status=BookingStatus.APPROVED))
+    db.flush()
+
+    data = make_client(db).get("/api/schedule", params={"professor": "Fara Profesor", "date": MON_ODD}).json()
+
+    assert all(item["activity_type"] != "BOOKING" for item in data["items"])
+

@@ -359,6 +359,7 @@ window.UniSpaceI18n.register("ro", {
   "timetable.unknown": "Nespecificat",
   "kind.exam": "Examen",
   "kind.reservation": "Rezervare",
+  "kind.booking": "Rezervare",
   "day.sat": "Sâm",
   "day.sun": "Dum",
   "common.campus": "Campus"

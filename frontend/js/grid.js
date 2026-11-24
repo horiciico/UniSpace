@@ -25,9 +25,10 @@
     SEMINAR: "kind.seminar",
     LAB: "kind.lab",
     EXAM: "kind.exam",
-    RESERVATION: "kind.reservation"
+    RESERVATION: "kind.reservation",
+    BOOKING: "kind.booking"
   };
-  var KIND_CLASS = { COURSE: "course", SEMINAR: "seminar", LAB: "lab" };
+  var KIND_CLASS = { COURSE: "course", SEMINAR: "seminar", LAB: "lab", BOOKING: "booking" };
 
   function toMinutes(hhmm) {
     var parts = String(hhmm).split(":");

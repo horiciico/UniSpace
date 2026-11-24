@@ -18,6 +18,16 @@ What I got:
 - Contract C-005 added; C-003 change note added; Q-017 opened for cancelled and moved occurrences, which the shared helper ignores.
 What I did with it: on branch `feature/student-room-booking`. Backend 142 passed, ETL 113, frontend 252. `docker compose config` and `docker compose build backend` pass. Not committed or pushed. The Bookings page move to `pages/shared` is not done in this step.
 
+## 2026-11-24 · Approved bookings shown in the room timetable
+Tool: Claude Code (Haiku 5.5), build
+What I asked: once approved, a booking should appear in the timetable.
+What I got:
+- `backend/app/routers/schedule.py`: with room_id, approved bookings of the week are added as BOOKING items (pending and cancelled ones are not).
+- Frontend: BOOKING kind in `grid.js` and `timetable.js` (label Booking / Rezervare, block `tt-block--booking`, legend swatch), details show priority "Not specified" when null.
+- Tests: 2 backend tests in `test_bookings_api.py`; `frontend/tests/unit/timetable-bookings.test.js` (2).
+- Contract C-003 change note (4).
+What I did with it: on branch `feature/student-room-booking`. Backend 152, ETL 113, frontend 300 (565 total). Not committed or pushed. The timetable screenshots in docs/design/screens predate this change and are not refreshed.
+
 ## 2026-11-24 · Q-017 confirmed: cancelled and moved occurrences in the shared helper
 Tool: Claude Code (Haiku 5.5), build
 What I asked: the user confirmed the proposed answer to Q-017 (a cancelled occurrence does not block; a moved one blocks its new time).

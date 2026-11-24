@@ -147,6 +147,13 @@
   border-left-color: var(--color-warning-text);
 }
 
+/* An approved room booking: neutral surface with an accent edge, so it is not a class. */
+.tt-block--booking {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border-left-color: var(--color-accent);
+}
+
 .tt-block--other {
   background: var(--color-danger-bg);
   color: var(--color-danger-text);
@@ -214,6 +221,7 @@
 .legend__swatch--seminar { background: var(--color-success-text); }
 .legend__swatch--lab { background: var(--color-warning-text); }
 .legend__swatch--other { background: var(--color-danger-text); }
+.legend__swatch--booking { background: var(--color-accent); }
 
 /* A free module of a bookable room in the room view: a dashed box that opens the Bookings page. */
 .tt-free {

@@ -37,7 +37,8 @@
     SEMINAR: "kind.seminar",
     LAB: "kind.lab",
     EXAM: "kind.exam",
-    RESERVATION: "kind.reservation"
+    RESERVATION: "kind.reservation",
+    BOOKING: "kind.booking"
   };
 
   function pad(value) {
@@ -301,7 +302,8 @@
     fill("tt-d-room", item.room_name);
     fill("tt-d-professor", item.professor || t("timetable.unknown"));
     fill("tt-d-groups", item.groups && item.groups.length ? item.groups.join(", ") : t("timetable.unknown"));
-    fill("tt-d-priority", String(item.priority));
+    // An approved room booking has no priority (C-005): it is not a timetable activity.
+    fill("tt-d-priority", item.priority === null ? t("timetable.unknown") : String(item.priority));
     fill("tt-d-parity", t(PARITY_KEYS[item.parity] || "timetable.parityAll"));
     fill("tt-d-recurring", item.is_recurring ? t("timetable.recurring") : t("timetable.oneOff"));
     if (typeof dialog.showModal === "function") dialog.showModal();

@@ -358,6 +358,7 @@ window.UniSpaceI18n.register("en", {
   "timetable.unknown": "Not specified",
   "kind.exam": "Exam",
   "kind.reservation": "Reservation",
+  "kind.booking": "Booking",
   "day.sat": "Sat",
   "day.sun": "Sun",
   "common.campus": "Campus"

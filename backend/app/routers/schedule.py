@@ -7,7 +7,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.db import get_db
-from app.models import Activity, ActivityGroup, Classroom, PlanningTimeUnit, StudentGroup
+from app.models import Activity, ActivityGroup, Booking, BookingStatus, Classroom, PlanningTimeUnit, StudentGroup
 from app.planning import hhmm, local_today, occurrences, week_info, week_monday
 
 router = APIRouter(prefix="/api/schedule", tags=["schedule"])
@@ -128,6 +128,34 @@ def get_schedule(
             "groups": sorted(group_names.get(a.id, [])),
             "is_recurring": a.specific_date is None,
         })
+
+    if room_id is not None:
+        # Approved room bookings of the week show in the room's timetable (pending and cancelled ones do not).
+        for booking, room_name in db.execute(
+            select(Booking, Classroom.name)
+            .join(Classroom, Classroom.id == Booking.classroom_id)
+            .where(
+                Booking.classroom_id == room_id,
+                Booking.status == BookingStatus.APPROVED,
+                Booking.specific_date.between(monday, sunday),
+            )
+        ).all():
+            items.append({
+                "id": str(booking.id),
+                "title": booking.title,
+                "activity_type": "BOOKING",
+                "priority": None,
+                "day_of_week": booking.specific_date.isoweekday(),
+                "date": booking.specific_date.isoformat(),
+                "start_time": hhmm(booking.start_time),
+                "end_time": hhmm(booking.end_time),
+                "parity": "ALL",
+                "room_id": str(booking.classroom_id),
+                "room_name": room_name,
+                "professor": None,
+                "groups": [],
+                "is_recurring": False,
+            })
 
     week_no, parity = week_info(unit.start_date, monday) if unit is not None else (None, None)
     return {
