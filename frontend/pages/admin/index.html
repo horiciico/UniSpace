@@ -3,78 +3,35 @@
   <head>
     <!--#include virtual="/components/head.html" -->
     <title data-i18n="admin.title">Admin · UniSpace</title>
+    <script src="/js/pages/admin-bookings.js" defer></script>
   </head>
   <body>
     <main id="main" class="container">
       <p class="eyebrow" data-i18n="admin.eyebrow">Admin</p>
-      <h1 data-i18n="admin.heading">Approval queue</h1>
-      <p class="muted" data-i18n="admin.intro">Review requests, handle bumps and keep the semester setup right.</p>
+      <h1 data-i18n="admin.heading">Cereri de rezervare</h1>
+      <p class="muted" data-i18n="admin.intro">Fiecare cerere așteaptă o decizie. Accepto-o ca să rezervi sala, sau respinge-o cu un mesaj opțional pe care solicitantul îl va vedea.</p>
 
-      <div class="stat-grid my-5" data-i18n-attr="aria-label:admin.statsAria" aria-label="Queue sample numbers">
-        <div class="stat"><div class="stat__value">4</div><div class="stat__label" data-i18n="admin.statWaiting">waiting for approval</div></div>
-        <div class="stat"><div class="stat__value">2</div><div class="stat__label" data-i18n="admin.statBumps">bumps, reply pending</div></div>
-        <div class="stat"><div class="stat__value">1</div><div class="stat__label" data-i18n="admin.statConflict">conflict to resolve</div></div>
-        <div class="stat"><div class="stat__value">Wk 14</div><div class="stat__label" data-i18n="admin.statWeek">current week (odd)</div></div>
-      </div>
-
-      <section aria-labelledby="queue-title">
-        <h2 id="queue-title" data-i18n="admin.queueTitle">Waiting for approval</h2>
+      <section class="section" aria-labelledby="queue-title">
+        <h2 id="queue-title" data-i18n="admin.queueTitle">În așteptarea aprobării</h2>
+        <p class="notice mt-3" id="bk-admin-status" role="status" aria-live="polite" hidden></p>
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
-                <th scope="col" data-i18n="admin.colOrg">Organization</th>
-                <th scope="col" data-i18n="admin.colActivity">Activity</th>
-                <th scope="col" data-i18n="admin.colRoom">Room</th>
-                <th scope="col" data-i18n="admin.colWhen">When</th>
-                <th scope="col" data-i18n="admin.colPriority">Priority</th>
-                <th scope="col"><span class="muted" data-i18n="admin.colDecision">Decision</span></th>
+                <th scope="col" data-i18n="admin.colRequester">Solicitant</th>
+                <th scope="col" data-i18n="admin.colRequest">Cerere</th>
+                <th scope="col" data-i18n="admin.colRoomTime">Sală și interval</th>
+                <th scope="col"><span class="visually-hidden" data-i18n="admin.colDecision">Decizie</span></th>
               </tr>
             </thead>
-            <tbody>
-              <tr>
-                <td>Placeholder club A</td>
-                <td>Open Source Night</td>
-                <td>Aula Magna</td>
-                <td>Thu 18:00</td>
-                <td><span class="tag">Student organization</span></td>
-                <td>
-                  <div class="btn-group">
-                    <button class="btn btn-primary btn-small" type="button" data-placeholder-action="placeholder.approved" data-i18n="admin.approve">Approve</button>
-                    <button class="btn btn-small" type="button" data-placeholder-action="placeholder.rejected" data-i18n="admin.reject">Reject</button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td>Placeholder club B</td>
-                <td>Robotics workshop</td>
-                <td>L2</td>
-                <td>Fri 14:00</td>
-                <td><span class="tag">Student organization</span></td>
-                <td>
-                  <div class="btn-group">
-                    <button class="btn btn-primary btn-small" type="button" data-placeholder-action="placeholder.approved" data-i18n="admin.approve">Approve</button>
-                    <button class="btn btn-small" type="button" data-placeholder-action="placeholder.rejected" data-i18n="admin.reject">Reject</button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td>Faculty office</td>
-                <td>Entrance exam</td>
-                <td>A101</td>
-                <td>Mon 09:00</td>
-                <td><span class="tag">Exam · bumps lower priorities</span></td>
-                <td>
-                  <div class="btn-group">
-                    <button class="btn btn-primary btn-small" type="button" data-placeholder-action="placeholder.bumpProposal" data-i18n="admin.approveAndBump">Approve and bump</button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
+            <tbody id="bk-admin-queue"></tbody>
           </table>
         </div>
+        <section class="card mt-5" id="bk-admin-empty" hidden>
+          <h2 data-i18n="admin.emptyTitle">Nicio cerere nu așteaptă</h2>
+          <p data-i18n="admin.emptyText">Cererile noi de rezervare apar aici imediat ce sunt trimise.</p>
+        </section>
       </section>
-
       <section class="section" aria-labelledby="bump-title">
         <h2 id="bump-title" data-i18n="admin.bumpsTitle">Bumps waiting for a reply</h2>
         <ul class="list">

@@ -39,9 +39,6 @@ window.UniSpaceI18n.register("en", {
   "toast.copyUnavailable": "Copy is not available in this browser",
   "placeholder.generic": "Placeholder: nothing was saved. The backend endpoint for this comes later.",
   "placeholder.nothingSaved": "Placeholder: nothing was saved. The backend endpoint for this comes later.",
-  "placeholder.approved": "Placeholder: approved (nothing saved yet)",
-  "placeholder.rejected": "Placeholder: rejected (nothing saved yet)",
-  "placeholder.bumpProposal": "Placeholder: bump proposal (nothing saved yet)",
   "placeholder.icsDownload": "Placeholder: .ics download comes with the backend",
   "placeholder.bookingRequests": "Placeholder: booking requests come with the backend",
   "login.title": "Log in · UniSpace",
@@ -177,23 +174,28 @@ window.UniSpaceI18n.register("en", {
   "changes.footnote": "Placeholder: each row keeps its history. Students who subscribed to the group get an email for each change.",
   "admin.title": "Admin · UniSpace",
   "admin.eyebrow": "Admin",
-  "admin.heading": "Approval queue",
-  "admin.intro": "Review requests, handle bumps and keep the semester setup right.",
-  "admin.statsAria": "Queue sample numbers",
-  "admin.statWaiting": "waiting for approval",
-  "admin.statBumps": "bumps, reply pending",
-  "admin.statConflict": "conflict to resolve",
-  "admin.statWeek": "current week (odd)",
-  "admin.queueTitle": "Waiting for approval",
-  "admin.colOrg": "Organization",
-  "admin.colActivity": "Activity",
-  "admin.colRoom": "Room",
-  "admin.colWhen": "When",
-  "admin.colPriority": "Priority",
+  "admin.heading": "Booking requests",
+  "admin.intro": "Each request waits for a decision. Accept it to book the room, or reject it with an optional message the requester will see.",
+  "admin.queueTitle": "Waiting for approval",
+  "bookings.decisionNote": "Note from the administrator: {message}",
+  "admin.loadError": "Could not load the requests. Try again.",
+  "admin.errorGeneric": "Something went wrong. Try again.",
+  "admin.errorClash": "The room is taken at that time. Reject this request, or ask the requester to choose another time.",
+  "admin.rejected": "The request was rejected.",
+  "admin.accepted": "The booking is approved.",
+  "admin.rejectConfirm": "Reject request",
+  "admin.messageHint": "Up to 1000 characters. {name} will see it on the Bookings page.",
+  "admin.messagePlaceholder": "Explain the decision, for example another event has the room",
+  "admin.messageLabel": "Message to {name} (optional)",
+  "admin.emptyText": "New booking requests appear here. You will see them as soon as they are sent.",
+  "admin.emptyTitle": "No requests are waiting",
+  "admin.requested": "Requested {when}",
+  "admin.accept": "Accept",
+  "admin.colRoomTime": "Room and time",
+  "admin.colRequest": "Request",
+  "admin.colRequester": "Requester",
   "admin.colDecision": "Decision",
-  "admin.approve": "Approve",
   "admin.reject": "Reject",
-  "admin.approveAndBump": "Approve and bump",
   "admin.bumpsTitle": "Bumps waiting for a reply",
   "admin.setupTitle": "Semester setup",
   "admin.setupFirstWeek": "First week",

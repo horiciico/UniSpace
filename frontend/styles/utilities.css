@@ -13,3 +13,13 @@
 .ml-auto { margin-left: auto; }
 .self-center { align-self: center; }
 .justify-center { justify-content: center; }
+
+/* Text for screen readers only (a table header whose words are shown by the cell itself). */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

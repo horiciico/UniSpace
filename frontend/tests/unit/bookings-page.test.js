@@ -104,6 +104,21 @@ describe("bookings page: the user's requests", () => {
     expect(unknown.querySelector(".pill").textContent).toBe("mystery");
   });
 
+  it("shows the administrator's message on a decided request, and nothing extra without one", async () => {
+    await setup({
+      routes: {
+        "/api/bookings/my": () => response([
+          { ...MINE[0], status: "rejected", decision_message: "Sala e ocupata." },
+          { ...MINE[1], status: "approved", decision_message: null }
+        ])
+      }
+    });
+
+    const [rejected, approved] = rows();
+    expect(rejected.querySelector(".decision-note").textContent).toBe("Note from the administrator: Sala e ocupata.");
+    expect(approved.querySelector(".decision-note")).toBeNull();
+  });
+
   it("says so when there are no requests yet", async () => {
     await setup({ routes: { "/api/bookings/my": () => response([]) } });
 

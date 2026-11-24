@@ -40,9 +40,6 @@ window.UniSpaceI18n.register("ro", {
   "toast.copyUnavailable": "Copierea nu este disponibilă în acest browser",
   "placeholder.generic": "Machetă: nu s-a salvat nimic. Endpoint-ul din backend pentru asta vine mai târziu.",
   "placeholder.nothingSaved": "Machetă: nu s-a salvat nimic. Endpoint-ul din backend pentru asta vine mai târziu.",
-  "placeholder.approved": "Machetă: aprobat (nimic salvat încă)",
-  "placeholder.rejected": "Machetă: respins (nimic salvat încă)",
-  "placeholder.bumpProposal": "Machetă: propunere de realocare (nimic salvat încă)",
   "placeholder.icsDownload": "Machetă: descărcarea .ics vine odată cu backend-ul",
   "placeholder.bookingRequests": "Machetă: cererile de rezervare vin odată cu backend-ul",
   "login.title": "Autentificare · UniSpace",
@@ -178,23 +175,28 @@ window.UniSpaceI18n.register("ro", {
   "changes.footnote": "Machetă: fiecare rând își păstrează istoricul. Studenții abonați la grupă primesc un e-mail pentru fiecare modificare.",
   "admin.title": "Administrare · UniSpace",
   "admin.eyebrow": "Administrare",
-  "admin.heading": "Coada de aprobări",
-  "admin.intro": "Analizează cererile, gestionează realocările și păstrează corect configurarea semestrului.",
-  "admin.statsAria": "Cifre de probă din coadă",
-  "admin.statWaiting": "în așteptarea aprobării",
-  "admin.statBumps": "realocări, răspuns în așteptare",
-  "admin.statConflict": "conflict de rezolvat",
-  "admin.statWeek": "săptămâna curentă (impară)",
-  "admin.queueTitle": "În așteptarea aprobării",
-  "admin.colOrg": "Organizație",
-  "admin.colActivity": "Activitate",
-  "admin.colRoom": "Sala",
-  "admin.colWhen": "Când",
-  "admin.colPriority": "Prioritate",
+  "admin.heading": "Cereri de rezervare",
+  "admin.intro": "Fiecare cerere așteaptă o decizie. Acceptă-o ca să rezervi sala sau respinge-o cu un mesaj opțional pe care solicitantul îl va vedea.",
+  "admin.queueTitle": "În așteptarea aprobării",
+  "bookings.decisionNote": "Mesaj de la administrator: {message}",
+  "admin.loadError": "Nu am putut încărca cererile. Încearcă din nou.",
+  "admin.errorGeneric": "Ceva nu a mers. Încearcă din nou.",
+  "admin.errorClash": "Sala este ocupată la acest interval. Respinge cererea sau cere solicitantului alt interval.",
+  "admin.rejected": "Cererea a fost respinsă.",
+  "admin.accepted": "Rezervarea a fost aprobată.",
+  "admin.rejectConfirm": "Respinge cererea",
+  "admin.messageHint": "Până la 1000 de caractere. {name} îl va vedea pe pagina Rezervări.",
+  "admin.messagePlaceholder": "Explică decizia, de exemplu că sala a fost cerută deja pentru un eveniment",
+  "admin.messageLabel": "Mesaj pentru {name} (opțional)",
+  "admin.emptyText": "Cererile noi de rezervare apar aici imediat ce sunt trimise.",
+  "admin.emptyTitle": "Nicio cerere nu așteaptă",
+  "admin.requested": "Solicitată {when}",
+  "admin.accept": "Acceptă",
+  "admin.colRoomTime": "Sală și interval",
+  "admin.colRequest": "Cerere",
+  "admin.colRequester": "Solicitant",
   "admin.colDecision": "Decizie",
-  "admin.approve": "Aprobă",
   "admin.reject": "Respinge",
-  "admin.approveAndBump": "Aprobă și realocă",
   "admin.bumpsTitle": "Realocări în așteptarea unui răspuns",
   "admin.setupTitle": "Configurarea semestrului",
   "admin.setupFirstWeek": "Prima săptămână",

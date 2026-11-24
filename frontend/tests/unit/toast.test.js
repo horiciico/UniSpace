@@ -79,11 +79,11 @@ describe("toast.js: messages and the placeholder actions", () => {
 
     it("runs a placeholder action with its own message, without following the link", () => {
       document.body.innerHTML =
-        '<a id="go" href="#x" data-placeholder-action="placeholder.approved"><span id="inner">Go</span></a>';
+        '<a id="go" href="#x" data-placeholder-action="placeholder.icsDownload"><span id="inner">Go</span></a>';
       const click = new MouseEvent("click", { bubbles: true, cancelable: true });
       document.getElementById("inner").dispatchEvent(click);
       expect(click.defaultPrevented).toBe(true);
-      expect(toastEl().textContent).toBe(t("placeholder.approved"));
+      expect(toastEl().textContent).toBe(t("placeholder.icsDownload"));
     });
 
     it("uses the generic message for a placeholder action with no message key", () => {

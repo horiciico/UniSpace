@@ -81,6 +81,14 @@
       return send("POST", "/bookings", body);
     },
     // Cancels your own pending booking. Resolves with the booking, now cancelled.
+    // Admin review of booking requests (C-006). Only an administrator gets an answer.
+    pendingBookings: function () {
+      return get("/admin/bookings/pending");
+    },
+    // Decides a request: { decision: "approve" | "reject", message? }. Resolves with the booking.
+    decideBooking: function (id, body) {
+      return send("POST", "/admin/bookings/" + encodeURIComponent(id) + "/decision", body);
+    },
     cancelBooking: function (id) {
       return send("DELETE", "/bookings/" + encodeURIComponent(id));
     }

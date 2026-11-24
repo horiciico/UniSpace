@@ -18,6 +18,30 @@ What I got:
 - Contract C-005 added; C-003 change note added; Q-017 opened for cancelled and moved occurrences, which the shared helper ignores.
 What I did with it: on branch `feature/student-room-booking`. Backend 142 passed, ETL 113, frontend 252. `docker compose config` and `docker compose build backend` pass. Not committed or pushed. The Bookings page move to `pages/shared` is not done in this step.
 
+## 2026-11-24 · Issue #23: admin review page and the requester's note (frontend)
+Tool: Claude Code (Haiku 5.5), build
+What I asked: the mock for the admin review page was confirmed; build it, and show the administrator's message to the requester.
+What I got:
+- Admin page `frontend/pages/admin/index.html`: the sample stats and queue replaced by the real request table; script `frontend/js/pages/admin-bookings.js` (Accept, Reject with an optional message, clash message, empty card). The bumps and semester-setup sections are unchanged (other features). The page's title is now "Booking requests", as in the mock.
+- Requester: `frontend/js/pages/bookings.js` shows "Note from the administrator: ..." on a decided request that has a message.
+- `api.js`: pendingBookings, decideBooking. `utilities.css`: `.visually-hidden`; `base.css`: a global `[hidden]` rule (the empty card stayed visible without it).
+- i18n: admin.* keys rewritten for the new page; obsolete sample keys removed; placeholder.approved and bumpProposal/rejected cleaned up (the toast tests now use placeholder.icsDownload).
+- Tests: `frontend/tests/unit/admin-bookings.test.js` (15) and a note test in bookings-page.test.js.
+- Screenshots (temporary admin and student, removed afterwards): docs/design/screens/DS-unispace-admin.{light,dark}.png and refreshed DS-unispace-bookings; registry entries implemented.
+What I did with it: on branch `feature/23-admin-booking-review`. Suites: backend 162, ETL 113, frontend 316. Not committed or pushed.
+
+## 2026-11-24 · Issue #23: admin review of booking requests (backend)
+Tool: Claude Code (Haiku 5.5), build
+What I asked: implement issue #23 on a new branch: admins review pending booking requests, accept or reject them with an optional message, and the requester sees the outcome.
+What I got:
+- Branch `feature/23-admin-booking-review`, from `feature/student-room-booking` (the booking model lives there, not on main).
+- `booking.py`: decided_by_id, decided_at, decision_message (CHECK: at most 1000 characters). Migration `3b4860b5bd9c` (round trip checked; alembic check clean).
+- `backend/app/routers/admin_bookings.py`: GET /api/admin/bookings/pending, POST /api/admin/bookings/{id}/decision (admin only; approval re-checks clashes). Registered in main.py.
+- `bookings.py`: booking responses carry decided_at and decision_message.
+- Tests: `backend/tests/test_admin_bookings.py` (10, written first and red before the code).
+- Ledger: C-006 added; C-005 change note; registry DS-unispace-admin draft with mock `docs/design/mocks/DS-unispace-admin-bookings.html`.
+What I did with it: all suites pass (575: backend 162, ETL 113, frontend 300). Frontend not changed: the admin page and the requester's message display need the mock confirmed first (DESIGN.md). Not committed or pushed.
+
 ## 2026-11-24 · Booking block outlined in the timetable
 Tool: Claude Code (Haiku 5.5), build
 What I asked: an approved booking's right edge was lost in the grid lines; add highlighting so the card reads as its own block.

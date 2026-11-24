@@ -88,7 +88,7 @@ designs:
       - docs/design/screens/DS-unispace-bookings.light.png
       - docs/design/screens/DS-unispace-bookings.dark.png
     design_ref: docs/design/mocks/DS-unispace-bookings.html
-    status: implemented  # built in steps 3-4; mock confirmed 2026-11-24; screenshots light and dark
+    status: implemented  # issue #23: the administrator's note on a decided request
 
   - id: DS-unispace-announcements
     kind: screen
@@ -123,9 +123,11 @@ designs:
   - id: DS-unispace-admin
     kind: screen
     source: frontend/pages/admin/index.html
-    screenshots: []
-    design_ref: none
-    status: implemented
+    screenshots:
+      - docs/design/screens/DS-unispace-admin.light.png
+      - docs/design/screens/DS-unispace-admin.dark.png
+    design_ref: docs/design/mocks/DS-unispace-admin-bookings.html
+    status: implemented  # issue #23: booking requests review; mock confirmed 2026-11-24; bumps and setup sections unchanged (other features)
 
   - id: DS-unispace-not-found
     kind: screen
