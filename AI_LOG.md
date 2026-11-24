@@ -18,6 +18,12 @@ What I got:
 - Contract C-005 added; C-003 change note added; Q-017 opened for cancelled and moved occurrences, which the shared helper ignores.
 What I did with it: on branch `feature/student-room-booking`. Backend 142 passed, ETL 113, frontend 252. `docker compose config` and `docker compose build backend` pass. Not committed or pushed. The Bookings page move to `pages/shared` is not done in this step.
 
+## 2026-11-24 · Booking block outlined in the timetable
+Tool: Claude Code (Haiku 5.5), build
+What I asked: an approved booking's right edge was lost in the grid lines; add highlighting so the card reads as its own block.
+What I got: `.tt-block--booking` in timetable.css now has a full 1px accent outline (4px on the left, as other blocks) and the tinted hover token as its background.
+What I did with it: CSS only, no test change. Checked in light and dark headless Chrome; screenshots refreshed in docs/design/screens. Not committed or pushed.
+
 ## 2026-11-24 · Free-slot polish in the room view
 Tool: Claude Code (Haiku 5.5), build
 What I asked: make the room-view free slots clean and modern: no border or text at rest (a faint plus), a 150ms hover with a tint, border and a + Book label; past slots blank and dimmed; a muted helper line above the grid for a bookable room.

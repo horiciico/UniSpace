@@ -147,11 +147,12 @@
   border-left-color: var(--color-warning-text);
 }
 
-/* An approved room booking: neutral surface with an accent edge, so it is not a class. */
+/* An approved room booking: a tinted block with a full accent outline, so its right edge is not lost in the grid lines. */
 .tt-block--booking {
-  background: var(--color-surface);
+  background: var(--color-slot-hover-bg);
   color: var(--color-text);
-  border-left-color: var(--color-accent);
+  border: 1px solid var(--color-accent);
+  border-left-width: 4px;
 }
 
 .tt-block--other {
