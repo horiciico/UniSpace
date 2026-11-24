@@ -26,7 +26,7 @@ def require_admin(user: User = Depends(get_current_user)) -> User:
 
 class Decision(BaseModel):
     decision: Literal["approve", "reject"]
-    message: str | None = Field(default=None, max_length=1000)
+    message: str | None = Field(default=None, max_length=100)
 
     @field_validator("message")
     @classmethod
@@ -147,7 +147,7 @@ def history(
 
 
 class AdminCancel(BaseModel):
-    message: str | None = Field(default=None, max_length=1000)
+    message: str | None = Field(default=None, max_length=100)
 
     @field_validator("message")
     @classmethod

@@ -151,14 +151,14 @@ def test_a_rejection_without_a_message_stores_none(db, room, monkeypatch) -> Non
     assert row.decision_message is None
 
 
-def test_a_message_longer_than_1000_characters_is_refused(db, room, monkeypatch) -> None:
+def test_a_message_longer_than_100_characters_is_refused(db, room, monkeypatch) -> None:
     student = make_client(db)
     user = sign_in(db, student, monkeypatch, "sub-a9", "long.student@ulbsibiu.ro")
     row = booking(db, user, room)
     admin = make_client(db)
     sign_in(db, admin, monkeypatch, "sub-a10", "long.admin@ulbsibiu.ro", role=Role.ADMIN)
 
-    r = admin.post(f"/api/admin/bookings/{row.id}/decision", json={"decision": "reject", "message": "x" * 1001})
+    r = admin.post(f"/api/admin/bookings/{row.id}/decision", json={"decision": "reject", "message": "x" * 101})
 
     assert r.status_code == 422
     db.refresh(row)

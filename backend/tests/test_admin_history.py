@@ -224,13 +224,13 @@ def test_an_admin_cancel_without_a_message_stores_none(db, monkeypatch) -> None:
     assert future.decision_message is None
 
 
-def test_an_admin_cancel_message_over_1000_characters_is_refused(db, monkeypatch) -> None:
+def test_an_admin_cancel_message_over_100_characters_is_refused(db, monkeypatch) -> None:
     student = make_client(db)
     user = sign_in(db, student, monkeypatch, "sub-hl", "long.cancel@ulbsibiu.ro")
     future = make_booking(db, user, make_room(db), status=BookingStatus.APPROVED, specific_date=date(2026, 12, 24))
     admin = admin_client(db, monkeypatch, "long.cancel.admin@ulbsibiu.ro")
 
-    r = admin.post(f"/api/admin/bookings/{future.id}/cancel", json={"message": "x" * 1001})
+    r = admin.post(f"/api/admin/bookings/{future.id}/cancel", json={"message": "x" * 101})
 
     assert r.status_code == 422
     db.refresh(future)

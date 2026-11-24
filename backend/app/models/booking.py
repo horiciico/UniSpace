@@ -14,8 +14,8 @@ class Booking(Base):
     __tablename__ = "bookings"
     __table_args__ = (
         CheckConstraint("start_time < end_time", name="ck_booking_time_order"),
-        # A decision message is at most 1000 characters (issue #23).
-        CheckConstraint("decision_message IS NULL OR char_length(decision_message) <= 1000",
+        # A decision message is at most 100 characters.
+        CheckConstraint("decision_message IS NULL OR char_length(decision_message) <= 100",
                         name="ck_booking_decision_message_length"),
     )
 

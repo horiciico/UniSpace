@@ -201,7 +201,7 @@
     field.appendChild(label);
     var box = document.createElement("textarea");
     box.id = "hist-cancel-" + item.id;
-    box.maxLength = 1000;
+    box.maxLength = 100;
     box.placeholder = t("admin.messagePlaceholder");
     field.appendChild(box);
     var hint = document.createElement("span");

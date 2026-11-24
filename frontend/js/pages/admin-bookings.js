@@ -15,7 +15,7 @@
   var statusLine = document.getElementById("bk-admin-status");
   var emptyCard = document.getElementById("bk-admin-empty");
 
-  var MESSAGE_LIMIT = 1000;
+  var MESSAGE_LIMIT = 100;
   var state = { requests: [], statusKey: "", statusError: false, busy: false };
 
   function locale() {

@@ -203,14 +203,14 @@ window.UniSpaceI18n.register("ro", {
   "adminHistory.confirmTitle": "Anulezi rezervarea {title}?",
   "adminHistory.confirmText": "{room} · {when}. Rezervarea devine respinsă, iar solicitantul vede mesajul tău.",
   "adminHistory.confirmYes": "Anulează rezervarea",
-  "adminHistory.keep": "Păstrează-o",
+  "adminHistory.keep": "Păstrează-o",
   "adminHistory.messageLabel": "Mesaj pentru solicitant (opțional)",
-  "adminHistory.messageHint": "Până la 1000 de caractere.",
+  "adminHistory.messageHint": "Până la 100 de caractere.",
   "adminHistory.cancelled": "Rezervarea a fost anulată și marcată ca respinsă.",
   "adminHistory.cancelRefused": "Rezervarea nu mai poate fi anulată.",
   "adminHistory.loadError": "Nu am putut încărca rezervările. Încearcă din nou.",
   "admin.intro": "Fiecare cerere așteaptă o decizie. Acceptă-o ca să rezervi sala sau respinge-o cu un mesaj opțional pe care solicitantul îl va vedea.",
-  "admin.queueTitle": "În așteptarea aprobării",
+  "admin.queueTitle": "În așteptarea aprobării",
   "bookings.decisionNote": "Mesaj de la administrator: {message}",
   "admin.loadError": "Nu am putut încărca cererile. Încearcă din nou.",
   "admin.errorGeneric": "Ceva nu a mers. Încearcă din nou.",
@@ -218,7 +218,7 @@ window.UniSpaceI18n.register("ro", {
   "admin.rejected": "Cererea a fost respinsă.",
   "admin.accepted": "Rezervarea a fost aprobată.",
   "admin.rejectConfirm": "Respinge cererea",
-  "admin.messageHint": "Până la 1000 de caractere. {name} îl va vedea pe pagina Rezervări.",
+  "admin.messageHint": "Până la 100 de caractere. {name} îl va vedea pe pagina Rezervări.",
   "admin.messagePlaceholder": "Explică decizia, de exemplu că sala a fost cerută deja pentru un eveniment",
   "admin.messageLabel": "Mesaj pentru {name} (opțional)",
   "admin.emptyText": "Cererile noi de rezervare apar aici imediat ce sunt trimise.",

@@ -202,14 +202,14 @@ window.UniSpaceI18n.register("en", {
   "adminHistory.confirmTitle": "Cancel the booking {title}?",
   "adminHistory.confirmText": "{room} · {when}. The booking is marked rejected, and the requester sees your message.",
   "adminHistory.confirmYes": "Cancel booking",
-  "adminHistory.keep": "Keep it",
+  "adminHistory.keep": "Keep it",
   "adminHistory.messageLabel": "Message to the requester (optional)",
-  "adminHistory.messageHint": "Up to 1000 characters.",
+  "adminHistory.messageHint": "Up to 100 characters.",
   "adminHistory.cancelled": "The booking was cancelled and marked rejected.",
   "adminHistory.cancelRefused": "This booking can no longer be cancelled.",
   "adminHistory.loadError": "Could not load the bookings. Try again.",
   "admin.intro": "Each request waits for a decision. Accept it to book the room, or reject it with an optional message the requester will see.",
-  "admin.queueTitle": "Waiting for approval",
+  "admin.queueTitle": "Waiting for approval",
   "bookings.decisionNote": "Note from the administrator: {message}",
   "admin.loadError": "Could not load the requests. Try again.",
   "admin.errorGeneric": "Something went wrong. Try again.",
@@ -217,7 +217,7 @@ window.UniSpaceI18n.register("en", {
   "admin.rejected": "The request was rejected.",
   "admin.accepted": "The booking is approved.",
   "admin.rejectConfirm": "Reject request",
-  "admin.messageHint": "Up to 1000 characters. {name} will see it on the Bookings page.",
+  "admin.messageHint": "Up to 100 characters. {name} will see it on the Bookings page.",
   "admin.messagePlaceholder": "Explain the decision, for example another event has the room",
   "admin.messageLabel": "Message to {name} (optional)",
   "admin.emptyText": "New booking requests appear here. You will see them as soon as they are sent.",

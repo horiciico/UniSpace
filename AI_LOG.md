@@ -18,6 +18,12 @@ What I got:
 - Contract C-005 added; C-003 change note added; Q-017 opened for cancelled and moved occurrences, which the shared helper ignores.
 What I did with it: on branch `feature/student-room-booking`. Backend 142 passed, ETL 113, frontend 252. `docker compose config` and `docker compose build backend` pass. Not committed or pushed. The Bookings page move to `pages/shared` is not done in this step.
 
+## 2026-11-24 · Decision messages limited to 100 characters
+Tool: Claude Code (Haiku 5.5), build
+What I asked: the admin can enter very long messages that show as one long line on the student page; limit the reason to 100 characters.
+What I got: the limit is 100 in the API (decision and cancel bodies), the database rule (migration `a7c3e91f0d52` tightens the CHECK from 1000 to 100; round trip checked), the two text boxes (maxLength 100) and the hints in both languages. Tests: the two over-limit tests now use 101 characters; the test names changed to `..._over_100_...`.
+What I did with it: on branch `feature/23-admin-booking-review`. Suites: backend 172, ETL 113, frontend 347 (632). Committed after the suites passed.
+
 ## 2026-11-24 · Admin cancel of an approved booking: rejected, with a message
 Tool: Claude Code (Haiku 5.5), build
 What I asked: when an admin cancels an approved booking, allow a message and give the booking the status rejected.

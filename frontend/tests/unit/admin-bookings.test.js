@@ -126,7 +126,7 @@ describe("admin page: the booking requests", () => {
 
     actionNamed(rows()[0], "Reject").click();
     expect(panels()).toHaveLength(1);
-    expect(panels()[0].querySelector("textarea").maxLength).toBe(1000);
+    expect(panels()[0].querySelector("textarea").maxLength).toBe(100);
     expect(panels()[0].querySelector("label").textContent).toBe("Message to Clubul de robotica (optional)");
 
     actionNamed(panels()[0], "Cancel").click();

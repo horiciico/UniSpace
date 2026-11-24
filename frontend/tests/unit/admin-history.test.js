@@ -311,7 +311,7 @@ describe("admin history: cancelling a future approved booking", () => {
 
     rows()[0].querySelector("button").click();
     const box = confirms()[0].querySelector("textarea");
-    expect(box.maxLength).toBe(1000);
+    expect(box.maxLength).toBe(100);
     box.value = "  Sala e necesară pentru un examen.  ";
     confirms()[0].querySelector(".btn-primary").click();
     await flush();
