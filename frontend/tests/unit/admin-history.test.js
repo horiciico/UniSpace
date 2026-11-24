@@ -297,8 +297,28 @@ describe("admin history: cancelling a future approved booking", () => {
 
     const post = fetch.mock.calls.find((c) => c[0] === "/api/admin/bookings/b0/cancel");
     expect(post[1].method).toBe("POST");
-    expect($("hist-status-line").textContent).toBe("The booking was cancelled.");
+    expect(JSON.parse(post[1].body)).toEqual({});
+    expect($("hist-status-line").textContent).toBe("The booking was cancelled and marked rejected.");
     expect(confirms()).toHaveLength(0);
+  });
+
+  it("sends the admin's message with the cancellation, trimmed, and only when one is typed", async () => {
+    const { fetch } = await setup({
+      total: 2,
+      routes: { "/api/admin/bookings/b0/cancel": () => response({ id: "b0", status: "rejected" }) }
+    });
+    await openHistory();
+
+    rows()[0].querySelector("button").click();
+    const box = confirms()[0].querySelector("textarea");
+    expect(box.maxLength).toBe(1000);
+    box.value = "  Sala e necesară pentru un examen.  ";
+    confirms()[0].querySelector(".btn-primary").click();
+    await flush();
+    await flush();
+
+    const post = fetch.mock.calls.find((c) => c[0] === "/api/admin/bookings/b0/cancel");
+    expect(JSON.parse(post[1].body)).toEqual({ message: "Sala e necesară pentru un examen." });
   });
 
   it("keeps the booking when the admin chooses to keep it", async () => {

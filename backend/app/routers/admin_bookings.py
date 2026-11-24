@@ -146,9 +146,22 @@ def history(
     }
 
 
+class AdminCancel(BaseModel):
+    message: str | None = Field(default=None, max_length=1000)
+
+    @field_validator("message")
+    @classmethod
+    def blank_is_none(cls, value: str | None) -> str | None:
+        if value is None or not value.strip():
+            return None
+        return value.strip()
+
+
 @router.post("/{booking_id}/cancel")
-def admin_cancel(booking_id: uuid.UUID, admin: User = Depends(require_admin), db: Session = Depends(get_db)) -> dict:
-    """An admin frees a room: any future approved booking, not only the admin's own, can be cancelled."""
+def admin_cancel(booking_id: uuid.UUID, body: AdminCancel | None = None, admin: User = Depends(require_admin),
+                 db: Session = Depends(get_db)) -> dict:
+    """An admin cancels a future approved booking of anyone. The booking becomes `rejected` (the requester
+    sees that), with an optional message from the admin, kept like any other decision."""
     booking = db.get(Booking, booking_id)
     if booking is None:
         raise HTTPException(404, "Booking not found.")
@@ -156,7 +169,10 @@ def admin_cancel(booking_id: uuid.UUID, admin: User = Depends(require_admin), db
         raise HTTPException(409, "Only an approved booking can be cancelled by an administrator.")
     if datetime.combine(booking.specific_date, booking.start_time, tzinfo=LOCAL_TZ) <= local_now():
         raise HTTPException(409, "Only a booking that has not started yet can be cancelled.")
-    booking.status = BookingStatus.CANCELLED
+    booking.status = BookingStatus.REJECTED
+    booking.decided_by_id = admin.id
+    booking.decided_at = local_now().replace(tzinfo=None)
+    booking.decision_message = body.message if body else None
     db.commit()
     room = db.get(Classroom, booking.classroom_id)
     faculty = db.get(Faculty, room.faculty_id) if room.faculty_id else None

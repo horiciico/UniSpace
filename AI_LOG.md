@@ -18,6 +18,15 @@ What I got:
 - Contract C-005 added; C-003 change note added; Q-017 opened for cancelled and moved occurrences, which the shared helper ignores.
 What I did with it: on branch `feature/student-room-booking`. Backend 142 passed, ETL 113, frontend 252. `docker compose config` and `docker compose build backend` pass. Not committed or pushed. The Bookings page move to `pages/shared` is not done in this step.
 
+## 2026-11-24 · Admin cancel of an approved booking: rejected, with a message
+Tool: Claude Code (Haiku 5.5), build
+What I asked: when an admin cancels an approved booking, allow a message and give the booking the status rejected.
+What I got:
+- Backend: POST /api/admin/bookings/{id}/cancel takes an optional message (1000 characters max, blank means none); the booking becomes `rejected` with the decision recorded. Tests updated: `test_an_admin_cancels_another_users_future_approved_booking` is now `..._as_rejected` (it asserted `cancelled`), and two new tests (no message, over 1000 characters).
+- Admin history: the cancel confirmation has the same message box as the pending rejection; the status message says the booking was cancelled and marked rejected. Test `asks first, then cancels...` updated to that wording; one new test sends the trimmed message.
+- Contract C-006 updated. Screenshot of the confirmation: out of the repo (the registry screenshot still shows the list).
+What I did with it: on branch `feature/23-admin-booking-review`. Backend 172, frontend 347.
+
 ## 2026-11-24 · Booking history: admin tabs and paged list (frontend)
 Tool: Claude Code (Haiku 5.5), build
 What I asked: confirm the mock; with no faculty chosen, list all bookings; 15 a page with Previous and Next; build and commit.

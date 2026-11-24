@@ -192,6 +192,24 @@
     })));
     td.appendChild(question);
 
+    // The cancellation is a rejection: an optional message to the requester, as on the pending requests.
+    var field = document.createElement("div");
+    field.className = "field";
+    var label = document.createElement("label");
+    label.setAttribute("for", "hist-cancel-" + item.id);
+    label.textContent = t("adminHistory.messageLabel");
+    field.appendChild(label);
+    var box = document.createElement("textarea");
+    box.id = "hist-cancel-" + item.id;
+    box.maxLength = 1000;
+    box.placeholder = t("admin.messagePlaceholder");
+    field.appendChild(box);
+    var hint = document.createElement("span");
+    hint.className = "muted";
+    hint.textContent = t("adminHistory.messageHint");
+    field.appendChild(hint);
+    td.appendChild(field);
+
     var group = document.createElement("div");
     group.className = "btn-group";
     var yes = document.createElement("button");
@@ -199,7 +217,8 @@
     yes.className = "btn btn-primary btn-small";
     yes.textContent = t("adminHistory.confirmYes");
     yes.addEventListener("click", function () {
-      cancelBooking(item);
+      var message = box.value.trim();
+      cancelBooking(item, message ? { message: message } : {});
     });
     var keep = document.createElement("button");
     keep.type = "button";
@@ -214,8 +233,8 @@
     tr.parentNode.insertBefore(panelRow, tr.nextSibling);
   }
 
-  function cancelBooking(item) {
-    api.adminCancelBooking(item.id).then(function () {
+  function cancelBooking(item, body) {
+    api.adminCancelBooking(item.id, body).then(function () {
       closeConfirm();
       return load();
     }).then(function () {

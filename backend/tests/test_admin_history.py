@@ -190,19 +190,51 @@ def test_history_refuses_bad_filters(db, monkeypatch) -> None:
     assert admin.get("/api/admin/bookings", params={"status": "maybe"}).status_code == 422
 
 
-def test_an_admin_cancels_another_users_future_approved_booking(db, monkeypatch) -> None:
+def test_an_admin_cancels_another_users_future_approved_booking_as_rejected(db, monkeypatch) -> None:
     student = make_client(db)
     user = sign_in(db, student, monkeypatch, "sub-hf", "future.student@ulbsibiu.ro")
     room = make_room(db)
     future = make_booking(db, user, room, status=BookingStatus.APPROVED, specific_date=date(2026, 12, 20))
     admin = admin_client(db, monkeypatch, "future.admin@ulbsibiu.ro")
 
-    r = admin.post(f"/api/admin/bookings/{future.id}/cancel")
+    r = admin.post(f"/api/admin/bookings/{future.id}/cancel",
+                   json={"message": "  Sala e necesară pentru un examen.  "})
 
     assert r.status_code == 200
-    assert r.json()["status"] == "cancelled"
+    assert r.json()["status"] == "rejected"
+    assert r.json()["decision_message"] == "Sala e necesară pentru un examen."
     db.refresh(future)
-    assert future.status == BookingStatus.CANCELLED
+    assert future.status == BookingStatus.REJECTED
+    assert future.decision_message == "Sala e necesară pentru un examen."
+    assert future.decided_at is not None
+    assert student.get("/api/bookings/my").json()[0]["status"] == "rejected"
+
+
+def test_an_admin_cancel_without_a_message_stores_none(db, monkeypatch) -> None:
+    student = make_client(db)
+    user = sign_in(db, student, monkeypatch, "sub-hn", "quiet.cancel@ulbsibiu.ro")
+    future = make_booking(db, user, make_room(db), status=BookingStatus.APPROVED, specific_date=date(2026, 12, 23))
+    admin = admin_client(db, monkeypatch, "quiet.cancel.admin@ulbsibiu.ro")
+
+    r = admin.post(f"/api/admin/bookings/{future.id}/cancel", json={"message": "   "})
+
+    assert r.status_code == 200
+    db.refresh(future)
+    assert future.status == BookingStatus.REJECTED
+    assert future.decision_message is None
+
+
+def test_an_admin_cancel_message_over_1000_characters_is_refused(db, monkeypatch) -> None:
+    student = make_client(db)
+    user = sign_in(db, student, monkeypatch, "sub-hl", "long.cancel@ulbsibiu.ro")
+    future = make_booking(db, user, make_room(db), status=BookingStatus.APPROVED, specific_date=date(2026, 12, 24))
+    admin = admin_client(db, monkeypatch, "long.cancel.admin@ulbsibiu.ro")
+
+    r = admin.post(f"/api/admin/bookings/{future.id}/cancel", json={"message": "x" * 1001})
+
+    assert r.status_code == 422
+    db.refresh(future)
+    assert future.status == BookingStatus.APPROVED
 
 
 def test_admin_cancel_refuses_past_or_pending_and_non_admins(db, monkeypatch) -> None:
