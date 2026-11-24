@@ -1,7 +1,7 @@
 import uuid
 from datetime import date, datetime, time
 
-from sqlalchemy import CheckConstraint, Date, DateTime, Enum, ForeignKey, String, Time, func, text
+from sqlalchemy import CheckConstraint, Date, DateTime, Enum, ForeignKey, String, Text, Time, Uuid, func, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
@@ -14,6 +14,9 @@ class Booking(Base):
     __tablename__ = "bookings"
     __table_args__ = (
         CheckConstraint("start_time < end_time", name="ck_booking_time_order"),
+        # A decision message is at most 100 characters.
+        CheckConstraint("decision_message IS NULL OR char_length(decision_message) <= 100",
+                        name="ck_booking_decision_message_length"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, server_default=text("gen_random_uuid()"))
@@ -34,3 +37,9 @@ class Booking(Base):
         index=True,
     )
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    # The admin's decision (issue #23): who decided, when, and an optional message to the requester.
+    decided_by_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL", name="fk_bookings_decided_by")
+    )
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime)
+    decision_message: Mapped[str | None] = mapped_column(Text)

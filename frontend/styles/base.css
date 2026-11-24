@@ -90,3 +90,8 @@ a {
 .skip-link:focus {
   top: var(--space-2);
 }
+
+/* The hidden attribute always hides, even on an element whose class sets its own display. */
+[hidden] {
+  display: none !important;
+}

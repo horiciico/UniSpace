@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MOCK · DS-unispace-admin-bookings · draft</title>
+    <!-- Mock only: the real page is frontend/pages/admin/index.html (its queue, now real data). -->
+    <link rel="stylesheet" href="../../../frontend/styles/tokens.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/base.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/header.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/buttons.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/pills.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/cards.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/tables-and-lists.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/forms.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/notice.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/utilities.css" />
+    <style>
+      /* Mock scaffolding only. */
+      .mock-bar { display: flex; gap: var(--space-2); padding: var(--space-3) var(--space-4); background: var(--color-warning-bg); color: var(--color-warning-text); flex-wrap: wrap; }
+      .mock-label { margin: var(--space-7) 0 var(--space-2); font-size: var(--text-sm); font-weight: 700; color: var(--color-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+      .mock-state { border-top: 1px dashed var(--color-border); padding-top: var(--space-4); }
+      /* New in the real page (tokens only). */
+      .requester { display: block; }
+      .decision-panel { display: grid; gap: var(--space-2); margin-top: var(--space-2); }
+    </style>
+  </head>
+  <body>
+    <div class="mock-bar">
+      <strong>Draft mock, not built.</strong>
+      <span>Issue #23. Needs your confirmation before the admin page is built (DESIGN.md).</span>
+      <button class="btn btn-small" type="button" onclick="var d=document.documentElement;d.dataset.theme=d.dataset.theme==='dark'?'light':'dark'">Toggle light / dark</button>
+    </div>
+
+    <main id="main" class="container">
+      <p class="eyebrow">Admin</p>
+      <h1>Booking requests</h1>
+      <p class="muted">Each request waits for a decision. Accept it to book the room, or reject it with an optional message the requester will see.</p>
+
+      <p class="mock-label">1 · Default: requests waiting, oldest first</p>
+      <div class="mock-state">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Requester</th>
+                <th scope="col">Request</th>
+                <th scope="col">Room and time</th>
+                <th scope="col"><span class="visually-hidden">Decision</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <strong>Clubul de robotică</strong>
+                  <span class="requester muted">robotics@ulbsibiu.ro</span>
+                  <span class="pill">Student organization</span>
+                </td>
+                <td>Robotics workshop<span class="requester muted">Requested 24 Nov, 17:40</span></td>
+                <td>003 DPPD<span class="requester muted">Mon 14 Dec · 13:00–14:30</span></td>
+                <td>
+                  <div class="btn-group">
+                    <button class="btn btn-primary btn-small" type="button">Accept</button>
+                    <button class="btn btn-small" type="button">Reject</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>Ioana Pop</strong>
+                  <span class="requester muted">ioana.pop@ulbsibiu.ro</span>
+                  <span class="pill">Student</span>
+                </td>
+                <td>Board game evening<span class="requester muted">Requested 24 Nov, 09:12</span></td>
+                <td>B110<span class="requester muted">Fri 18 Dec · 18:00–19:30</span></td>
+                <td>
+                  <div class="btn-group">
+                    <button class="btn btn-primary btn-small" type="button">Accept</button>
+                    <button class="btn btn-small" type="button">Reject</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <p class="mock-label">2 · Reject: optional message, opened from the row</p>
+      <div class="mock-state">
+        <div class="card">
+          <h2>Reject: Board game evening</h2>
+          <div class="decision-panel">
+            <div class="field">
+              <label for="m-msg">Message to Ioana Pop (optional)</label>
+              <textarea id="m-msg" maxlength="1000" placeholder="Explain the decision, for example another event has the room"></textarea>
+              <span class="muted">Up to 1000 characters. Ioana will see it on her Bookings page.</span>
+            </div>
+            <div class="btn-group">
+              <button class="btn btn-primary" type="button">Reject request</button>
+              <button class="btn" type="button">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p class="mock-label">3 · Accept refused: the room is now taken</p>
+      <div class="mock-state">
+        <div class="notice notice--error">
+          <strong>The room is taken at that time.</strong>
+          <span>Another booking was approved for this room and time after the request was sent. Reject this request, or ask the requester to choose another time.</span>
+        </div>
+      </div>
+
+      <p class="mock-label">4 · Empty: nothing waiting</p>
+      <div class="mock-state">
+        <section class="card">
+          <h2>No requests are waiting</h2>
+          <p>New booking requests appear here. You will see them as soon as they are sent.</p>
+        </section>
+      </div>
+
+      <p class="mock-label">5 · Requester's side: the decision on the Bookings page</p>
+      <div class="mock-state">
+        <ul class="list">
+          <li><span><strong>Board game evening</strong><br /><span class="muted">B110 · Fri 18 Dec · 18:00–19:30</span><br /><span class="muted">Rejected: Explain the decision, for example another event has the room</span></span><span class="pill pill--rejected">Rejected</span></li>
+          <li><span><strong>Robotics workshop</strong><br /><span class="muted">003 DPPD · Mon 14 Dec · 13:00–14:30</span></span><span class="pill pill--approved">Approved</span></li>
+        </ul>
+        <p class="muted">A rejection with no message shows the status only.</p>
+      </div>
+    </main>
+  </body>
+</html>

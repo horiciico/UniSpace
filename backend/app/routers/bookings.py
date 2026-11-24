@@ -82,6 +82,8 @@ def booking_out(booking: Booking, room_name: str, faculty_name: str | None) -> d
         "title": booking.title,
         "status": booking.status.value,
         "created_at": booking.created_at.isoformat() if booking.created_at else None,
+        "decided_at": booking.decided_at.isoformat() if booking.decided_at else None,
+        "decision_message": booking.decision_message,  # the admin's message, if any (issue #23)
     }
 
 

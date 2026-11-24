@@ -164,6 +164,14 @@
     meta.textContent = booking.room_name + " · " + (booking.faculty_name || t("common.campus")) + " · " +
       formatDate(booking.specific_date) + " · " + booking.start_time + "–" + booking.end_time;
     text.appendChild(meta);
+    // The administrator's message on a decided request (issue #23): shown only when there is one.
+    if (booking.decision_message) {
+      text.appendChild(document.createElement("br"));
+      var note = document.createElement("span");
+      note.className = "muted decision-note";
+      note.textContent = t("bookings.decisionNote", { message: booking.decision_message });
+      text.appendChild(note);
+    }
     item.appendChild(text);
 
     var actions = document.createElement("span");
@@ -219,6 +227,14 @@
     return "bookings.errorGeneric";
   }
 
+  // An admin's booking is approved at once, so the button says so. Anyone else is making a request.
+  // The label is a dictionary key, so it is translated again on a language change.
+  function setSubmitLabel() {
+    var key = state.user && state.user.role === "ADMIN" ? "bookings.book" : "bookings.requestBook";
+    sendButton.setAttribute("data-i18n", key);
+    sendButton.textContent = t(key);
+  }
+
   function send(event) {
     event.preventDefault();
     var from = Number(fromSelect.value);
@@ -270,6 +286,7 @@
     window.UniSpaceAuth.ready.then(function (user) {
       state.user = user;
       adminNote.hidden = !(user && user.role === "ADMIN");
+      setSubmitLabel();
     });
     loadFaculties().then(loadRooms).then(loadMine);
   }

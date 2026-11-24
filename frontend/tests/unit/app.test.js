@@ -65,9 +65,9 @@ describe("app.js: the shared chrome", () => {
     await flush();
     document.querySelector(".theme-toggle").click();
     expect(localStorage.getItem("unispace-theme")).toBe("light");
-    document.body.insertAdjacentHTML("beforeend", '<button id="later" data-placeholder-action="placeholder.approved"></button>');
+    document.body.insertAdjacentHTML("beforeend", '<button id="later" data-placeholder-action="placeholder.icsDownload"></button>');
     document.getElementById("later").click();
-    expect(document.getElementById("toast").textContent).toBe(window.UniSpaceI18n.t("placeholder.approved"));
+    expect(document.getElementById("toast").textContent).toBe(window.UniSpaceI18n.t("placeholder.icsDownload"));
   });
 
   it("does nothing on a language change before the session is known", async () => {

@@ -19,7 +19,7 @@ DYNAMIC_KEYS = (
     + [f"login.{reason}{part}" for reason in ("denied", "failed") for part in ("Title", "Text")]
 )
 # A key is a dotted name such as "nav.timetable" in quotes.
-KEY_IN_SCRIPT = re.compile(r'"((?:nav|header|footer|theme|role|toast|placeholder|login|onboarding|status|kind|day|timetable|common|home|announce|calendar|changes|admin|bookings|rooms|roomDetail|free|notFound)\.[A-Za-z0-9_.]+)"')
+KEY_IN_SCRIPT = re.compile(r'"((?:nav|header|footer|theme|role|toast|placeholder|login|onboarding|status|kind|day|timetable|common|home|announce|calendar|changes|admin|adminHistory|bookings|rooms|roomDetail|free|notFound)\.[A-Za-z0-9_.]+)"')
 
 
 def load_dictionary(language: str) -> dict:

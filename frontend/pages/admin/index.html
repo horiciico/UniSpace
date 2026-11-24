@@ -3,111 +3,96 @@
   <head>
     <!--#include virtual="/components/head.html" -->
     <title data-i18n="admin.title">Admin · UniSpace</title>
+    <script src="/js/bookings.js" defer></script>
+    <script src="/js/pages/admin-bookings.js" defer></script>
+    <script src="/js/pages/admin-history.js" defer></script>
   </head>
   <body>
     <main id="main" class="container">
       <p class="eyebrow" data-i18n="admin.eyebrow">Admin</p>
-      <h1 data-i18n="admin.heading">Approval queue</h1>
-      <p class="muted" data-i18n="admin.intro">Review requests, handle bumps and keep the semester setup right.</p>
+      <h1 data-i18n="admin.heading">Cereri de rezervare</h1>
+      <p class="muted" data-i18n="admin.intro">Fiecare cerere așteaptă o decizie. Accepto-o ca să rezervi sala, sau respinge-o cu un mesaj opțional pe care solicitantul îl va vedea.</p>
 
-      <div class="stat-grid my-5" data-i18n-attr="aria-label:admin.statsAria" aria-label="Queue sample numbers">
-        <div class="stat"><div class="stat__value">4</div><div class="stat__label" data-i18n="admin.statWaiting">waiting for approval</div></div>
-        <div class="stat"><div class="stat__value">2</div><div class="stat__label" data-i18n="admin.statBumps">bumps, reply pending</div></div>
-        <div class="stat"><div class="stat__value">1</div><div class="stat__label" data-i18n="admin.statConflict">conflict to resolve</div></div>
-        <div class="stat"><div class="stat__value">Wk 14</div><div class="stat__label" data-i18n="admin.statWeek">current week (odd)</div></div>
+      <div class="tabs my-5" role="tablist" aria-label="Vizualizări">
+        <button class="tab" role="tab" type="button" id="tab-pending" data-tab="pending" aria-controls="panel-pending" aria-selected="true" data-i18n="admin.tabPending">Cereri în așteptare</button>
+        <button class="tab" role="tab" type="button" id="tab-history" data-tab="history" aria-controls="panel-history" aria-selected="false" data-i18n="admin.tabHistory">Istoric rezervări</button>
+      </div>
+      <div role="tabpanel" id="panel-pending" aria-labelledby="tab-pending">
+        <section class="section" aria-labelledby="queue-title">
+          <h2 id="queue-title" data-i18n="admin.queueTitle">În așteptarea aprobării</h2>
+          <p class="notice mt-3" id="bk-admin-status" role="status" aria-live="polite" hidden></p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col" data-i18n="admin.colRequester">Solicitant</th>
+                  <th scope="col" data-i18n="admin.colRequest">Cerere</th>
+                  <th scope="col" data-i18n="admin.colRoomTime">Sală și interval</th>
+                  <th scope="col"><span class="visually-hidden" data-i18n="admin.colDecision">Decizie</span></th>
+                </tr>
+              </thead>
+              <tbody id="bk-admin-queue"></tbody>
+            </table>
+          </div>
+          <section class="card mt-5" id="bk-admin-empty" hidden>
+            <h2 data-i18n="admin.emptyTitle">Nicio cerere nu așteaptă</h2>
+            <p data-i18n="admin.emptyText">Cererile noi de rezervare apar aici imediat ce sunt trimise.</p>
+          </section>
+        </section>
       </div>
 
-      <section aria-labelledby="queue-title">
-        <h2 id="queue-title" data-i18n="admin.queueTitle">Waiting for approval</h2>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th scope="col" data-i18n="admin.colOrg">Organization</th>
-                <th scope="col" data-i18n="admin.colActivity">Activity</th>
-                <th scope="col" data-i18n="admin.colRoom">Room</th>
-                <th scope="col" data-i18n="admin.colWhen">When</th>
-                <th scope="col" data-i18n="admin.colPriority">Priority</th>
-                <th scope="col"><span class="muted" data-i18n="admin.colDecision">Decision</span></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Placeholder club A</td>
-                <td>Open Source Night</td>
-                <td>Aula Magna</td>
-                <td>Thu 18:00</td>
-                <td><span class="tag">Student organization</span></td>
-                <td>
-                  <div class="btn-group">
-                    <button class="btn btn-primary btn-small" type="button" data-placeholder-action="placeholder.approved" data-i18n="admin.approve">Approve</button>
-                    <button class="btn btn-small" type="button" data-placeholder-action="placeholder.rejected" data-i18n="admin.reject">Reject</button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td>Placeholder club B</td>
-                <td>Robotics workshop</td>
-                <td>L2</td>
-                <td>Fri 14:00</td>
-                <td><span class="tag">Student organization</span></td>
-                <td>
-                  <div class="btn-group">
-                    <button class="btn btn-primary btn-small" type="button" data-placeholder-action="placeholder.approved" data-i18n="admin.approve">Approve</button>
-                    <button class="btn btn-small" type="button" data-placeholder-action="placeholder.rejected" data-i18n="admin.reject">Reject</button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td>Faculty office</td>
-                <td>Entrance exam</td>
-                <td>A101</td>
-                <td>Mon 09:00</td>
-                <td><span class="tag">Exam · bumps lower priorities</span></td>
-                <td>
-                  <div class="btn-group">
-                    <button class="btn btn-primary btn-small" type="button" data-placeholder-action="placeholder.bumpProposal" data-i18n="admin.approveAndBump">Approve and bump</button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section class="section" aria-labelledby="bump-title">
-        <h2 id="bump-title" data-i18n="admin.bumpsTitle">Bumps waiting for a reply</h2>
-        <ul class="list">
-          <li>
-            <span><strong>Board game evening</strong> · B110 → B204 proposed · 60 seats, projector</span>
-            <span class="pill pill--bumped">Reply by Wed 18:00</span>
-          </li>
-          <li>
-            <span><strong>Student film night</strong> · A102 → A201 proposed</span>
-            <span class="pill pill--bumped">Moves automatically Fri</span>
-          </li>
-        </ul>
-      </section>
-
-      <section class="section" aria-labelledby="setup-title">
-        <div class="card__meta">
-          <h2 id="setup-title" data-i18n="admin.setupTitle">Semester setup</h2>
-        </div>
-        <div class="card-grid card-grid--3">
-          <div class="card placeholder-card">
-            <h3 data-i18n="admin.setupFirstWeek">First week</h3>
-            <p data-i18n="admin.setupFirstWeekText">Placeholder: 2026-09-28 · parity is set from here.</p>
+      <div role="tabpanel" id="panel-history" aria-labelledby="tab-history" hidden>
+        <section class="section" aria-labelledby="history-title">
+          <h2 id="history-title" data-i18n="adminHistory.title">Istoric rezervări</h2>
+          <div class="filter-bar mt-3" id="hist-filters">
+            <div class="field">
+              <label for="hist-faculty" data-i18n="adminHistory.faculty">Facultate</label>
+              <select id="hist-faculty"></select>
+            </div>
+            <div class="field">
+              <label for="hist-room" data-i18n="adminHistory.room">Sală</label>
+              <select id="hist-room"></select>
+              <span class="muted" data-i18n="adminHistory.roomHint">Alege mai întâi o facultate ca să restrângi sălile.</span>
+            </div>
+            <div class="field">
+              <label for="hist-status" data-i18n="adminHistory.status">Stare</label>
+              <select id="hist-status">
+                <option value="" data-i18n="adminHistory.statusAll">Toate</option>
+                <option value="pending" data-i18n="bookings.statusPending">În așteptare</option>
+                <option value="approved" data-i18n="status.approved">Aprobată</option>
+                <option value="rejected" data-i18n="bookings.statusRejected">Respinsă</option>
+                <option value="cancelled" data-i18n="status.cancelled">Anulat</option>
+              </select>
+            </div>
           </div>
-          <div class="card placeholder-card">
-            <h3 data-i18n="admin.setupHolidays">Holidays and session</h3>
-            <p data-i18n="admin.setupHolidaysText">Placeholder: list of breaks and exam weeks.</p>
+          <p class="notice mt-3" id="hist-status-line" role="status" aria-live="polite" hidden></p>
+          <div class="table-wrap mt-3">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col" data-i18n="adminHistory.colWhen">Data și ora</th>
+                  <th scope="col" data-i18n="adminHistory.colRoom">Sală (facultate)</th>
+                  <th scope="col" data-i18n="adminHistory.colTitle">Titlu</th>
+                  <th scope="col" data-i18n="adminHistory.colRequester">Solicitant</th>
+                  <th scope="col" data-i18n="adminHistory.colStatus">Stare</th>
+                  <th scope="col"><span class="visually-hidden" data-i18n="adminHistory.colActions">Acțiuni</span></th>
+                </tr>
+              </thead>
+              <tbody id="hist-body"></tbody>
+            </table>
           </div>
-          <div class="card placeholder-card">
-            <h3 data-i18n="admin.setupInverted">Inverted weeks</h3>
-            <p data-i18n="admin.setupInvertedText">Placeholder: weeks where parity is swapped.</p>
-          </div>
-        </div>
-      </section>
+          <section class="card mt-5" id="hist-empty" hidden>
+            <h2 data-i18n="adminHistory.emptyTitle">Nicio rezervare nu corespunde filtrelor</h2>
+            <p data-i18n="adminHistory.emptyText">Încearcă o altă facultate, sală sau stare.</p>
+            <div class="btn-group"><button class="btn btn-small" type="button" id="hist-clear" data-i18n="adminHistory.clear">Șterge filtrele</button></div>
+          </section>
+          <nav class="btn-group mt-5" id="hist-pager" aria-label="Pagini" hidden>
+            <button class="btn btn-small" type="button" id="hist-prev" data-i18n="adminHistory.previous">Anterior</button>
+            <span class="muted" id="hist-range"></span>
+            <button class="btn btn-small" type="button" id="hist-next" data-i18n="adminHistory.next">Următor</button>
+          </nav>
+        </section>
+      </div>
     </main>
   </body>
 </html>

@@ -18,6 +18,71 @@ What I got:
 - Contract C-005 added; C-003 change note added; Q-017 opened for cancelled and moved occurrences, which the shared helper ignores.
 What I did with it: on branch `feature/student-room-booking`. Backend 142 passed, ETL 113, frontend 252. `docker compose config` and `docker compose build backend` pass. Not committed or pushed. The Bookings page move to `pages/shared` is not done in this step.
 
+## 2026-11-24 · Decision messages limited to 100 characters
+Tool: Claude Code (Haiku 5.5), build
+What I asked: the admin can enter very long messages that show as one long line on the student page; limit the reason to 100 characters.
+What I got: the limit is 100 in the API (decision and cancel bodies), the database rule (migration `a7c3e91f0d52` tightens the CHECK from 1000 to 100; round trip checked), the two text boxes (maxLength 100) and the hints in both languages. Tests: the two over-limit tests now use 101 characters; the test names changed to `..._over_100_...`.
+What I did with it: on branch `feature/23-admin-booking-review`. Suites: backend 172, ETL 113, frontend 347 (632). Committed after the suites passed.
+
+## 2026-11-24 · Admin cancel of an approved booking: rejected, with a message
+Tool: Claude Code (Haiku 5.5), build
+What I asked: when an admin cancels an approved booking, allow a message and give the booking the status rejected.
+What I got:
+- Backend: POST /api/admin/bookings/{id}/cancel takes an optional message (1000 characters max, blank means none); the booking becomes `rejected` with the decision recorded. Tests updated: `test_an_admin_cancels_another_users_future_approved_booking` is now `..._as_rejected` (it asserted `cancelled`), and two new tests (no message, over 1000 characters).
+- Admin history: the cancel confirmation has the same message box as the pending rejection; the status message says the booking was cancelled and marked rejected. Test `asks first, then cancels...` updated to that wording; one new test sends the trimmed message.
+- Contract C-006 updated. Screenshot of the confirmation: out of the repo (the registry screenshot still shows the list).
+What I did with it: on branch `feature/23-admin-booking-review`. Backend 172, frontend 347.
+
+## 2026-11-24 · Booking history: admin tabs and paged list (frontend)
+Tool: Claude Code (Haiku 5.5), build
+What I asked: confirm the mock; with no faculty chosen, list all bookings; 15 a page with Previous and Next; build and commit.
+What I got:
+- Admin page: two tabs, Pending requests (the existing queue) and Booking history. Filters: faculty (All, Campus, faculties), room (all rooms, or the faculty's rooms), status. No faculty means all bookings. 15 a page with Previous, Next and a range label. Cancel with a confirmation, only for approved bookings that have not started.
+- `frontend/js/pages/admin-history.js`, `frontend/js/api.js` (adminBookings, adminCancelBooking), `frontend/styles/components/forms.css` (filter-bar), `frontend/pages/admin/index.html`.
+- Tests: `frontend/tests/unit/admin-history.test.js` and `admin-history-lists.test.js` (new).
+- Screenshots: docs/design/screens/DS-unispace-admin-history.{light,dark}.png; registry DS-unispace-admin implemented.
+Known limit: a failed faculty list shows its message until the next successful bookings load (the status line is shared).
+What I did with it: on branch `feature/23-admin-booking-review`. Suites: backend 170, ETL 113, frontend 346 (629). The i18n scan prefix list gained `adminHistory` (backend/tests/test_i18n.py), so its keys count as used.
+
+## 2026-11-24 · Admin page: placeholders removed; booking history backend
+Tool: Claude Code (Haiku 5.5), build
+What I asked: remove the placeholders from the admin page; then the booking-history task (step 1 backend, step 2 frontend).
+What I got:
+- Admin page: the sample bumps list and the semester-setup cards removed, with their keys (bumpsTitle, setup*). The footer's "placeholder build" line is shared by every page and is not changed.
+- Backend step 1: `GET /api/admin/bookings` (faculty_id incl. campus, classroom_id, status, limit/offset, total, newest first) and `POST /api/admin/bookings/{id}/cancel` (admin cancels a future approved booking). Tests: `backend/tests/test_admin_history.py` (8), written first and red before the code. Contract C-006 updated.
+- Step 2 frontend: mock `docs/design/mocks/DS-unispace-admin-history.html` drafted; registry draft. Not built until confirmed.
+What I did with it: on branch `feature/23-admin-booking-review`. Backend 170.
+
+## 2026-11-24 · Bookings page copy: intro, admin note and submit label
+Tool: Claude Code (Haiku 5.5), build
+What I asked: the intro line was not suitable, and the submit button must not say "Send request" when the booking is approved at once.
+What I got: new intro (students' and organizations' requests wait for an admin; admin bookings are approved at once), admin note reworded, and the submit button reads "Book the room" for an admin and "Request to book" for everyone else (Romanian: "Rezervă sala" / "Trimite solicitarea"). The label is a dictionary key, so it follows the language. Keys: bookings.book and bookings.requestBook added, bookings.send removed. Tests: 3 new in bookings-page.test.js.
+What I did with it: on branch `feature/23-admin-booking-review`. Frontend 319; all suites run below. Not committed or pushed. Not re-captured in a screenshot.
+
+## 2026-11-24 · Issue #23: admin review page and the requester's note (frontend)
+Tool: Claude Code (Haiku 5.5), build
+What I asked: the mock for the admin review page was confirmed; build it, and show the administrator's message to the requester.
+What I got:
+- Admin page `frontend/pages/admin/index.html`: the sample stats and queue replaced by the real request table; script `frontend/js/pages/admin-bookings.js` (Accept, Reject with an optional message, clash message, empty card). The bumps and semester-setup sections are unchanged (other features). The page's title is now "Booking requests", as in the mock.
+- Requester: `frontend/js/pages/bookings.js` shows "Note from the administrator: ..." on a decided request that has a message.
+- `api.js`: pendingBookings, decideBooking. `utilities.css`: `.visually-hidden`; `base.css`: a global `[hidden]` rule (the empty card stayed visible without it).
+- i18n: admin.* keys rewritten for the new page; obsolete sample keys removed; placeholder.approved and bumpProposal/rejected cleaned up (the toast tests now use placeholder.icsDownload).
+- Tests: `frontend/tests/unit/admin-bookings.test.js` (15) and a note test in bookings-page.test.js.
+- Screenshots (temporary admin and student, removed afterwards): docs/design/screens/DS-unispace-admin.{light,dark}.png and refreshed DS-unispace-bookings; registry entries implemented.
+What I did with it: on branch `feature/23-admin-booking-review`. Suites: backend 162, ETL 113, frontend 316. Not committed or pushed.
+
+## 2026-11-24 · Issue #23: admin review of booking requests (backend)
+Tool: Claude Code (Haiku 5.5), build
+What I asked: implement issue #23 on a new branch: admins review pending booking requests, accept or reject them with an optional message, and the requester sees the outcome.
+What I got:
+- Branch `feature/23-admin-booking-review`, from `feature/student-room-booking` (the booking model lives there, not on main).
+- `booking.py`: decided_by_id, decided_at, decision_message (CHECK: at most 1000 characters). Migration `3b4860b5bd9c` (round trip checked; alembic check clean).
+- `backend/app/routers/admin_bookings.py`: GET /api/admin/bookings/pending, POST /api/admin/bookings/{id}/decision (admin only; approval re-checks clashes). Registered in main.py.
+- `bookings.py`: booking responses carry decided_at and decision_message.
+- Tests: `backend/tests/test_admin_bookings.py` (10, written first and red before the code).
+- Ledger: C-006 added; C-005 change note; registry DS-unispace-admin draft with mock `docs/design/mocks/DS-unispace-admin-bookings.html`.
+What I did with it: all suites pass (575: backend 162, ETL 113, frontend 300). Frontend not changed: the admin page and the requester's message display need the mock confirmed first (DESIGN.md). Not committed or pushed.
+
 ## 2026-11-24 · Booking block outlined in the timetable
 Tool: Claude Code (Haiku 5.5), build
 What I asked: an approved booking's right edge was lost in the grid lines; add highlighting so the card reads as its own block.

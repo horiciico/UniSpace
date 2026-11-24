@@ -14,6 +14,7 @@
 - C-003 · Timetable and free-room API (/api/*) · provided
 - C-004 · PUT /api/me/study-profile · provided
 - C-005 · Room bookings API (/api/bookings) · provided
+- C-006 · Admin booking review API (/api/admin/bookings) · provided
 
 ---
 
@@ -56,6 +57,7 @@
 - **Change 2026-11-22:** `faculty_id` added to `/api/schedule`; the timetable shows one planning unit (user request). Consumer: `frontend/js/pages/timetable.js` sends it.
 - **Source:** user (asked for the endpoints and their gating, 2026-11-22) · code · confidence high
 - **Change 2026-11-22 (2):** free-room search uses whole modules; `free_until` is never null (21:10 when nothing follows); `/api/classrooms/free` refuses times that are not module boundaries and any search after 21:10. Consumers: `frontend/js/pages/free.js`, `frontend/js/modules.js`. (user request)
+- **Change 2026-11-24 (5), issue #23:** `GET /api/bookings/my` and the booking responses now carry `decided_at` and `decision_message` (C-006). Consumer: `frontend/js/pages/bookings.js` (the note on a decided request).
 - **Change 2026-11-24 (4):** with `room_id`, `GET /api/schedule` also returns the room's APPROVED bookings of the week (C-005) as items with `activity_type` `BOOKING`, `priority` null, `is_recurring` false, `groups` [] and `professor` null. Pending and cancelled bookings are not shown, and a group or professor timetable never gets them. Consumers: `frontend/js/pages/timetable.js` (details: priority "Not specified"), `frontend/js/grid.js` (block `tt-block--booking`, legend).
 - **Change 2026-11-24 (3), Q-017:** the timetable (`GET /api/schedule`) no longer shows a CANCELLED activity or an occurrence cancelled by an exception, and shows a moved occurrence on its new date and at its new time, with `day_of_week` = its new weekday. The free-room search and the booking check use the same rules. Consumers: `frontend/js/pages/timetable.js`, `frontend/js/grid.js` (places by `day_of_week`). Moves to another room are not handled yet (Q-018).
 - **Change 2026-11-24:** approved bookings (C-005) hide a room from the free-room search, and each result gains `start_time` and `end_time` (the searched window). `free_until` is unchanged and also counts approved booking starts. Consumer: `frontend/js/pages/free.js` (no change needed; the new fields are additive).
@@ -85,6 +87,20 @@
 - **Link:** the Bookings page reads `/bookings/?faculty_id=UUID|campus&room=UUID&date=YYYY-MM-DD&start=HH:MM&end=HH:MM` (values optional, malformed ones dropped; `frontend/js/bookings.js`).
 - **Change 2026-11-24 (2):** `faculty_name` is `null` for a room with no faculty (user request, D-012), not the text "Campus".
 - **Confirmed:** 2026-11-24
+
+### C-006 · Admin booking review API (/api/admin/bookings)
+- **Status:** approved
+- **Interface:** HTTP JSON, signed in as ADMIN only (403 for any other role, 401 when signed out).
+- **Consumers:** `frontend/js/pages/admin-bookings.js` (Pending requests tab), `frontend/js/pages/admin-history.js` (Booking history tab, 15 a page), `frontend/js/api.js`; the admin page `frontend/pages/admin/index.html` (designs: docs/design/mocks/DS-unispace-admin-bookings.html, DS-unispace-admin-history.html).
+- **Shape:**
+  - `GET /api/admin/bookings/pending` → `[{id, classroom_id, room_name, faculty_name, specific_date, start_time, end_time, title, status, created_at, decided_at, decision_message, requester: {name, email, role}}]`, oldest first. `faculty_name` is null for a room with no faculty.
+  - `GET /api/admin/bookings?faculty_id=UUID|campus&classroom_id=UUID&status=pending|approved|rejected|cancelled&limit=1..200 (default 50)&offset=0` → `{items, total, limit, offset}`. Every booking, newest first (date, start time, then when it was made). `faculty_id=campus` is the rooms with no faculty. Items: `{id, classroom_id, classroom_name, faculty_id, faculty_name, specific_date, start_time, end_time, title, status, created_at, user_id, user_email, user_role}`. `total` counts all matches. Bad filter → 400 (faculty_id) or 422.
+  - `POST /api/admin/bookings/{id}/cancel` with optional `{message}` (up to 100 characters; blank means none) → 200 with the booking, status `rejected`, `decision_message` and `decided_by_id`/`decided_at` set. Any user's booking that is `approved` and has not started yet (409 otherwise). 403 for non-admins. The admin's cancel is a rejection, so the requester sees the status and the message on `GET /api/bookings/my`.
+
+  - `POST /api/admin/bookings/{id}/decision` with `{decision: "approve" | "reject", message?: string}` (message up to 100 characters; blank means none) → 200 with the booking. Only a `pending` booking can be decided (409 otherwise). An approval is checked for clashes again (409 with the clashing times). The decision keeps who decided (`decided_by_id`), when (`decided_at`) and the message (`decision_message`).
+- **Rules:** the requester sees the final status and `decision_message` on `GET /api/bookings/my` (C-005).
+- **Evidence:** backend/app/routers/admin_bookings.py, backend/app/models/booking.py, backend/alembic/versions/20261124_3b4860b5bd9c_booking_decisions.py, backend/tests/test_admin_bookings.py
+- **Source:** issue #23 (Add an admin page to review booking requests), user request · code · confidence high
 
 ## Consumed
 
