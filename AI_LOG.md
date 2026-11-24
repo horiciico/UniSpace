@@ -8,6 +8,18 @@ Each entry follows the same shape:
 
 ```
 
+## 2026-11-24 · Room description (access notes) in the timetable; ledger P1 and P2 approved
+Tool: Claude Code (Haiku 5.5), build
+What I asked: the user approved proposals P1 and P2. Access notes are not shown on the Free now card, but in the timetable: a room description list between the filters and the timetable, when a room is selected or when the timetable opens from a Free now card.
+What I got:
+- Ledger: D-024 (the classroom ETL never writes admin-managed room fields) approved and confirmed 2026-11-24. C-007 (admin room attributes API) added and confirmed. C-003 change 2026-11-24 (6) for `/api/classrooms` and `/api/classrooms/free`, confirmed. `ledger-lint.py --fix` passes; it warns that DECISIONS.md and OPEN-QUESTIONS.md are long and should be split (not done).
+- Backend: `GET /api/classrooms` rows carry `has_projector`, `board_type`, `access_notes`, `equipment_notes` (`backend/app/routers/classrooms.py`). Test: `test_the_room_list_carries_the_room_attributes`.
+- Frontend: `tt-room` description list in `frontend/pages/student/timetable.html`, shown only in room view; `frontend/js/pages/timetable.js` fills it from the room list (access notes, or "Unspecified"); CSS `.tt-room` in `frontend/styles/components/timetable.css`; key `timetable.roomAccess` (ro, en).
+- Tests first: `frontend/tests/unit/timetable-room-description.test.js` (3 tests, failed for the right reason before the code).
+- Mock `docs/design/mocks/DS-unispace-timetable-room.html`; registry entry for DS-unispace-timetable updated with the screenshots.
+- Screenshots: `docs/design/screens/DS-unispace-timetable.room.{light,dark,small}.png`. A sample access note was set on one room for the screenshot and cleared back to unspecified afterwards.
+What I did with it: on branch `feature/classroom-attributes-equipment`. Suites: backend 178, ETL 114, frontend 366 (658); coverage gate passed. Not committed or pushed at the time of this entry.
+
 ## 2026-11-24 · Classroom attributes: admin Rooms tab and Free Now (frontend)
 Tool: Claude Code (Haiku 5.5), build
 What I asked: "do not merge, but implement what you said": build the admin Rooms tab and the Free Now changes from the drawn mocks.

@@ -29,6 +29,7 @@
 - D-021 · The admin signs in with one .env credential pair; the session is the same as Google's
 - D-022 · A student chooses a faculty and a study formation on first sign-in
 - D-023 · Any signed-in user can request a room; an admin's booking is approved at once
+- D-024 · Admin-managed room fields are never written by the classroom ETL
 
 ---
 
@@ -253,4 +254,14 @@
 - **Rejected:** only students and student organizations can book (the earlier default, replaced by the user's decision)
 - **Evidence:** backend/app/routers/bookings.py (create_booking), backend/tests/test_bookings_api.py
 - **Source:** user · confidence high
+- **Confirmed:** 2026-11-24
+
+## D-024 · Admin-managed room fields are never written by the classroom ETL
+- **Status:** approved
+- **Date:** 2026-11-24
+- **Rule:** The classroom loader (`upsert_classroom`) writes only `name`, `capacity` and `faculty_id` of a room. It never writes `is_bookable`, `has_projector`, `board_type`, `access_notes` or `equipment_notes`. An admin sets those through `/api/admin/classrooms` (C-007), and a rerun of the import keeps them.
+- **Why:** An admin's edit must survive the next import of the schedule.
+- **Rejected:** none stated
+- **Evidence:** etl/schedule/loader.py (upsert_classroom), etl/schedule/tests/test_loader_db.py (test_a_rerun_keeps_the_admin_room_fields_and_updates_only_the_etl_fields), backend/app/routers/classroom_attributes.py
+- **Source:** user (approved proposal P1, 2026-11-24) · code · confidence high
 - **Confirmed:** 2026-11-24

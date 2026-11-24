@@ -15,6 +15,7 @@
 - C-004 · PUT /api/me/study-profile · provided
 - C-005 · Room bookings API (/api/bookings) · provided
 - C-006 · Admin booking review API (/api/admin/bookings) · provided
+- C-007 · Admin room attributes API (/api/admin/classrooms) · provided
 
 ---
 
@@ -61,7 +62,8 @@
 - **Change 2026-11-24 (4):** with `room_id`, `GET /api/schedule` also returns the room's APPROVED bookings of the week (C-005) as items with `activity_type` `BOOKING`, `priority` null, `is_recurring` false, `groups` [] and `professor` null. Pending and cancelled bookings are not shown, and a group or professor timetable never gets them. Consumers: `frontend/js/pages/timetable.js` (details: priority "Not specified"), `frontend/js/grid.js` (block `tt-block--booking`, legend).
 - **Change 2026-11-24 (3), Q-017:** the timetable (`GET /api/schedule`) no longer shows a CANCELLED activity or an occurrence cancelled by an exception, and shows a moved occurrence on its new date and at its new time, with `day_of_week` = its new weekday. The free-room search and the booking check use the same rules. Consumers: `frontend/js/pages/timetable.js`, `frontend/js/grid.js` (places by `day_of_week`). Moves to another room are not handled yet (Q-018).
 - **Change 2026-11-24:** approved bookings (C-005) hide a room from the free-room search, and each result gains `start_time` and `end_time` (the searched window). `free_until` is unchanged and also counts approved booking starts. Consumer: `frontend/js/pages/free.js` (no change needed; the new fields are additive).
-- **Confirmed:** 2026-11-22
+- **Change 2026-11-24 (6), approved proposal P2:** `GET /api/classrooms` rows carry `has_projector` (nullable: NULL = unspecified), `board_type`, `access_notes` and `equipment_notes`. `GET /api/classrooms/free` keeps `has_projector` nullable (NULL is not "has a projector") and carries `board_type`, `access_notes` and `equipment_notes`. Consumers: `frontend/js/pages/timetable.js` (the room description, access notes only), `frontend/js/pages/admin-rooms.js`. Free Now (`frontend/js/pages/free.js`) no longer sends `only_verified` from the page; the parameter stays in the API. Access notes are not shown on the Free Now card.
+- **Confirmed:** 2026-11-24
 
 ### C-004 · PUT /api/me/study-profile
 - **Status:** approved
@@ -101,6 +103,18 @@
 - **Rules:** the requester sees the final status and `decision_message` on `GET /api/bookings/my` (C-005).
 - **Evidence:** backend/app/routers/admin_bookings.py, backend/app/models/booking.py, backend/alembic/versions/20261124_3b4860b5bd9c_booking_decisions.py, backend/tests/test_admin_bookings.py
 - **Source:** issue #23 (Add an admin page to review booking requests), user request · code · confidence high
+
+### C-007 · Admin room attributes API (/api/admin/classrooms)
+- **Status:** approved
+- **Interface:** HTTP JSON on the backend, same origin, through nginx at `/api/`. Signed in as ADMIN only (403 for any other role, 401 signed out).
+- **Consumers:** `frontend/js/pages/admin-rooms.js` (the Rooms tab on the admin page), `frontend/js/api.js` (`adminClassrooms`, `patchAdminClassroom`), `frontend/pages/admin/index.html`.
+- **Shape:**
+  - `GET /api/admin/classrooms?faculty_id=UUID|campus` (optional) → `[{id, name, faculty_id, capacity, is_bookable, has_projector, board_type, access_notes, equipment_notes}]`, by name. `faculty_id=campus` is the rooms with no faculty; a bad id is 400.
+  - `PATCH /api/admin/classrooms/{id}` with any of `is_bookable` (boolean, not null), `has_projector`, `board_type` (`whiteboard`, `blackboard`, `smartboard`, `none`), `access_notes` (up to 255 characters), `equipment_notes` (up to 500). Only the fields sent change. A null clears the field to unspecified; blank notes are stored as null; notes are trimmed. → 200 with the room. 404 for an unknown room, 422 for a bad value.
+- **Rules:** set by an admin only; the classroom ETL never writes these fields (D-024).
+- **Evidence:** backend/app/routers/classroom_attributes.py, backend/tests/test_classroom_attributes.py, backend/alembic/versions/20261124_f3a9c2d71e05_classroom_attributes.py
+- **Source:** user (approved proposal P2, 2026-11-24) · code · confidence high
+- **Confirmed:** 2026-11-24
 
 ## Consumed
 

@@ -38,9 +38,12 @@ designs:
   - id: DS-unispace-timetable
     kind: screen
     source: frontend/pages/student/timetable.html
-    screenshots: []
-    design_ref: none
-    status: implemented
+    screenshots:
+      - docs/design/screens/DS-unispace-timetable.room.light.png
+      - docs/design/screens/DS-unispace-timetable.room.dark.png
+      - docs/design/screens/DS-unispace-timetable.room.small.png
+    design_ref: docs/design/mocks/DS-unispace-timetable-room.html
+    status: implemented  # room description (access notes) added 2026-11-24; layout as the user described it; tests in frontend/tests/unit/timetable-room-description.test.js
 
   - id: DS-unispace-timetable-grid
     kind: component

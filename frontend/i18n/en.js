@@ -247,7 +247,7 @@ window.UniSpaceI18n.register("en", {
   "adminHistory.cancelRefused": "This booking can no longer be cancelled.",
   "adminHistory.loadError": "Could not load the bookings. Try again.",
   "admin.intro": "Each request waits for a decision. Accept it to book the room, or reject it with an optional message the requester will see.",
-  "admin.queueTitle": "Waiting for approval",
+  "admin.queueTitle": "Waiting for approval",
   "bookings.decisionNote": "Note from the administrator: {message}",
   "admin.loadError": "Could not load the requests. Try again.",
   "admin.errorGeneric": "Something went wrong. Try again.",
@@ -411,6 +411,7 @@ window.UniSpaceI18n.register("en", {
   "timetable.time": "Time",
   "timetable.legendAria": "Legend",
   "timetable.bookHint": "Click any free slot to book this room",
+  "timetable.roomAccess": "Access",
   "timetable.close": "Close",
   "timetable.room": "Room",
   "timetable.professor": "Professor",

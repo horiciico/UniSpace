@@ -248,7 +248,7 @@ window.UniSpaceI18n.register("ro", {
   "adminHistory.cancelRefused": "Rezervarea nu mai poate fi anulată.",
   "adminHistory.loadError": "Nu am putut încărca rezervările. Încearcă din nou.",
   "admin.intro": "Fiecare cerere așteaptă o decizie. Acceptă-o ca să rezervi sala sau respinge-o cu un mesaj opțional pe care solicitantul îl va vedea.",
-  "admin.queueTitle": "În așteptarea aprobării",
+  "admin.queueTitle": "În așteptarea aprobării",
   "bookings.decisionNote": "Mesaj de la administrator: {message}",
   "admin.loadError": "Nu am putut încărca cererile. Încearcă din nou.",
   "admin.errorGeneric": "Ceva nu a mers. Încearcă din nou.",
@@ -412,6 +412,7 @@ window.UniSpaceI18n.register("ro", {
   "timetable.time": "Ora",
   "timetable.legendAria": "Legendă",
   "timetable.bookHint": "Apasă pe un interval liber ca să rezervi sala.",
+  "timetable.roomAccess": "Acces",
   "timetable.close": "Închide",
   "timetable.room": "Sală",
   "timetable.professor": "Profesor",

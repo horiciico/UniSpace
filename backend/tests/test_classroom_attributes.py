@@ -145,3 +145,14 @@ def test_free_now_returns_the_attributes_and_filters_by_capacity_and_projector(d
     assert [row["id"] for row in big] == [str(unknown.id)]
     projector = client.get("/api/classrooms/free", params={**params, "has_projector": "true"}).json()
     assert [row["id"] for row in projector] == [str(rooms["owned"].id)]
+
+
+def test_the_room_list_carries_the_room_attributes(db: Session, rooms: dict) -> None:
+    """C-003 (P2): /api/classrooms includes the room attributes, so the timetable can show access notes."""
+    client = make_client(db)
+    rows = {row["id"]: row for row in client.get("/api/classrooms", params={"faculty_id": str(rooms["faculty"].id)}).json()}
+    assert rows[str(rooms["owned"].id)] == {
+        "id": str(rooms["owned"].id), "name": rooms["owned"].name, "faculty_id": str(rooms["faculty"].id),
+        "capacity": 30, "is_bookable": True, "is_field_verified": False, "has_projector": True,
+        "board_type": "smartboard", "access_notes": "Cheia la portar", "equipment_notes": "24 PC-uri",
+    }

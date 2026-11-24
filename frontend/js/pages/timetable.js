@@ -25,6 +25,8 @@
   var dialog = document.getElementById("tt-dialog");
   var tabs = document.querySelectorAll("[role='tab'][data-mode]");
   var bookHint = document.getElementById("tt-hint");
+  var roomBox = document.getElementById("tt-room");
+  var roomAccess = document.getElementById("tt-room-access");
 
   var ENTITY_LABEL_KEYS = {
     group: "timetable.entityGroup",
@@ -145,6 +147,12 @@
     emptyNote.hidden = false;
   }
 
+  // The room's description above the timetable: its access notes (admin-written, C-003). Room view only.
+  function renderRoomDescription() {
+    roomBox.hidden = state.mode !== "room";
+    if (state.mode === "room") roomAccess.textContent = state.entity.accessNotes || t("rooms.unspecified");
+  }
+
   function showBody() {
     emptyNote.hidden = true;
     body.hidden = false;
@@ -179,7 +187,9 @@
     } else {
       // A room that cannot be booked stays in the list, but its free modules are not clickable.
       source = api.classrooms(state.facultyId).then(function (rows) {
-        return rows.map(function (row) { return { id: row.id, name: row.name, bookable: row.is_bookable }; });
+        return rows.map(function (row) {
+          return { id: row.id, name: row.name, bookable: row.is_bookable, accessNotes: row.access_notes };
+        });
       });
     }
     return source.then(function (entities) {
@@ -238,6 +248,7 @@
       renderWeek();
       setStatus(data.items.length ? "" : "timetable.noItems");
       drawGrid();
+      renderRoomDescription();
       showBody();
     }).catch(function (error) {
       if (request !== state.requestNumber) return;
@@ -428,7 +439,10 @@
     fillEntityList();
     setStatus(state.statusKey, state.statusError);
     if (dialog.open) dialog.close();
-    if (state.items && !body.hidden) drawGrid();
+    if (state.items && !body.hidden) {
+      drawGrid();
+      renderRoomDescription();
+    }
   });
 
   init();

@@ -46,6 +46,10 @@ def list_classrooms(faculty_id: str | None = None, db: Session = Depends(get_db)
             "capacity": room.capacity,
             "is_bookable": room.is_bookable,
             "is_field_verified": room.is_field_verified,
+            "has_projector": room.has_projector,
+            "board_type": room.board_type.value if room.board_type else None,
+            "access_notes": room.access_notes,
+            "equipment_notes": room.equipment_notes,
         }
         for room in db.scalars(stmt).all()
     ]
