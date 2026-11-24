@@ -101,8 +101,7 @@ def free_classrooms(
 
     busy: dict[uuid.UUID, list[tuple[time, time]]] = {}
     for occurrence in occurrences(db, day, day):
-        activity = occurrence.activity
-        busy.setdefault(activity.classroom_id, []).append((activity.start_time, activity.end_time))
+        busy.setdefault(occurrence.activity.classroom_id, []).append((occurrence.start_time, occurrence.end_time))
     for room_id, booked_start, booked_end in approved_busy(db, day):
         busy.setdefault(room_id, []).append((booked_start, booked_end))
 

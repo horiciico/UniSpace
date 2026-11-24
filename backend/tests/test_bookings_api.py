@@ -115,7 +115,7 @@ def world(db: Session) -> dict:
     db.flush()
     db.add(ActivityException(activity_id=excepted.id, original_date=date(2026, 12, 14), is_cancelled=True))
     db.flush()
-    return {"faculty": faculty, "room": room, "closed": closed, "campus": campus, "tag": tag}
+    return {"faculty": faculty, "room": room, "closed": closed, "campus": campus, "unit": unit, "tag": tag}
 
 
 def body(world: dict, **kw) -> dict:
@@ -433,7 +433,8 @@ def test_free_now_reports_the_searched_window(db, world, monkeypatch) -> None:
     }).json()
 
     assert rows and rows[0]["start_time"] == "13:00" and rows[0]["end_time"] == "14:30"
-    assert rows[0]["free_until"] == "16:00"  # the next start after the window (the excepted course)
+    # Q-017: the course at 16:00 is cancelled on this date by an exception, so it no longer blocks the room.
+    assert rows[0]["free_until"] == "21:10"
 
 
 def test_a_room_with_no_faculty_has_a_null_faculty_name(db, world, monkeypatch) -> None:
@@ -446,3 +447,29 @@ def test_a_room_with_no_faculty_has_a_null_faculty_name(db, world, monkeypatch) 
 
     assert row["room_name"] == world["campus"].name
     assert row["faculty_name"] is None  # the frontend shows "Campus" (D-012)
+
+
+def test_a_moved_course_blocks_its_new_time_and_frees_its_old_one(db, world, monkeypatch) -> None:
+    # A course on Thursday 09:40-11:10, moved on that week to Friday 13:00-14:30 (Q-017).
+    thursday, friday = "2026-12-17", "2026-12-18"
+    course = Activity(
+        name="Moved", type=ActivityType.COURSE, priority=Priority.COURSE, classroom_id=world["room"].id,
+        day_of_week=4, start_time=time(9, 40), end_time=time(11, 10), parity=Parity.ALL,
+        planning_time_unit_id=world["unit"].id, external_id=f"moved-{world['tag']}",
+    )
+    db.add(course)
+    db.flush()
+    db.add(ActivityException(activity_id=course.id, original_date=date(2026, 12, 17), new_date=date(2026, 12, 18),
+                             new_start_time=time(13, 0), new_end_time=time(14, 30)))
+    db.flush()
+
+    client = make_client(db)
+    sign_in(db, client, monkeypatch, "sub-mv", "moved@ulbsibiu.ro")
+
+    old_slot = client.post("/api/bookings", json=body(world, specific_date=thursday,
+                                                     start_time="09:40", end_time="11:10"))
+    new_slot = client.post("/api/bookings", json=body(world, specific_date=friday,
+                                                     start_time="13:00", end_time="14:30"))
+
+    assert old_slot.status_code == 201
+    assert new_slot.status_code == 409

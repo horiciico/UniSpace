@@ -110,17 +110,17 @@ def get_schedule(
             group_names[activity_id].append(group_name)
 
     items = []
-    for o in sorted(found, key=lambda o: (o.day, o.activity.start_time, o.activity.name)):
+    for o in sorted(found, key=lambda o: (o.day, o.start_time, o.activity.name)):
         a = o.activity
         items.append({
             "id": str(a.id),
             "title": a.name,
             "activity_type": a.type.value,
             "priority": a.priority,
-            "day_of_week": a.day_of_week,
+            "day_of_week": o.day.isoweekday(),
             "date": o.day.isoformat(),
-            "start_time": hhmm(a.start_time),
-            "end_time": hhmm(a.end_time),
+            "start_time": hhmm(o.start_time),
+            "end_time": hhmm(o.end_time),
             "parity": a.parity.value,
             "room_id": str(a.classroom_id),
             "room_name": a.classroom.name,

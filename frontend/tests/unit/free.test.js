@@ -31,6 +31,7 @@ async function setup({ at = NOON_ISH, language = "en", freeRoute, faculties = ()
   await loadI18n(language);
   await loadScript("js/modules.js");
   await loadScript("js/api.js");
+  await loadScript("js/bookings.js");
   const fetch = stubFetch({
     "/api/faculties": faculties,
     "/api/classrooms/free": freeRoute || (() => response(ROOMS))
@@ -395,6 +396,34 @@ describe("free.js: the free-rooms page", () => {
       const { fetch } = await setup({ withoutList: true });
       expect(freeCalls(fetch)).toHaveLength(0);
       expect(document.getElementById("free-faculty")).not.toBeNull();
+    });
+  });
+
+  describe("free.js: the Book action on each card", () => {
+    it("opens the Bookings page for the room, the date and the window of the search", async () => {
+      await setup();
+      await chooseFaculty("f1");
+      await flush();
+
+      const book = document.querySelector(".room-card-wrap .btn");
+      const params = new URL(book.getAttribute("href"), "http://localhost").searchParams;
+      expect(new URL(book.getAttribute("href"), "http://localhost").pathname).toBe("/bookings/");
+      expect(params.get("room")).toBe("r1");
+      expect(params.get("faculty_id")).toBe("f1");
+      expect(params.get("date")).toBe("2026-11-23");
+      expect(params.get("start")).toBe("14:40");
+      expect(params.get("end")).toBe("16:10");
+      expect(book.getAttribute("aria-label")).toBe("Book room Sala 101");
+      expect(book.textContent).toBe("Book this room");
+    });
+
+    it("sends a room with no faculty to the campus", async () => {
+      await setup();
+      await chooseFaculty("f1");
+      await flush();
+
+      const book = document.querySelectorAll(".room-card-wrap .btn")[1];
+      expect(new URL(book.getAttribute("href"), "http://localhost").searchParams.get("faculty_id")).toBe("campus");
     });
   });
 });

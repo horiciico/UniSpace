@@ -45,9 +45,11 @@ designs:
   - id: DS-unispace-timetable-grid
     kind: component
     source: frontend/js/grid.js
-    screenshots: []
+    screenshots:
+      - docs/design/screens/DS-unispace-timetable-grid.light.png
+      - docs/design/screens/DS-unispace-timetable-grid.dark.png
     design_ref: docs/design/mocks/DS-unispace-timetable-grid.html
-    status: draft  # change: free modules of a bookable room (step 4); mock awaiting confirmation
+    status: implemented  # built in steps 3-4; mock confirmed 2026-11-24; screenshots light and dark
 
   - id: DS-unispace-room-card
     kind: component
@@ -73,16 +75,20 @@ designs:
   - id: DS-unispace-free-rooms
     kind: screen
     source: frontend/pages/student/rooms/free.html
-    screenshots: []
+    screenshots:
+      - docs/design/screens/DS-unispace-free-rooms.light.png
+      - docs/design/screens/DS-unispace-free-rooms.dark.png
     design_ref: docs/design/mocks/DS-unispace-free-rooms.html
-    status: draft  # change: a Book action per card (step 4); mock awaiting confirmation
+    status: implemented  # built in steps 3-4; mock confirmed 2026-11-24; screenshots light and dark
 
   - id: DS-unispace-bookings
     kind: screen
-    source: frontend/pages/student/bookings/index.html
-    screenshots: []
+    source: frontend/pages/shared/bookings.html
+    screenshots:
+      - docs/design/screens/DS-unispace-bookings.light.png
+      - docs/design/screens/DS-unispace-bookings.dark.png
     design_ref: docs/design/mocks/DS-unispace-bookings.html
-    status: draft  # change: moves to pages/shared with real data (step 3); mock awaiting confirmation
+    status: implemented  # built in steps 3-4; mock confirmed 2026-11-24; screenshots light and dark
 
   - id: DS-unispace-announcements
     kind: screen

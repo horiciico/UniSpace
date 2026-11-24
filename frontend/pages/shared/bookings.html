@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ro">
+  <head>
+    <!--#include virtual="/components/head.html" -->
+    <title data-i18n="bookings.title">Rezervări · UniSpace</title>
+    <script src="/js/api.js" defer></script>
+    <script src="/js/modules.js" defer></script>
+    <script src="/js/bookings.js" defer></script>
+    <script src="/js/pages/bookings.js" defer></script>
+  </head>
+  <body>
+    <main id="main" class="container">
+      <p class="eyebrow" data-i18n="bookings.eyebrow">Rezervări</p>
+      <h1 data-i18n="bookings.heading">Cereri de sală</h1>
+      <p class="muted" data-i18n="bookings.intro">Cere o sală pentru un interval liber. Un administrator aprobă fiecare cerere. Cererile administratorilor sunt aprobate imediat.</p>
+
+      <p class="notice mt-5" id="bk-prefill-note" hidden data-i18n="bookings.prefilled">Data, sala și intervalul au fost completate din alegerea ta.</p>
+
+      <div class="card-grid card-grid--2 mt-5">
+        <section class="card" aria-labelledby="bk-mine-title">
+          <h2 id="bk-mine-title" data-i18n="bookings.mineTitle">Cererile tale</h2>
+          <p class="muted" id="bk-mine-status" role="status" aria-live="polite"></p>
+          <ul class="list booking-list" id="bk-list"></ul>
+          <p class="muted mt-3" data-i18n="bookings.mineHint">Cererile în așteptare pot fi anulate. Cele aprobate nu pot fi anulate din aplicație.</p>
+        </section>
+
+        <section class="card" aria-labelledby="bk-new-title">
+          <h2 id="bk-new-title" data-i18n="bookings.newTitle">Cerere nouă</h2>
+          <p class="notice" id="bk-admin-note" hidden data-i18n="bookings.adminNote">Ca administrator, cererea ta este aprobată imediat ce o trimiți.</p>
+          <form class="form-grid" id="bk-form" novalidate>
+            <div class="field">
+              <label for="bk-faculty" data-i18n="bookings.faculty">Facultate</label>
+              <select id="bk-faculty" name="faculty">
+                <option value="" data-i18n="bookings.chooseFaculty">Alege o facultate</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="bk-room" data-i18n="bookings.room">Sală</label>
+              <select id="bk-room" name="room" disabled>
+                <option value="" data-i18n="bookings.chooseRoom">Alege mai întâi o facultate</option>
+              </select>
+              <span class="muted" id="bk-room-note" data-i18n="bookings.onlyBookable">Sunt afișate doar sălile care pot fi rezervate.</span>
+            </div>
+            <div class="form-grid form-grid--2">
+              <div class="field">
+                <label for="bk-date" data-i18n="bookings.date">Data</label>
+                <input id="bk-date" name="date" type="date" required />
+              </div>
+              <div class="field">
+                <label for="bk-from" data-i18n="bookings.from">De la modulul</label>
+                <select id="bk-from" name="from"></select>
+              </div>
+              <div class="field">
+                <label for="bk-to" data-i18n="bookings.to">Până la modulul</label>
+                <select id="bk-to" name="to"></select>
+              </div>
+            </div>
+            <div class="field">
+              <label for="bk-title" data-i18n="bookings.titleField">Titlu sau motiv</label>
+              <input id="bk-title" name="title" type="text" maxlength="255" required data-i18n-attr="placeholder:bookings.titlePlaceholder" placeholder="Seara jocurilor de societate" />
+            </div>
+            <p class="notice notice--error" id="bk-form-status" role="alert" hidden></p>
+            <div class="btn-group">
+              <button class="btn btn-primary" type="submit" id="bk-send" data-i18n="bookings.send">Trimite cererea</button>
+              <p class="muted m-0" data-i18n="bookings.conflictsNote">Suprapunerile sunt verificate când trimiți.</p>
+            </div>
+          </form>
+        </section>
+      </div>
+    </main>
+  </body>
+</html>

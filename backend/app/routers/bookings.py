@@ -10,13 +10,11 @@ from app.auth import get_current_user
 from app.db import get_db
 from app.models import (
     Activity,
-    ActivityException,
     Booking,
     BookingStatus,
     Classroom,
     Faculty,
     Role,
-    Status,
     User,
 )
 from app.planning import LOCAL_TZ, booking_window, hhmm, local_now, occurrences
@@ -58,22 +56,14 @@ def approved_busy(db: Session, day: date) -> list[tuple[uuid.UUID, time, time]]:
 def clash(db: Session, room_id: uuid.UUID, day: date, start: time, end: time) -> str | None:
     """Why a room is taken from start to end on a day, or None.
 
-    Recurring activities count on their weeks and parity (the shared occurrences helper). Cancelled
-    ones do not: an activity with status CANCELLED, or an occurrence cancelled by an exception.
+    Recurring activities count on their weeks and parity, and as they really happen (the shared
+    occurrences helper: cancelled ones do not, a moved one counts at its new time, Q-017).
     Approved bookings count; pending ones do not.
     """
-    cancelled_occurrences = set(db.scalars(
-        select(ActivityException.activity_id).where(
-            ActivityException.original_date == day, ActivityException.is_cancelled.is_(True)
-        )
-    ).all())
     for occurrence in occurrences(db, day, day, Activity.classroom_id == room_id):
-        activity = occurrence.activity
-        if activity.status == Status.CANCELLED or activity.id in cancelled_occurrences:
-            continue
-        if _overlaps(start, end, activity.start_time, activity.end_time):
-            return (f"The room is taken from {hhmm(activity.start_time)} to {hhmm(activity.end_time)} "
-                    f"by {activity.name}.")
+        if _overlaps(start, end, occurrence.start_time, occurrence.end_time):
+            return (f"The room is taken from {hhmm(occurrence.start_time)} to {hhmm(occurrence.end_time)} "
+                    f"by {occurrence.activity.name}.")
     for room, busy_start, busy_end in approved_busy(db, day):
         if room == room_id and _overlaps(start, end, busy_start, busy_end):
             return f"The room is taken from {hhmm(busy_start)} to {hhmm(busy_end)} by an approved booking."

@@ -56,6 +56,7 @@
 - **Change 2026-11-22:** `faculty_id` added to `/api/schedule`; the timetable shows one planning unit (user request). Consumer: `frontend/js/pages/timetable.js` sends it.
 - **Source:** user (asked for the endpoints and their gating, 2026-11-22) · code · confidence high
 - **Change 2026-11-22 (2):** free-room search uses whole modules; `free_until` is never null (21:10 when nothing follows); `/api/classrooms/free` refuses times that are not module boundaries and any search after 21:10. Consumers: `frontend/js/pages/free.js`, `frontend/js/modules.js`. (user request)
+- **Change 2026-11-24 (3), Q-017:** the timetable (`GET /api/schedule`) no longer shows a CANCELLED activity or an occurrence cancelled by an exception, and shows a moved occurrence on its new date and at its new time, with `day_of_week` = its new weekday. The free-room search and the booking check use the same rules. Consumers: `frontend/js/pages/timetable.js`, `frontend/js/grid.js` (places by `day_of_week`). Moves to another room are not handled yet (Q-018).
 - **Change 2026-11-24:** approved bookings (C-005) hide a room from the free-room search, and each result gains `start_time` and `end_time` (the searched window). `free_until` is unchanged and also counts approved booking starts. Consumer: `frontend/js/pages/free.js` (no change needed; the new fields are additive).
 - **Confirmed:** 2026-11-22
 
@@ -72,7 +73,7 @@
 ### C-005 · Room bookings API (/api/bookings)
 - **Status:** approved
 - **Interface:** HTTP JSON on the backend, same origin, through nginx at `/api/`. Signed in only (401 otherwise).
-- **Consumers:** none yet. The Bookings page (step 3) will use them through `frontend/js/api.js`.
+- **Consumers:** `frontend/js/api.js` (the wrappers); `frontend/js/pages/bookings.js` (the Bookings page, `frontend/pages/shared/bookings.html`); `frontend/js/bookings.js` (the link format); `frontend/js/pages/timetable.js` and `frontend/js/grid.js` (room view: free modules link to the page); `frontend/js/pages/free.js` (each card's Book action).
 - **Shape:**
   - `POST /api/bookings` with `{classroom_id, specific_date, start_time, end_time, title}` → 201 with the booking. Any signed-in role can book. An ADMIN's booking is `approved` at once; any other role's is `pending`. `title` is trimmed, 1 to 255 characters.
   - `GET /api/bookings/my` → `[{id, classroom_id, room_name, faculty_name, specific_date, start_time, end_time, title, status, created_at}]`. Upcoming first (date and start ascending, newest created on a tie), then past ones, most recent first. `faculty_name` is the room's faculty name, or `null` when the room has none (the frontend shows "Campus", D-012).
@@ -80,6 +81,7 @@
 - **Rules:** Times are `HH:MM` and must be whole ULBS modules (planning.MODULES), start before end. A start earlier than now (Europe/Bucharest) is refused. A room that is not bookable is 400; an unknown room is 404. A clash with a recurring activity (on its weeks and parity) or with an `approved` booking is 409 with the clashing times in `detail`; cancelled activities and occurrences cancelled by an exception do not clash (Q-017). `pending` bookings never clash. Errors: 400 bad input, 401 signed out, 403 another user's booking, 404 unknown id, 409 state or clash.
 - **Evidence:** backend/app/routers/bookings.py, backend/app/models/booking.py, backend/tests/test_bookings_api.py
 - **Source:** user (2026-11-24: any signed-in user books; admins auto-approve; the defaults for errors, cancel, ordering and fields) · code · confidence high
+- **Link:** the Bookings page reads `/bookings/?faculty_id=UUID|campus&room=UUID&date=YYYY-MM-DD&start=HH:MM&end=HH:MM` (values optional, malformed ones dropped; `frontend/js/bookings.js`).
 - **Change 2026-11-24 (2):** `faculty_name` is `null` for a room with no faculty (user request, D-012), not the text "Campus".
 - **Confirmed:** 2026-11-24
 

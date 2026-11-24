@@ -18,6 +18,30 @@ What I got:
 - Contract C-005 added; C-003 change note added; Q-017 opened for cancelled and moved occurrences, which the shared helper ignores.
 What I did with it: on branch `feature/student-room-booking`. Backend 142 passed, ETL 113, frontend 252. `docker compose config` and `docker compose build backend` pass. Not committed or pushed. The Bookings page move to `pages/shared` is not done in this step.
 
+## 2026-11-24 · Q-017 confirmed: cancelled and moved occurrences in the shared helper
+Tool: Claude Code (Haiku 5.5), build
+What I asked: the user confirmed the proposed answer to Q-017 (a cancelled occurrence does not block; a moved one blocks its new time).
+What I got:
+- `backend/app/planning.py`: `occurrences()` drops CANCELLED activities and cancelled occurrences, applies moves (new date and time, found from either date), and returns each occurrence with its own `start_time`, `end_time` and `day`.
+- `backend/app/routers/schedule.py`, `classrooms.py`, `bookings.py`: use the occurrence's day and times; the booking check's own cancel handling is removed (the helper does it).
+- Tests: `backend/tests/test_occurrences.py` (new, 6); `test_bookings_api.py` gets a moved-course test; `test_free_now_reports_the_searched_window` now expects `free_until` 21:10 (intended by Q-017).
+- Ledger: Q-017 answered; Q-018 opened for a move to another room; C-003 change note.
+What I did with it: on branch `feature/student-room-booking`. Backend 150, ETL 113, frontend 298. Timetable behaviour changed too (it uses the same helper): cancelled classes no longer show; moved ones show at their new time. Not committed or pushed.
+
+## 2026-11-24 · Student room booking, steps 3 and 4: Bookings page, room view and Free Now actions
+Tool: Claude Code (Haiku 5.5), build
+What I asked: after the mocks were confirmed and Q-003 closed, build the Bookings page (moved to pages/shared, real data) and the two entry points: free slots in the room view of a bookable room, and a Book action on each Free Now card. Screenshots in light and dark.
+What I got:
+- Bookings page: `frontend/pages/shared/bookings.html` (moved from pages/student/bookings), script `frontend/js/pages/bookings.js`, nginx route updated.
+- Room view: `frontend/js/grid.js` draws free modules as buttons; `frontend/js/pages/timetable.js` builds them for bookable rooms only; past modules disabled.
+- Free Now: `frontend/js/pages/free.js` adds a Book action per card.
+- Styles: `.tt-free` (timetable.css), `.room-card-wrap` (room-card.css), `.booking-list`, `.booking-meta` (tables-and-lists.css).
+- i18n: bookings.* keys rewritten in ro.js and en.js; unused status.requested removed; bookings.projector and bookings.outlets kept for the room pages.
+- Tests: bookings-page.test.js, bookings-page-without-list.test.js, grid-free-slots.test.js, timetable-free-slots.test.js; free.test.js and bookings.test.js extended.
+- Bug found by the tests and fixed: changing the faculty kept the room chosen from the link.
+- Screenshots (headless Chrome, PATTERN-007, temporary student and bookings, removed afterwards): docs/design/screens/DS-unispace-{bookings,timetable-grid,free-rooms}.{light,dark}.png. Registry entries are implemented.
+What I did with it: on branch `feature/student-room-booking`. Frontend 298 tests with the 100% gate, backend 143, ETL 113. Not committed or pushed.
+
 ## 2026-11-24 · Student room booking, step 2 follow-up: campus null, D-023, booking data layer and UI drafts
 Tool: Claude Code (Haiku 5.5), build and /plan
 What I asked: return null (not the text Campus) for a room with no faculty (D-012); record D-023 (approved); build the data layer for steps 3 and 4 and draw the UI mocks.

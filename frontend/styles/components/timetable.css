@@ -214,3 +214,37 @@
 .legend__swatch--seminar { background: var(--color-success-text); }
 .legend__swatch--lab { background: var(--color-warning-text); }
 .legend__swatch--other { background: var(--color-danger-text); }
+
+/* A free module of a bookable room in the room view: a dashed box that opens the Bookings page. */
+.tt-free {
+  position: absolute;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-1);
+  border: 1px dashed var(--color-primary);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-primary);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tt-free:hover {
+  background: var(--color-info-bg);
+}
+
+.tt-free:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
+
+.tt-free:disabled {
+  border-style: solid;
+  border-color: var(--color-border);
+  color: var(--color-muted);
+  cursor: not-allowed;
+  background: transparent;
+}

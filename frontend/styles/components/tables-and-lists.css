@@ -81,3 +81,12 @@ th {
   text-align: left;
   padding: var(--space-3) var(--space-4);
 }
+
+/* Bookings page: the list of the user's requests. */
+.booking-list li {
+  align-items: center;
+}
+
+.booking-meta {
+  display: block;
+}

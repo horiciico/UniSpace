@@ -38,9 +38,9 @@ describe("bookings.js: the Bookings page link and status labels", () => {
   });
 
   it("maps each status to its label key and pill", () => {
-    expect(bookings.statusInfo("pending")).toEqual({ key: "bookings.statusPending", pill: "pill--pending" });
-    expect(bookings.statusInfo("approved")).toEqual({ key: "status.approved", pill: "pill--approved" });
-    expect(bookings.statusInfo("rejected")).toEqual({ key: "bookings.statusRejected", pill: "pill--rejected" });
+    expect(bookings.statusInfo("pending")).toEqual({ key: "bookings.statusPending", pill: "pill pill--pending" });
+    expect(bookings.statusInfo("approved")).toEqual({ key: "status.approved", pill: "pill pill--approved" });
+    expect(bookings.statusInfo("rejected")).toEqual({ key: "bookings.statusRejected", pill: "pill pill--rejected" });
     expect(bookings.statusInfo("cancelled")).toEqual({ key: "status.cancelled", pill: "pill" });
     expect(bookings.statusInfo("weird")).toEqual({ key: null, pill: "pill" });
   });

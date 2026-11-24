@@ -31,6 +31,7 @@
     room: "timetable.entityRoom"
   };
   var PARITY_KEYS = { ALL: "timetable.parityAll", ODD: "timetable.parityOdd", EVEN: "timetable.parityEven" };
+  var DAY_KEYS = ["day.mon", "day.tue", "day.wed", "day.thu", "day.fri", "day.sat", "day.sun"];
   var KIND_KEYS = {
     COURSE: "kind.course",
     SEMINAR: "kind.seminar",
@@ -174,8 +175,9 @@
         return rows.map(function (row) { return { id: row.name, name: row.name }; });
       });
     } else {
+      // A room that cannot be booked stays in the list, but its free modules are not clickable.
       source = api.classrooms(state.facultyId).then(function (rows) {
-        return rows.map(function (row) { return { id: row.id, name: row.name }; });
+        return rows.map(function (row) { return { id: row.id, name: row.name, bookable: row.is_bookable }; });
       });
     }
     return source.then(function (entities) {
@@ -244,9 +246,45 @@
     });
   }
 
+  // The free modules of a bookable room, for each day of the week: a module with no activity
+  // over it. A module that has started is shown but disabled. Each one opens the Bookings page.
+  function freeSlots() {
+    if (state.mode !== "room" || !state.entity || !state.entity.bookable) return [];
+    var now = new Date();
+    var slots = [];
+    DAY_KEYS.forEach(function (dayKey, dayIndex) {
+      var date = addDays(state.monday, dayIndex);
+      var iso = isoDate(date);
+      window.UniSpaceModules.list.forEach(function (module) {
+        var taken = state.items.some(function (item) {
+          return Number(item.day_of_week) === dayIndex + 1 &&
+            grid.toMinutes(item.start_time) < module.endMin && grid.toMinutes(item.end_time) > module.startMin;
+        });
+        if (taken) return;
+        var opens = new Date(date.getFullYear(), date.getMonth(), date.getDate(),
+          Math.floor(module.startMin / 60), module.startMin % 60);
+        var range = module.start + "–" + module.end;
+        slots.push({
+          day_of_week: dayIndex + 1,
+          startMin: module.startMin,
+          endMin: module.endMin,
+          disabled: opens <= now,
+          label: opens <= now ? t("bookings.slotPast") : t("bookings.bookSlot", { range: range }),
+          ariaLabel: t("bookings.bookSlotAria", { range: range, day: t(dayKey) }),
+          onClick: function () {
+            window.location.assign(window.UniSpaceBookings.link({
+              faculty_id: state.facultyId, room: state.entity.id, date: iso, start: module.start, end: module.end
+            }));
+          }
+        });
+      });
+    });
+    return slots;
+  }
+
   // Callers draw only when there are items.
   function drawGrid() {
-    grid.render(gridElement, state.items, openDetails);
+    grid.render(gridElement, state.items, openDetails, freeSlots());
   }
 
   function openDetails(item) {

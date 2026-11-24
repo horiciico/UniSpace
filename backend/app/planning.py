@@ -8,14 +8,14 @@
 - Local dates and times are in Europe/Bucharest.
 """
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import date, datetime, time, timedelta
 from zoneinfo import ZoneInfo
 
 from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session, joinedload
 
-from app.models import Activity, Parity, PlanningTimeUnit
+from app.models import Activity, ActivityException, Parity, PlanningTimeUnit, Status
 
 LOCAL_TZ = ZoneInfo("Europe/Bucharest")
 
@@ -85,24 +85,82 @@ def parity_for_week(number: int) -> Parity:
 
 @dataclass(frozen=True)
 class Occurrence:
-    """One activity on one date. unit_start and unit_id are the planning unit's (None for one-offs)."""
+    """One activity on one date, with the day and times it really has (a moved one has its new ones).
+
+    unit_start and unit_id are the planning unit's (None for one-offs). start_time and end_time
+    default to the activity's.
+    """
 
     activity: Activity
     day: date
     unit_start: date | None = None
     unit_id: uuid.UUID | None = None
+    start_time: time | None = None
+    end_time: time | None = None
+
+    def __post_init__(self) -> None:
+        if self.start_time is None:
+            object.__setattr__(self, "start_time", self.activity.start_time)
+        if self.end_time is None:
+            object.__setattr__(self, "end_time", self.activity.end_time)
 
 
 def occurrences(db: Session, first: date, last: date, *conditions) -> list[Occurrence]:
-    """Every activity that happens between first and last (both inclusive), with its date.
+    """Every occurrence that happens between first and last (both inclusive), with its date and times.
+
+    Q-017 (answered 2026-11-24): an activity with status CANCELLED does not happen, and an occurrence
+    cancelled by an exception does not happen. An occurrence moved by an exception happens on its new
+    date and at its new time, and not at the old ones. A move is found from either date: an occurrence
+    moved into the window from another day is included. A move to a day outside the window is left out.
+    A move that is only a new time keeps the day. A move to another room is not handled yet.
 
     `conditions` filter the activities (for example by room or group).
     """
+    moves = db.scalars(
+        select(ActivityException)
+        .join(Activity, Activity.id == ActivityException.activity_id)
+        .where(*conditions)
+        .where(or_(
+            ActivityException.original_date.between(first, last),
+            ActivityException.new_date.between(first, last),
+        ))
+    ).all()
+    found = _base_occurrences(db, first, last, *conditions)
+    # Occurrences that move into the window come from their original day, outside it.
+    for day in sorted({m.original_date for m in moves if not first <= m.original_date <= last}):
+        keys = {m.activity_id for m in moves if m.original_date == day}
+        found += [o for o in _base_occurrences(db, day, day, *conditions) if o.activity.id in keys]
+
+    by_occurrence = {(m.activity_id, m.original_date): m for m in moves}
+    result: list[Occurrence] = []
+    for o in found:
+        move = by_occurrence.get((o.activity.id, o.day))
+        if move is None:
+            if first <= o.day <= last:
+                result.append(o)
+            continue
+        if move.is_cancelled:
+            continue
+        day = move.new_date or o.day
+        if not (first <= day <= last):
+            continue
+        result.append(replace(
+            o,
+            day=day,
+            start_time=move.new_start_time or o.start_time,
+            end_time=move.new_end_time or o.end_time,
+        ))
+    return result
+
+
+def _base_occurrences(db: Session, first: date, last: date, *conditions) -> list[Occurrence]:
+    """The weekly and one-off occurrences by their own dates, before any exception."""
     stmt = (
         select(Activity, PlanningTimeUnit.id, PlanningTimeUnit.start_date, PlanningTimeUnit.end_date)
         .outerjoin(PlanningTimeUnit, PlanningTimeUnit.id == Activity.planning_time_unit_id)
         .options(joinedload(Activity.classroom))
         .where(*conditions)
+        .where(Activity.status != Status.CANCELLED)
         .where(or_(
             Activity.specific_date.between(first, last),
             and_(

@@ -14,9 +14,9 @@
 
   // Status word (the backend's value) -> the i18n key of its label and the pill class.
   var STATUSES = {
-    pending: { key: "bookings.statusPending", pill: "pill--pending" },
-    approved: { key: "status.approved", pill: "pill--approved" },
-    rejected: { key: "bookings.statusRejected", pill: "pill--rejected" },
+    pending: { key: "bookings.statusPending", pill: "pill pill--pending" },
+    approved: { key: "status.approved", pill: "pill pill--approved" },
+    rejected: { key: "bookings.statusRejected", pill: "pill pill--rejected" },
     cancelled: { key: "status.cancelled", pill: "pill" }
   };
 
