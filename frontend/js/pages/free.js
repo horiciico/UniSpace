@@ -2,7 +2,8 @@
  * Liber acum (free rooms) page. "Free now" sends the exact local time of every visit (on load,
  * on switching to the tab, and when the page is shown again). "Custom interval" picks whole
  * modules. The backend decides who is free; this script sends the filters and draws the cards.
- * Each card links to the room's timetable (/timetable?mode=room&faculty_id=...&id=...).
+ * Each card links to the room's timetable (/timetable?mode=room&faculty_id=...&id=...), and has a
+ * second action, "Book this room", that opens the Bookings page for this search's window.
  */
 (function () {
   "use strict";
@@ -106,11 +107,23 @@
     return "/timetable?" + params.toString();
   }
 
-  function card(room, date) {
+  // The Bookings page, with this room, the search's date and window already set (C-005).
+  function bookHref(room, values) {
+    return window.UniSpaceBookings.link({
+      faculty_id: room.faculty_id || "campus",
+      room: room.id,
+      date: values.date,
+      start: values.start_time,
+      end: values.end_time
+    });
+  }
+
+  function card(room, values) {
     var item = document.createElement("li");
+    item.className = "room-card-wrap";
     var link = document.createElement("a");
     link.className = "room-card";
-    link.href = roomHref(room, date);
+    link.href = roomHref(room, values.date);
     link.setAttribute("aria-label", t("free.openRoom", { name: room.name }));
 
     var name = document.createElement("h2");
@@ -158,13 +171,20 @@
     }
 
     item.appendChild(link);
+
+    var book = document.createElement("a");
+    book.className = "btn btn-secondary btn-small";
+    book.href = bookHref(room, values);
+    book.textContent = t("bookings.bookRoom");
+    book.setAttribute("aria-label", t("bookings.bookRoomAria", { name: room.name }));
+    item.appendChild(book);
     return item;
   }
 
-  function draw(rooms, date) {
+  function draw(rooms, values) {
     list.textContent = "";
     rooms.forEach(function (room) {
-      list.appendChild(card(room, date));
+      list.appendChild(card(room, values));
     });
   }
 
@@ -195,7 +215,7 @@
     setStatus(t("free.loading"));
     api.freeClassrooms(values).then(function (rooms) {
       if (current !== requestNumber) return;
-      draw(rooms, values.date);
+      draw(rooms, values);
       var count = rooms.length ? t("free.count", { n: rooms.length }) : t("free.empty");
       if (mode === "now") {
         var module = modules.list[shownModule];

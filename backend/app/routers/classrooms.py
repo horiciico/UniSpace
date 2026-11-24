@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.db import get_db
 from app.models import Classroom, Faculty
 from app.planning import BOOKING_END, NoModuleLeft, booking_window, hhmm, local_today, occurrences
+from app.routers.bookings import approved_busy
 
 router = APIRouter(prefix="/api/classrooms", tags=["classrooms"])
 
@@ -65,8 +66,9 @@ def free_classrooms(
 
     Without times: the module that contains now (the next one during a break). start_time
     alone works the same way from that time. Both: from the start of a module to the end of a
-    module. Only bookable rooms. free_until is the next start that day, or 21:10 when nothing
-    follows. Sorted: verified first, then the latest free_until, then name.
+    module. Only bookable rooms. Approved bookings block a room; pending ones do not. start_time
+    and end_time are the searched window; free_until is the next start that day, or 21:10 when
+    nothing follows. Sorted: verified first, then the latest free_until, then name.
     """
     today = local_today()
     day = day or today
@@ -99,8 +101,9 @@ def free_classrooms(
 
     busy: dict[uuid.UUID, list[tuple[time, time]]] = {}
     for occurrence in occurrences(db, day, day):
-        activity = occurrence.activity
-        busy.setdefault(activity.classroom_id, []).append((activity.start_time, activity.end_time))
+        busy.setdefault(occurrence.activity.classroom_id, []).append((occurrence.start_time, occurrence.end_time))
+    for room_id, booked_start, booked_end in approved_busy(db, day):
+        busy.setdefault(room_id, []).append((booked_start, booked_end))
 
     found: list[tuple[dict, time]] = []
     for room, faculty_name in rooms:
@@ -119,6 +122,8 @@ def free_classrooms(
                 "has_projector": room.has_projector,
                 "has_outlets": room.has_outlets,
                 "is_field_verified": room.is_field_verified,
+                "start_time": hhmm(window_start),
+                "end_time": hhmm(window_end),
                 "free_until": hhmm(free_until),
             },
             free_until,

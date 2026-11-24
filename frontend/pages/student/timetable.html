@@ -6,6 +6,7 @@
     <script src="/js/api.js" defer></script>
     <script src="/js/modules.js" defer></script>
     <script src="/js/grid.js" defer></script>
+    <script src="/js/bookings.js" defer></script>
     <script src="/js/pages/timetable.js" defer></script>
   </head>
   <body>
@@ -55,7 +56,9 @@
           <span><span class="legend__swatch legend__swatch--seminar"></span><span data-i18n="kind.seminar">Seminar</span></span>
           <span><span class="legend__swatch legend__swatch--lab"></span><span data-i18n="kind.lab">Laborator</span></span>
           <span><span class="legend__swatch legend__swatch--other"></span><span data-i18n="kind.exam">Examen</span></span>
+          <span><span class="legend__swatch legend__swatch--booking"></span><span data-i18n="kind.booking">Rezervare</span></span>
         </div>
+        <p class="muted tt-hint" id="tt-hint" hidden data-i18n="timetable.bookHint">Apasă pe un interval liber ca să rezervi sala.</p>
         <div class="table-wrap tt-scroll">
           <div class="tt-grid" id="tt-grid" role="grid" data-i18n-attr="aria-label:timetable.gridAria" aria-label="Orar săptămânal"></div>
         </div>

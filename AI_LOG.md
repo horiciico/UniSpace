@@ -8,6 +8,89 @@ Each entry follows the same shape:
 
 ```
 
+## 2026-11-24 · Student room booking, step 2: booking endpoints and conflict check
+Tool: Claude Code (Haiku 5.5), /plan then build
+What I asked: after the defaults were confirmed, build POST /api/bookings (conflict check against recurring activities and approved bookings, 409 on a clash), GET /api/bookings/my, DELETE /api/bookings/{id} (owner only, pending only, soft cancel), and Free Now fields. Decisions from the user: any signed-in role books; admin bookings are approved at once; professors wait for approval.
+What I got:
+- New router `backend/app/routers/bookings.py`, registered in `backend/app/main.py`.
+- `backend/app/routers/classrooms.py`: the free-room search counts approved bookings and returns `start_time` and `end_time`; `free_until` is unchanged.
+- Tests: `backend/tests/test_bookings_api.py` (30 new).
+- Contract C-005 added; C-003 change note added; Q-017 opened for cancelled and moved occurrences, which the shared helper ignores.
+What I did with it: on branch `feature/student-room-booking`. Backend 142 passed, ETL 113, frontend 252. `docker compose config` and `docker compose build backend` pass. Not committed or pushed. The Bookings page move to `pages/shared` is not done in this step.
+
+## 2026-11-24 · Booking block outlined in the timetable
+Tool: Claude Code (Haiku 5.5), build
+What I asked: an approved booking's right edge was lost in the grid lines; add highlighting so the card reads as its own block.
+What I got: `.tt-block--booking` in timetable.css now has a full 1px accent outline (4px on the left, as other blocks) and the tinted hover token as its background.
+What I did with it: CSS only, no test change. Checked in light and dark headless Chrome; screenshots refreshed in docs/design/screens. Not committed or pushed.
+
+## 2026-11-24 · Free-slot polish in the room view
+Tool: Claude Code (Haiku 5.5), build
+What I asked: make the room-view free slots clean and modern: no border or text at rest (a faint plus), a 150ms hover with a tint, border and a + Book label; past slots blank and dimmed; a muted helper line above the grid for a bookable room.
+What I got:
+- Tokens: `--color-slot-hover-bg`, `--color-slot-hover-border`, `--color-slot-icon` in tokens.css (all three theme blocks). The hover values are your rgba values, now tokens (DESIGN.md: no raw colours in components).
+- `frontend/styles/components/timetable.css`: resting, hover and focus, past, and hint styles. `grid.js`: plus and label spans; past slots blank. `timetable.js`: label "+ Book", past name "Past", helper line `#tt-hint` shown for a bookable room.
+- i18n: bookings.bookSlotShort, timetable.bookHint; bookings.bookSlot removed (unused).
+- Tests updated for the new structure (grid-free-slots, timetable-free-slots) and the helper line checked.
+- Screenshots refreshed: docs/design/screens/DS-unispace-timetable-grid.{light,dark}.png (resting state only; hover not captured).
+What I did with it: on branch `feature/student-room-booking`. All suites pass: 565 (backend 152, ETL 113, frontend 300). Not committed or pushed.
+
+## 2026-11-24 · Approved bookings shown in the room timetable
+Tool: Claude Code (Haiku 5.5), build
+What I asked: once approved, a booking should appear in the timetable.
+What I got:
+- `backend/app/routers/schedule.py`: with room_id, approved bookings of the week are added as BOOKING items (pending and cancelled ones are not).
+- Frontend: BOOKING kind in `grid.js` and `timetable.js` (label Booking / Rezervare, block `tt-block--booking`, legend swatch), details show priority "Not specified" when null.
+- Tests: 2 backend tests in `test_bookings_api.py`; `frontend/tests/unit/timetable-bookings.test.js` (2).
+- Contract C-003 change note (4).
+What I did with it: on branch `feature/student-room-booking`. Backend 152, ETL 113, frontend 300 (565 total). Not committed or pushed. The timetable screenshots in docs/design/screens predate this change and are not refreshed.
+
+## 2026-11-24 · Q-017 confirmed: cancelled and moved occurrences in the shared helper
+Tool: Claude Code (Haiku 5.5), build
+What I asked: the user confirmed the proposed answer to Q-017 (a cancelled occurrence does not block; a moved one blocks its new time).
+What I got:
+- `backend/app/planning.py`: `occurrences()` drops CANCELLED activities and cancelled occurrences, applies moves (new date and time, found from either date), and returns each occurrence with its own `start_time`, `end_time` and `day`.
+- `backend/app/routers/schedule.py`, `classrooms.py`, `bookings.py`: use the occurrence's day and times; the booking check's own cancel handling is removed (the helper does it).
+- Tests: `backend/tests/test_occurrences.py` (new, 6); `test_bookings_api.py` gets a moved-course test; `test_free_now_reports_the_searched_window` now expects `free_until` 21:10 (intended by Q-017).
+- Ledger: Q-017 answered; Q-018 opened for a move to another room; C-003 change note.
+What I did with it: on branch `feature/student-room-booking`. Backend 150, ETL 113, frontend 298. Timetable behaviour changed too (it uses the same helper): cancelled classes no longer show; moved ones show at their new time. Not committed or pushed.
+
+## 2026-11-24 · Student room booking, steps 3 and 4: Bookings page, room view and Free Now actions
+Tool: Claude Code (Haiku 5.5), build
+What I asked: after the mocks were confirmed and Q-003 closed, build the Bookings page (moved to pages/shared, real data) and the two entry points: free slots in the room view of a bookable room, and a Book action on each Free Now card. Screenshots in light and dark.
+What I got:
+- Bookings page: `frontend/pages/shared/bookings.html` (moved from pages/student/bookings), script `frontend/js/pages/bookings.js`, nginx route updated.
+- Room view: `frontend/js/grid.js` draws free modules as buttons; `frontend/js/pages/timetable.js` builds them for bookable rooms only; past modules disabled.
+- Free Now: `frontend/js/pages/free.js` adds a Book action per card.
+- Styles: `.tt-free` (timetable.css), `.room-card-wrap` (room-card.css), `.booking-list`, `.booking-meta` (tables-and-lists.css).
+- i18n: bookings.* keys rewritten in ro.js and en.js; unused status.requested removed; bookings.projector and bookings.outlets kept for the room pages.
+- Tests: bookings-page.test.js, bookings-page-without-list.test.js, grid-free-slots.test.js, timetable-free-slots.test.js; free.test.js and bookings.test.js extended.
+- Bug found by the tests and fixed: changing the faculty kept the room chosen from the link.
+- Screenshots (headless Chrome, PATTERN-007, temporary student and bookings, removed afterwards): docs/design/screens/DS-unispace-{bookings,timetable-grid,free-rooms}.{light,dark}.png. Registry entries are implemented.
+What I did with it: on branch `feature/student-room-booking`. Frontend 298 tests with the 100% gate, backend 143, ETL 113. Not committed or pushed.
+
+## 2026-11-24 · Student room booking, step 2 follow-up: campus null, D-023, booking data layer and UI drafts
+Tool: Claude Code (Haiku 5.5), build and /plan
+What I asked: return null (not the text Campus) for a room with no faculty (D-012); record D-023 (approved); build the data layer for steps 3 and 4 and draw the UI mocks.
+What I got:
+- Backend: `faculty_name` is null for a campus room; test added; C-005 updated.
+- D-023 added as approved; the ledger index updated.
+- `frontend/js/api.js`: myBookings, createBooking, cancelBooking (send helper now shared with PUT); tests in `api.test.js`.
+- `frontend/js/bookings.js` (new, pure helpers): the Bookings link and its reading, status labels; tests in `frontend/tests/unit/bookings.test.js`.
+- i18n: `bookings.statusPending` and `bookings.statusRejected` in ro.js and en.js.
+- Mocks (draft, not built): `docs/design/mocks/DS-unispace-bookings.html`, `DS-unispace-timetable-grid.html`, `DS-unispace-free-rooms.html`; registry entries set to draft.
+What I did with it: on branch `feature/student-room-booking`. The screens (steps 3 and 4) are not built: DESIGN.md requires a confirmed mock first. All suites pass (backend 143, ETL 113, frontend 259). Not committed or pushed.
+
+## 2026-11-24 · Student room booking, step 1: bookings table
+Tool: Claude Code (Haiku 5.5), /plan then build
+What I asked: after the plan was approved, add the `bookings` table (UUID id, user and classroom foreign keys, date, start and end time, title VARCHAR(255), native `booking_status` enum, created_at) with an Alembic revision; update the Activity docstring and D-015 so bookings are not activities.
+What I got:
+- New model `backend/app/models/booking.py`; `BookingStatus` in `enums.py`; exports in `models/__init__.py`.
+- Revision `backend/alembic/versions/20261123_58cba83b6174_bookings_table.py`. Downgrade also drops the enum type, which autogenerate left out.
+- Tests in `backend/tests/test_models.py` (5 new; the table-set assertion now includes `bookings`).
+- D-015 now says student bookings live in `bookings`; its Confirmed date is 2026-11-24.
+What I did with it: on branch `feature/student-room-booking`. Upgrade, downgrade and re-upgrade checked against the compose database; `alembic check` reports no differences. All suites pass (backend 112, ETL 113, frontend 252). Nothing is committed or pushed.
+
 ## 2026-11-24 · CI workflow split into 3 parallel test suites
 Tool: Antigravity, free prompt
 What I asked: modify GitHub workflows to run on push and PR; divide the test suite into the 3 configured test suites (backend, ETL, frontend) and run all 3.

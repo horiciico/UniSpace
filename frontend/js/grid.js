@@ -25,9 +25,10 @@
     SEMINAR: "kind.seminar",
     LAB: "kind.lab",
     EXAM: "kind.exam",
-    RESERVATION: "kind.reservation"
+    RESERVATION: "kind.reservation",
+    BOOKING: "kind.booking"
   };
-  var KIND_CLASS = { COURSE: "course", SEMINAR: "seminar", LAB: "lab" };
+  var KIND_CLASS = { COURSE: "course", SEMINAR: "seminar", LAB: "lab", BOOKING: "booking" };
 
   function toMinutes(hhmm) {
     var parts = String(hhmm).split(":");
@@ -92,8 +93,10 @@
    * Draws the week. items: [{ day_of_week (1 Mon .. 7 Sun), start_time "HH:MM", end_time,
    * activity_type, title, room_name, ... }]. Times outside 08:00-21:10 are left
    * out of the grid. onSelect(item) runs when a block is clicked.
+   * freeSlots (optional): [{ day_of_week, startMin, endMin, label, ariaLabel, disabled, onClick }]
+   * are drawn as dashed buttons under the blocks (a free module that can be booked).
    */
-  function render(container, items, onSelect) {
+  function render(container, items, onSelect, freeSlots) {
     var t = window.UniSpaceI18n.t;
     container.textContent = "";
 
@@ -121,6 +124,26 @@
       container.appendChild(column);
       columns.push({ element: column, entries: [] });
     }
+
+    (freeSlots || []).forEach(function (slot) {
+      // A free slot is blank until it is hovered or focused, when its label appears (see timetable.css).
+      // A past slot is blank and cannot be clicked.
+      var button = element("button", "tt-free");
+      button.type = "button";
+      button.disabled = Boolean(slot.disabled);
+      if (slot.disabled) {
+        button.classList.add("tt-free--past");
+      } else {
+        var plus = element("span", "tt-free__plus", "+");
+        plus.setAttribute("aria-hidden", "true");
+        button.appendChild(plus);
+        button.appendChild(element("span", "tt-free__label", slot.label));
+      }
+      if (slot.ariaLabel) button.setAttribute("aria-label", slot.ariaLabel);
+      placeBlock(button, { startMin: slot.startMin, endMin: slot.endMin, lane: 0, lanes: 1 });
+      button.addEventListener("click", slot.onClick);
+      columns[slot.day_of_week - 1].element.appendChild(button);
+    });
 
     items.forEach(function (item) {
       var dayIndex = Number(item.day_of_week) - 1;

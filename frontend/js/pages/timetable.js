@@ -24,6 +24,7 @@
   var weekLabel = document.getElementById("tt-week-label");
   var dialog = document.getElementById("tt-dialog");
   var tabs = document.querySelectorAll("[role='tab'][data-mode]");
+  var bookHint = document.getElementById("tt-hint");
 
   var ENTITY_LABEL_KEYS = {
     group: "timetable.entityGroup",
@@ -31,12 +32,14 @@
     room: "timetable.entityRoom"
   };
   var PARITY_KEYS = { ALL: "timetable.parityAll", ODD: "timetable.parityOdd", EVEN: "timetable.parityEven" };
+  var DAY_KEYS = ["day.mon", "day.tue", "day.wed", "day.thu", "day.fri", "day.sat", "day.sun"];
   var KIND_KEYS = {
     COURSE: "kind.course",
     SEMINAR: "kind.seminar",
     LAB: "kind.lab",
     EXAM: "kind.exam",
-    RESERVATION: "kind.reservation"
+    RESERVATION: "kind.reservation",
+    BOOKING: "kind.booking"
   };
 
   function pad(value) {
@@ -174,8 +177,9 @@
         return rows.map(function (row) { return { id: row.name, name: row.name }; });
       });
     } else {
+      // A room that cannot be booked stays in the list, but its free modules are not clickable.
       source = api.classrooms(state.facultyId).then(function (rows) {
-        return rows.map(function (row) { return { id: row.id, name: row.name }; });
+        return rows.map(function (row) { return { id: row.id, name: row.name, bookable: row.is_bookable }; });
       });
     }
     return source.then(function (entities) {
@@ -244,9 +248,46 @@
     });
   }
 
-  // Callers draw only when there are items.
+  // The free modules of a bookable room, for each day of the week: a module with no activity
+  // over it. A module that has started is shown but disabled. Each one opens the Bookings page.
+  function freeSlots() {
+    if (state.mode !== "room" || !state.entity || !state.entity.bookable) return [];
+    var now = new Date();
+    var slots = [];
+    DAY_KEYS.forEach(function (dayKey, dayIndex) {
+      var date = addDays(state.monday, dayIndex);
+      var iso = isoDate(date);
+      window.UniSpaceModules.list.forEach(function (module) {
+        var taken = state.items.some(function (item) {
+          return Number(item.day_of_week) === dayIndex + 1 &&
+            grid.toMinutes(item.start_time) < module.endMin && grid.toMinutes(item.end_time) > module.startMin;
+        });
+        if (taken) return;
+        var opens = new Date(date.getFullYear(), date.getMonth(), date.getDate(),
+          Math.floor(module.startMin / 60), module.startMin % 60);
+        var range = module.start + "–" + module.end;
+        slots.push({
+          day_of_week: dayIndex + 1,
+          startMin: module.startMin,
+          endMin: module.endMin,
+          disabled: opens <= now,
+          label: t("bookings.bookSlotShort"),
+          ariaLabel: opens <= now ? t("bookings.slotPast") : t("bookings.bookSlotAria", { range: range, day: t(dayKey) }),
+          onClick: function () {
+            window.location.assign(window.UniSpaceBookings.link({
+              faculty_id: state.facultyId, room: state.entity.id, date: iso, start: module.start, end: module.end
+            }));
+          }
+        });
+      });
+    });
+    return slots;
+  }
+
+  // Callers draw only when there are items. The helper line shows for a bookable room only.
   function drawGrid() {
-    grid.render(gridElement, state.items, openDetails);
+    grid.render(gridElement, state.items, openDetails, freeSlots());
+    bookHint.hidden = !(state.mode === "room" && state.entity && state.entity.bookable);
   }
 
   function openDetails(item) {
@@ -263,7 +304,8 @@
     fill("tt-d-room", item.room_name);
     fill("tt-d-professor", item.professor || t("timetable.unknown"));
     fill("tt-d-groups", item.groups && item.groups.length ? item.groups.join(", ") : t("timetable.unknown"));
-    fill("tt-d-priority", String(item.priority));
+    // An approved room booking has no priority (C-005): it is not a timetable activity.
+    fill("tt-d-priority", item.priority === null ? t("timetable.unknown") : String(item.priority));
     fill("tt-d-parity", t(PARITY_KEYS[item.parity] || "timetable.parityAll"));
     fill("tt-d-recurring", item.is_recurring ? t("timetable.recurring") : t("timetable.oneOff"));
     if (typeof dialog.showModal === "function") dialog.showModal();

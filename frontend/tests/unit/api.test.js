@@ -98,4 +98,24 @@ describe("api.js: fetch wrappers for /api/*", () => {
     const error = await api.saveStudyProfile("f1", "g9").catch((e) => e);
     expect(error.status).toBe(422);
   });
+
+  it("lists my bookings, creates one with a JSON body, and cancels one with DELETE", async () => {
+    const fetch = stubFetch({
+      "/api/bookings/my": () => response([{ id: "b1" }]),
+      "/api/bookings": () => response({ id: "b2", status: "pending" }, 201),
+      "/api/bookings/b1": () => response({ id: "b1", status: "cancelled" })
+    });
+    await expect(api.myBookings()).resolves.toEqual([{ id: "b1" }]);
+    const body = { classroom_id: "r1", specific_date: "2026-12-14", start_time: "08:00", end_time: "09:30", title: "Club" };
+    await expect(api.createBooking(body)).resolves.toEqual({ id: "b2", status: "pending" });
+    await expect(api.cancelBooking("b1")).resolves.toEqual({ id: "b1", status: "cancelled" });
+
+    expect(fetch.mock.calls[0][1]).toEqual({ headers: { Accept: "application/json" } });
+    expect(fetch.mock.calls[1][1]).toEqual({
+      method: "POST",
+      headers: { Accept: "application/json", "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+    expect(fetch.mock.calls[2][1]).toEqual({ method: "DELETE", headers: { Accept: "application/json" } });
+  });
 });

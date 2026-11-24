@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MOCK · DS-unispace-bookings · draft</title>
+    <!-- Mock only: the real page will be frontend/pages/shared/bookings.html (moved from pages/student/bookings/). -->
+    <link rel="stylesheet" href="../../../frontend/styles/tokens.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/base.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/header.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/buttons.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/pills.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/cards.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/tables-and-lists.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/forms.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/notice.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/tabs-and-chips.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/utilities.css" />
+    <style>
+      /* Mock scaffolding only. Not for the real page. */
+      .mock-bar { display: flex; gap: var(--space-2); padding: var(--space-3) var(--space-4); background: var(--color-warning-bg); color: var(--color-warning-text); flex-wrap: wrap; }
+      .mock-label { margin: var(--space-7) 0 var(--space-2); font-size: var(--text-sm); font-weight: 700; color: var(--color-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+      .mock-state { border-top: 1px dashed var(--color-border); padding-top: var(--space-4); }
+      /* Needed by the real page (new styles, tokens only). */
+      .booking-list li { align-items: center; }
+      .booking-meta { display: block; }
+    </style>
+  </head>
+  <body>
+    <div class="mock-bar">
+      <strong>Draft mock, not built.</strong>
+      <span>Needs your confirmation before the Bookings page is built (DESIGN.md). Light and dark: toggle the theme.</span>
+      <button class="btn btn-small" type="button" onclick="var d=document.documentElement;d.dataset.theme=d.dataset.theme==='dark'?'light':'dark'">Toggle light / dark</button>
+    </div>
+
+    <main id="main" class="container">
+      <p class="eyebrow">Bookings</p>
+      <h1>Room requests</h1>
+      <p class="muted">Request a room for a time that is not taken. An admin approves each request. Admin bookings are approved at once.</p>
+
+      <p class="mock-label">1 · Default: your requests and a new request</p>
+      <div class="mock-state">
+        <div class="card-grid card-grid--2">
+          <section class="card" aria-labelledby="m1">
+            <h2 id="m1">Your requests</h2>
+            <ul class="list booking-list">
+              <li>
+                <span><strong>Board game evening</strong><br /><span class="muted booking-meta">B110 · Campus · Mon 14 Dec · 19:40–21:10</span></span>
+                <span class="btn-group">
+                  <span class="pill pill--pending">Pending</span>
+                  <button class="btn btn-small" type="button">Cancel request</button>
+                </span>
+              </li>
+              <li>
+                <span><strong>Open Source Night</strong><br /><span class="muted booking-meta">Aula Magna · Thu 17 Dec · 18:00–19:30</span></span>
+                <span class="pill pill--approved">Approved</span>
+              </li>
+              <li>
+                <span><strong>Robotics workshop</strong><br /><span class="muted booking-meta">L2 · Fri 11 Dec · 14:00–15:30</span></span>
+                <span class="pill">Cancelled</span>
+              </li>
+            </ul>
+            <p class="muted mt-3">Pending requests can be cancelled. Approved ones cannot.</p>
+          </section>
+
+          <section class="card" aria-labelledby="m2">
+            <h2 id="m2">New request</h2>
+            <form class="form-grid">
+              <div class="field">
+                <label for="m-faculty">Faculty</label>
+                <select id="m-faculty"><option>Choose a faculty</option><option>Campus</option><option>Facultatea de Inginerie</option></select>
+              </div>
+              <div class="field">
+                <label for="m-room">Room</label>
+                <select id="m-room"><option>Choose a room</option><option>B110 · 30 seats</option><option>L2 · 24 seats</option></select>
+                <span class="muted">Only rooms that can be booked are listed.</span>
+              </div>
+              <div class="form-grid form-grid--2">
+                <div class="field">
+                  <label for="m-date">Date</label>
+                  <input id="m-date" type="date" />
+                </div>
+                <div class="field">
+                  <label for="m-start">From (module)</label>
+                  <select id="m-start"><option>08:00–09:30</option><option>09:40–11:10</option><option>11:20–12:50</option></select>
+                </div>
+                <div class="field">
+                  <label for="m-end">To (module)</label>
+                  <select id="m-end"><option>09:40–11:10</option><option>11:20–12:50</option></select>
+                </div>
+              </div>
+              <div class="field">
+                <label for="m-title">Title or reason</label>
+                <input id="m-title" type="text" maxlength="255" placeholder="Open Source Night" />
+              </div>
+              <div class="btn-group">
+                <button class="btn btn-primary" type="submit">Send request</button>
+                <p class="muted m-0">Clashes are checked when you send.</p>
+              </div>
+            </form>
+          </section>
+        </div>
+      </div>
+
+      <p class="mock-label">2 · Opened from the timetable or Free Now (prefilled)</p>
+      <div class="mock-state">
+        <div class="notice">The date, room and time were filled in from the room you chose.</div>
+        <p class="muted">The same form, with the faculty, room, date and modules already set. The user can still change them.</p>
+      </div>
+
+      <p class="mock-label">3 · Clash on send (409)</p>
+      <div class="mock-state">
+        <div class="notice notice--error">
+          <strong>This room is taken at that time.</strong>
+          <span>Choose another module or another room. The room is taken by an approved booking or a timetable course.</span>
+        </div>
+      </div>
+
+      <p class="mock-label">4 · Empty: no requests yet</p>
+      <div class="mock-state">
+        <section class="card">
+          <h2>Your requests</h2>
+          <p>No requests yet. Send your first request with the form, or pick a free room from Free now.</p>
+          <div class="btn-group"><a class="btn btn-secondary" href="#">Open Free now</a></div>
+        </section>
+      </div>
+
+      <p class="mock-label">5 · Admin: approved at once</p>
+      <div class="mock-state">
+        <div class="notice">As an admin, your request is approved as soon as you send it.</div>
+      </div>
+    </main>
+  </body>
+</html>

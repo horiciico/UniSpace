@@ -28,6 +28,7 @@
 - D-020 · Role on every sign-in: professor list, then university address, otherwise rejected
 - D-021 · The admin signs in with one .env credential pair; the session is the same as Google's
 - D-022 · A student chooses a faculty and a study formation on first sign-in
+- D-023 · Any signed-in user can request a room; an admin's booking is approved at once
 
 ---
 
@@ -162,12 +163,12 @@
 ## D-015 · Imported activities are bound to a planning unit; the ETL skips manually modified rows
 - **Status:** approved
 - **Date:** 2026-11-19
-- **Rule:** Each imported activity links to its planning time unit (`planning_time_unit_id`) and has an `external_id` that is unique within that unit. The ETL updates rows with `is_manually_modified = false` and skips rows with `is_manually_modified = true`. Rows created by bookings have no `external_id`.
+- **Rule:** Each imported activity links to its planning time unit (`planning_time_unit_id`) and has an `external_id` that is unique within that unit. The ETL updates rows with `is_manually_modified = false` and skips rows with `is_manually_modified = true`. Student bookings are not activities: they live in the `bookings` table, which has no `external_id` and no planning unit (step 1 of the room booking feature).
 - **Why:** The ETL can re-run without duplicates, and admin edits are not overwritten.
 - **Rejected:** none stated
 - **Evidence:** backend/app/models/activity.py (planned columns), docs/agents/OPEN-QUESTIONS.md (Q-013)
 - **Source:** user · confidence high
-- **Confirmed:** 2026-11-19
+- **Confirmed:** 2026-11-24
 
 ## D-016 · One-off changes are exceptions; permanent changes go through an admin request
 - **Status:** approved
@@ -243,3 +244,13 @@
 - **Evidence:** backend/alembic/versions/20261123_b0f9c8035187_user_study_profile_faculty_and_formation.py, backend/app/models/user.py (needs_onboarding), backend/app/routers/study_profile.py, backend/app/routers/lookups.py (faculty_groups), frontend/components/onboarding.js
 - **Source:** user (request and answers, 2026-11-23) · confidence high
 - **Confirmed:** 2026-11-23
+
+## D-023 · Any signed-in user can request a room; an admin's booking is approved at once
+- **Status:** approved
+- **Date:** 2026-11-24
+- **Rule:** Any signed-in role (student, student organization, professor, admin) can request a room booking. A request by an ADMIN is `approved` at once. Any other role's request is `pending` until an admin approves it. Only `approved` bookings block a room; `pending` ones do not.
+- **Why:** The user decided that every role books through the same flow, and that an admin's booking needs no second approval.
+- **Rejected:** only students and student organizations can book (the earlier default, replaced by the user's decision)
+- **Evidence:** backend/app/routers/bookings.py (create_booking), backend/tests/test_bookings_api.py
+- **Source:** user · confidence high
+- **Confirmed:** 2026-11-24

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MOCK · DS-unispace-free-rooms · draft</title>
+    <!-- Mock only: the real page is frontend/pages/student/rooms/free.html. -->
+    <link rel="stylesheet" href="../../../frontend/styles/tokens.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/base.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/buttons.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/pills.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/cards.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/forms.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/notice.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/room-card.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/tabs-and-chips.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/utilities.css" />
+    <style>
+      /* Mock scaffolding only. */
+      .mock-bar { display: flex; gap: var(--space-2); padding: var(--space-3) var(--space-4); background: var(--color-warning-bg); color: var(--color-warning-text); flex-wrap: wrap; }
+      .mock-label { margin: var(--space-7) 0 var(--space-2); font-size: var(--text-sm); font-weight: 700; color: var(--color-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+      /* New in the real card (tokens only): the card keeps its link to the timetable and gains a second action. */
+      .room-card-wrap { display: flex; flex-direction: column; gap: var(--space-2); }
+      .room-card-wrap .btn { align-self: flex-start; }
+    </style>
+  </head>
+  <body>
+    <div class="mock-bar">
+      <strong>Draft mock, not built.</strong>
+      <span>Free now, one card. Needs your confirmation before it is built (DESIGN.md).</span>
+      <button class="btn btn-small" type="button" onclick="var d=document.documentElement;d.dataset.theme=d.dataset.theme==='dark'?'light':'dark'">Toggle light / dark</button>
+    </div>
+
+    <main id="main" class="container">
+      <p class="eyebrow">Free rooms</p>
+      <h1>Free now</h1>
+
+      <p class="mock-label">1 · Default: two actions on each card</p>
+      <ul class="room-grid">
+        <li class="room-card-wrap">
+          <a class="room-card" href="#">
+            <h2 class="room-card__name">B110</h2>
+            <p class="room-card__faculty">Facultatea de Inginerie</p>
+            <p class="room-card__badges"><span class="pill pill--info">Free until 11:10</span> <span class="pill pill--confirmed">Verified on site</span></p>
+            <p class="room-card__details">30 seats</p>
+          </a>
+          <div class="btn-group">
+            <a class="btn btn-secondary btn-small" href="#">Book this room</a>
+          </div>
+        </li>
+        <li class="room-card-wrap">
+          <a class="room-card" href="#">
+            <h2 class="room-card__name">L2</h2>
+            <p class="room-card__faculty">Campus</p>
+            <p class="room-card__badges"><span class="pill pill--info">Free until 21:10</span> <span class="pill pill--pending">Estimate</span></p>
+            <p class="room-card__details">24 seats</p>
+          </a>
+          <div class="btn-group">
+            <a class="btn btn-secondary btn-small" href="#">Book this room</a>
+          </div>
+        </li>
+      </ul>
+
+      <p class="mock-label">2 · Notes</p>
+      <ul class="muted">
+        <li>"Book this room" opens the Bookings page with the room, the date and this search's module already set.</li>
+        <li>The card's main link still opens the room's timetable, as now. The two actions are separate, so there is no link inside a link.</li>
+        <li>A room that cannot be booked is not listed (booking rule 5), so it has no action.</li>
+        <li>The button label names the action. Its accessible name also says the room (e.g. "Book room B110").</li>
+      </ul>
+    </main>
+  </body>
+</html>
