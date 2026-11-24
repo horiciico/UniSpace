@@ -124,10 +124,10 @@ designs:
     kind: screen
     source: frontend/pages/admin/index.html
     screenshots:
-      - docs/design/screens/DS-unispace-admin.light.png
-      - docs/design/screens/DS-unispace-admin.dark.png
-    design_ref: docs/design/mocks/DS-unispace-admin-bookings.html
-    status: implemented  # issue #23: booking requests review; mock confirmed 2026-11-24; bumps and setup sections unchanged (other features)
+      - docs/design/screens/DS-unispace-admin-history.light.png
+      - docs/design/screens/DS-unispace-admin-history.dark.png
+    design_ref: docs/design/mocks/DS-unispace-admin-history.html
+    status: implemented  # pending requests and booking history tabs; mock confirmed 2026-11-24; placeholders removed
 
   - id: DS-unispace-not-found
     kind: screen

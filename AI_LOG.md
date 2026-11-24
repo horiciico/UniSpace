@@ -18,6 +18,26 @@ What I got:
 - Contract C-005 added; C-003 change note added; Q-017 opened for cancelled and moved occurrences, which the shared helper ignores.
 What I did with it: on branch `feature/student-room-booking`. Backend 142 passed, ETL 113, frontend 252. `docker compose config` and `docker compose build backend` pass. Not committed or pushed. The Bookings page move to `pages/shared` is not done in this step.
 
+## 2026-11-24 · Booking history: admin tabs and paged list (frontend)
+Tool: Claude Code (Haiku 5.5), build
+What I asked: confirm the mock; with no faculty chosen, list all bookings; 15 a page with Previous and Next; build and commit.
+What I got:
+- Admin page: two tabs, Pending requests (the existing queue) and Booking history. Filters: faculty (All, Campus, faculties), room (all rooms, or the faculty's rooms), status. No faculty means all bookings. 15 a page with Previous, Next and a range label. Cancel with a confirmation, only for approved bookings that have not started.
+- `frontend/js/pages/admin-history.js`, `frontend/js/api.js` (adminBookings, adminCancelBooking), `frontend/styles/components/forms.css` (filter-bar), `frontend/pages/admin/index.html`.
+- Tests: `frontend/tests/unit/admin-history.test.js` and `admin-history-lists.test.js` (new).
+- Screenshots: docs/design/screens/DS-unispace-admin-history.{light,dark}.png; registry DS-unispace-admin implemented.
+Known limit: a failed faculty list shows its message until the next successful bookings load (the status line is shared).
+What I did with it: on branch `feature/23-admin-booking-review`. Suites: backend 170, ETL 113, frontend 346 (629). The i18n scan prefix list gained `adminHistory` (backend/tests/test_i18n.py), so its keys count as used.
+
+## 2026-11-24 · Admin page: placeholders removed; booking history backend
+Tool: Claude Code (Haiku 5.5), build
+What I asked: remove the placeholders from the admin page; then the booking-history task (step 1 backend, step 2 frontend).
+What I got:
+- Admin page: the sample bumps list and the semester-setup cards removed, with their keys (bumpsTitle, setup*). The footer's "placeholder build" line is shared by every page and is not changed.
+- Backend step 1: `GET /api/admin/bookings` (faculty_id incl. campus, classroom_id, status, limit/offset, total, newest first) and `POST /api/admin/bookings/{id}/cancel` (admin cancels a future approved booking). Tests: `backend/tests/test_admin_history.py` (8), written first and red before the code. Contract C-006 updated.
+- Step 2 frontend: mock `docs/design/mocks/DS-unispace-admin-history.html` drafted; registry draft. Not built until confirmed.
+What I did with it: on branch `feature/23-admin-booking-review`. Backend 170.
+
 ## 2026-11-24 · Bookings page copy: intro, admin note and submit label
 Tool: Claude Code (Haiku 5.5), build
 What I asked: the intro line was not suitable, and the submit button must not say "Send request" when the booking is approved at once.

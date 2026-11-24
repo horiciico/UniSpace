@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MOCK · DS-unispace-admin-history · draft</title>
+    <!-- Mock only: the real page is frontend/pages/admin/index.html with two tabs. -->
+    <link rel="stylesheet" href="../../../frontend/styles/tokens.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/base.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/header.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/buttons.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/pills.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/cards.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/tables-and-lists.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/forms.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/notice.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/tabs-and-chips.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/utilities.css" />
+    <style>
+      /* Mock scaffolding only. */
+      .mock-bar { display: flex; gap: var(--space-2); padding: var(--space-3) var(--space-4); background: var(--color-warning-bg); color: var(--color-warning-text); flex-wrap: wrap; }
+      .mock-label { margin: var(--space-7) 0 var(--space-2); font-size: var(--text-sm); font-weight: 700; color: var(--color-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+      .mock-state { border-top: 1px dashed var(--color-border); padding-top: var(--space-4); }
+    </style>
+  </head>
+  <body>
+    <div class="mock-bar">
+      <strong>Draft mock, not built.</strong>
+      <span>Booking History for admins. Needs your confirmation before it is built (DESIGN.md).</span>
+      <button class="btn btn-small" type="button" onclick="var d=document.documentElement;d.dataset.theme=d.dataset.theme==='dark'?'light':'dark'">Toggle light / dark</button>
+    </div>
+
+    <main id="main" class="container">
+      <p class="eyebrow">Admin</p>
+      <h1>Booking requests</h1>
+
+      <p class="mock-label">1 · Tabs: Pending requests, and Booking history</p>
+      <div class="mock-state">
+        <div class="tabs" role="tablist" aria-label="Admin views">
+          <button class="tab" role="tab" type="button" aria-selected="true">Pending requests <span class="muted">(3)</span></button>
+          <button class="tab" role="tab" type="button" aria-selected="false">Booking history</button>
+        </div>
+        <p class="muted">The Pending requests tab is the queue already built. The Booking history tab is shown below.</p>
+      </div>
+
+      <p class="mock-label">2 · Booking history: filters and table</p>
+      <div class="mock-state">
+        <div class="tabs" role="tablist" aria-label="Admin views">
+          <button class="tab" role="tab" type="button" aria-selected="false">Pending requests</button>
+          <button class="tab" role="tab" type="button" aria-selected="true">Booking history</button>
+        </div>
+
+        <form class="form-grid form-grid--3 mt-5" aria-label="Filter bookings">
+          <div class="field">
+            <label for="h-faculty">Faculty</label>
+            <select id="h-faculty"><option>All faculties</option><option>Campus</option><option>Facultatea de Drept</option></select>
+          </div>
+          <div class="field">
+            <label for="h-room">Room</label>
+            <select id="h-room"><option>All rooms</option><option>B110</option><option>003 DPPD</option></select>
+            <span class="muted">Choose a faculty first to narrow the rooms.</span>
+          </div>
+          <div class="field">
+            <label for="h-status">Status</label>
+            <select id="h-status"><option>All</option><option>Pending</option><option>Approved</option><option>Rejected</option><option>Cancelled</option></select>
+          </div>
+        </form>
+
+        <div class="table-wrap mt-5">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Date and time</th>
+                <th scope="col">Room (faculty)</th>
+                <th scope="col">Title</th>
+                <th scope="col">Requester</th>
+                <th scope="col">Status</th>
+                <th scope="col"><span class="visually-hidden">Actions</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Fri 18 Dec · 18:00–19:30</td>
+                <td>B110<span class="muted"> (Drept)</span></td>
+                <td>Board game evening</td>
+                <td>Ioana Pop<span class="muted"> · ioana.pop@ulbsibiu.ro</span> <span class="pill">Student</span></td>
+                <td><span class="pill pill--approved">Approved</span></td>
+                <td><button class="btn btn-small" type="button">Cancel</button></td>
+              </tr>
+              <tr>
+                <td>Mon 14 Dec · 13:00–14:30</td>
+                <td>003 DPPD<span class="muted"> (Socio-Umane)</span></td>
+                <td>Robotics workshop</td>
+                <td>Clubul de robotica<span class="muted"> · robotics@ulbsibiu.ro</span> <span class="pill">Student organization</span></td>
+                <td><span class="pill pill--pending">Pending</span></td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>Wed 2 Dec · 09:40–11:10</td>
+                <td>L2<span class="muted"> (Inginerie)</span></td>
+                <td>Hackathon</td>
+                <td>Andrei Ionescu<span class="muted"> · andrei.ionescu@ulbsibiu.ro</span> <span class="pill">Student</span></td>
+                <td><span class="pill pill--rejected">Rejected</span></td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="muted mt-3">Cancel is shown only for approved bookings that have not started. Past bookings have no action.</p>
+      </div>
+
+      <p class="mock-label">3 · Cancel asks first</p>
+      <div class="mock-state">
+        <div class="notice">
+          <strong>Cancel the booking of Ioana Pop?</strong>
+          <span>Board game evening, B110, Fri 18 Dec at 18:00. The room becomes free for other requests.</span>
+          <div class="btn-group mt-3">
+            <button class="btn btn-primary btn-small" type="button">Cancel booking</button>
+            <button class="btn btn-small" type="button">Keep it</button>
+          </div>
+        </div>
+      </div>
+
+      <p class="mock-label">4 · Pagination</p>
+      <div class="mock-state">
+        <div class="btn-group">
+          <button class="btn btn-small" type="button" disabled>Previous</button>
+          <span class="muted">1–50 of 124</span>
+          <button class="btn btn-small" type="button">Next</button>
+        </div>
+      </div>
+
+      <p class="mock-label">5 · No booking matches the filters</p>
+      <div class="mock-state">
+        <section class="card">
+          <h2>No bookings match these filters</h2>
+          <p>Try another faculty, room or status.</p>
+          <div class="btn-group"><button class="btn btn-small" type="button">Clear filters</button></div>
+        </section>
+      </div>
+    </main>
+  </body>
+</html>

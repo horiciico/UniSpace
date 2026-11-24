@@ -176,6 +176,37 @@ window.UniSpaceI18n.register("ro", {
   "admin.title": "Administrare · UniSpace",
   "admin.eyebrow": "Administrare",
   "admin.heading": "Cereri de rezervare",
+  "admin.tabPending": "Cereri în așteptare",
+  "admin.tabHistory": "Istoric rezervări",
+  "adminHistory.title": "Istoric rezervări",
+  "adminHistory.faculty": "Facultate",
+  "adminHistory.room": "Sală",
+  "adminHistory.roomHint": "Alege mai întâi o facultate ca să restrângi sălile.",
+  "adminHistory.status": "Stare",
+  "adminHistory.statusAll": "Toate",
+  "adminHistory.allFaculties": "Toate facultățile",
+  "adminHistory.allRooms": "Toate sălile",
+  "adminHistory.colWhen": "Data și ora",
+  "adminHistory.colRoom": "Sală (facultate)",
+  "adminHistory.colTitle": "Titlu",
+  "adminHistory.colRequester": "Solicitant",
+  "adminHistory.colStatus": "Stare",
+  "adminHistory.colActions": "Acțiuni",
+  "adminHistory.emptyTitle": "Nicio rezervare nu corespunde filtrelor",
+  "adminHistory.emptyText": "Încearcă o altă facultate, sală sau stare.",
+  "adminHistory.clear": "Șterge filtrele",
+  "adminHistory.previous": "Anterior",
+  "adminHistory.next": "Următor",
+  "adminHistory.range": "{from}–{to} din {total}",
+  "adminHistory.cancel": "Anulează",
+  "adminHistory.cancelAria": "Anulează rezervarea {title}",
+  "adminHistory.confirmTitle": "Anulezi rezervarea {title}?",
+  "adminHistory.confirmText": "{room} · {when}. Sala devine liberă pentru alte cereri.",
+  "adminHistory.confirmYes": "Anulează rezervarea",
+  "adminHistory.keep": "Păstrează-o",
+  "adminHistory.cancelled": "Rezervarea a fost anulată.",
+  "adminHistory.cancelRefused": "Rezervarea nu mai poate fi anulată.",
+  "adminHistory.loadError": "Nu am putut încărca rezervările. Încearcă din nou.",
   "admin.intro": "Fiecare cerere așteaptă o decizie. Acceptă-o ca să rezervi sala sau respinge-o cu un mesaj opțional pe care solicitantul îl va vedea.",
   "admin.queueTitle": "În așteptarea aprobării",
   "bookings.decisionNote": "Mesaj de la administrator: {message}",
@@ -197,14 +228,6 @@ window.UniSpaceI18n.register("ro", {
   "admin.colRequester": "Solicitant",
   "admin.colDecision": "Decizie",
   "admin.reject": "Respinge",
-  "admin.bumpsTitle": "Realocări în așteptarea unui răspuns",
-  "admin.setupTitle": "Configurarea semestrului",
-  "admin.setupFirstWeek": "Prima săptămână",
-  "admin.setupFirstWeekText": "Machetă: 2026-09-28 · de aici se stabilește paritatea.",
-  "admin.setupHolidays": "Vacanțe și sesiune",
-  "admin.setupHolidaysText": "Machetă: lista pauzelor și a săptămânilor de examene.",
-  "admin.setupInverted": "Săptămâni inversate",
-  "admin.setupInvertedText": "Machetă: săptămânile în care paritatea este inversată.",
   "bookings.title": "Rezervări · UniSpace",
   "bookings.eyebrow": "Rezervări",
   "bookings.heading": "Cereri de sală",

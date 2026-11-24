@@ -175,6 +175,37 @@ window.UniSpaceI18n.register("en", {
   "admin.title": "Admin · UniSpace",
   "admin.eyebrow": "Admin",
   "admin.heading": "Booking requests",
+  "admin.tabPending": "Pending requests",
+  "admin.tabHistory": "Booking history",
+  "adminHistory.title": "Booking history",
+  "adminHistory.faculty": "Faculty",
+  "adminHistory.room": "Room",
+  "adminHistory.roomHint": "Choose a faculty first to narrow the rooms.",
+  "adminHistory.status": "Status",
+  "adminHistory.statusAll": "All",
+  "adminHistory.allFaculties": "All faculties",
+  "adminHistory.allRooms": "All rooms",
+  "adminHistory.colWhen": "Date and time",
+  "adminHistory.colRoom": "Room (faculty)",
+  "adminHistory.colTitle": "Title",
+  "adminHistory.colRequester": "Requester",
+  "adminHistory.colStatus": "Status",
+  "adminHistory.colActions": "Actions",
+  "adminHistory.emptyTitle": "No bookings match these filters",
+  "adminHistory.emptyText": "Try another faculty, room or status.",
+  "adminHistory.clear": "Clear filters",
+  "adminHistory.previous": "Previous",
+  "adminHistory.next": "Next",
+  "adminHistory.range": "{from}–{to} of {total}",
+  "adminHistory.cancel": "Cancel",
+  "adminHistory.cancelAria": "Cancel the booking {title}",
+  "adminHistory.confirmTitle": "Cancel the booking {title}?",
+  "adminHistory.confirmText": "{room} · {when}. The room becomes free for other requests.",
+  "adminHistory.confirmYes": "Cancel booking",
+  "adminHistory.keep": "Keep it",
+  "adminHistory.cancelled": "The booking was cancelled.",
+  "adminHistory.cancelRefused": "This booking can no longer be cancelled.",
+  "adminHistory.loadError": "Could not load the bookings. Try again.",
   "admin.intro": "Each request waits for a decision. Accept it to book the room, or reject it with an optional message the requester will see.",
   "admin.queueTitle": "Waiting for approval",
   "bookings.decisionNote": "Note from the administrator: {message}",
@@ -196,14 +227,6 @@ window.UniSpaceI18n.register("en", {
   "admin.colRequester": "Requester",
   "admin.colDecision": "Decision",
   "admin.reject": "Reject",
-  "admin.bumpsTitle": "Bumps waiting for a reply",
-  "admin.setupTitle": "Semester setup",
-  "admin.setupFirstWeek": "First week",
-  "admin.setupFirstWeekText": "Placeholder: 2026-09-28 · parity is set from here.",
-  "admin.setupHolidays": "Holidays and session",
-  "admin.setupHolidaysText": "Placeholder: list of breaks and exam weeks.",
-  "admin.setupInverted": "Inverted weeks",
-  "admin.setupInvertedText": "Placeholder: weeks where parity is swapped.",
   "bookings.title": "Bookings · UniSpace",
   "bookings.eyebrow": "Bookings",
   "bookings.heading": "Room requests",

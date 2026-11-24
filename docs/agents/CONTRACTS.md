@@ -91,9 +91,12 @@
 ### C-006 · Admin booking review API (/api/admin/bookings)
 - **Status:** approved
 - **Interface:** HTTP JSON, signed in as ADMIN only (403 for any other role, 401 when signed out).
-- **Consumers:** `frontend/js/pages/admin-bookings.js` (the admin page, `frontend/pages/admin/index.html`; design: docs/design/mocks/DS-unispace-admin-bookings.html); `frontend/js/api.js`.
+- **Consumers:** `frontend/js/pages/admin-bookings.js` (Pending requests tab), `frontend/js/pages/admin-history.js` (Booking history tab, 15 a page), `frontend/js/api.js`; the admin page `frontend/pages/admin/index.html` (designs: docs/design/mocks/DS-unispace-admin-bookings.html, DS-unispace-admin-history.html).
 - **Shape:**
   - `GET /api/admin/bookings/pending` → `[{id, classroom_id, room_name, faculty_name, specific_date, start_time, end_time, title, status, created_at, decided_at, decision_message, requester: {name, email, role}}]`, oldest first. `faculty_name` is null for a room with no faculty.
+  - `GET /api/admin/bookings?faculty_id=UUID|campus&classroom_id=UUID&status=pending|approved|rejected|cancelled&limit=1..200 (default 50)&offset=0` → `{items, total, limit, offset}`. Every booking, newest first (date, start time, then when it was made). `faculty_id=campus` is the rooms with no faculty. Items: `{id, classroom_id, classroom_name, faculty_id, faculty_name, specific_date, start_time, end_time, title, status, created_at, user_id, user_email, user_role}`. `total` counts all matches. Bad filter → 400 (faculty_id) or 422.
+  - `POST /api/admin/bookings/{id}/cancel` → 200 with the booking, status `cancelled`. Any user's booking that is `approved` and has not started yet (409 otherwise). 403 for non-admins.
+
   - `POST /api/admin/bookings/{id}/decision` with `{decision: "approve" | "reject", message?: string}` (message up to 1000 characters; blank means none) → 200 with the booking. Only a `pending` booking can be decided (409 otherwise). An approval is checked for clashes again (409 with the clashing times). The decision keeps who decided (`decided_by_id`), when (`decided_at`) and the message (`decision_message`).
 - **Rules:** the requester sees the final status and `decision_message` on `GET /api/bookings/my` (C-005).
 - **Evidence:** backend/app/routers/admin_bookings.py, backend/app/models/booking.py, backend/alembic/versions/20261124_3b4860b5bd9c_booking_decisions.py, backend/tests/test_admin_bookings.py

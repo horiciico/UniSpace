@@ -80,3 +80,15 @@ input[type="checkbox"] {
   font: inherit;
   margin-left: var(--space-2);
 }
+
+/* A row of filter fields that wraps on a narrow screen. */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: flex-start;
+}
+
+.filter-bar .field {
+  min-width: 13rem;
+}
