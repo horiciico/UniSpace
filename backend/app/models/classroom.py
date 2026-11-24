@@ -1,9 +1,10 @@
 import uuid
 
-from sqlalchemy import Boolean, CheckConstraint, ForeignKey, Integer, String, Text, UniqueConstraint, text
+from sqlalchemy import Boolean, CheckConstraint, Enum, ForeignKey, Integer, String, UniqueConstraint, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
+from app.models.enums import BoardType
 
 
 class Classroom(Base):
@@ -21,9 +22,17 @@ class Classroom(Base):
     external_id: Mapped[str | None] = mapped_column(String(50))  # the room id in the ULBS API
     # NULL = capacity unknown (the ULBS API has no value for the room). Shown as "unknown capacity".
     capacity: Mapped[int | None] = mapped_column(Integer)
-    has_projector: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"))
+    # Admin-managed, never set by the ETL. NULL = unspecified (Free Now treats it as no projector).
+    has_projector: Mapped[bool | None] = mapped_column(Boolean)
     has_outlets: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"))
-    access_status: Mapped[str | None] = mapped_column(Text)  # how to access / open the room
+    # Admin-managed, never set by the ETL. NULL = unspecified.
+    board_type: Mapped[BoardType | None] = mapped_column(
+        Enum(BoardType, name="board_type", values_callable=lambda enum_cls: [m.value for m in enum_cls])
+    )
+    # Admin-managed, never set by the ETL: how to get into the room, written in plain words.
+    access_notes: Mapped[str | None] = mapped_column(String(255))
+    # Admin-managed free-text inventory, never set by the ETL, e.g. "24 PCs, 10 oscilloscopes".
+    equipment_notes: Mapped[str | None] = mapped_column(String(500))
     # FALSE: left out of the free-room search. TRUE by default.
     is_bookable: Mapped[bool] = mapped_column(Boolean, default=True, server_default=text("true"))
     # TRUE: checked on site. FALSE by default, so the room shows as "date estimate".

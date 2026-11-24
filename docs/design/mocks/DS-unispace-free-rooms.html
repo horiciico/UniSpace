@@ -41,7 +41,7 @@
           <a class="room-card" href="#">
             <h2 class="room-card__name">B110</h2>
             <p class="room-card__faculty">Facultatea de Inginerie</p>
-            <p class="room-card__badges"><span class="pill pill--info">Free until 11:10</span> <span class="pill pill--confirmed">Verified on site</span></p>
+            <p class="room-card__badges"><span class="pill pill--info">Free until 11:10</span> <span class="pill pill--confirmed">Verified on site</span> <span class="pill pill--info">Projector</span></p>
             <p class="room-card__details">30 seats</p>
           </a>
           <div class="btn-group">
@@ -67,6 +67,8 @@
         <li>The card's main link still opens the room's timetable, as now. The two actions are separate, so there is no link inside a link.</li>
         <li>A room that cannot be booked is not listed (booking rule 5), so it has no action.</li>
         <li>The button label names the action. Its accessible name also says the room (e.g. "Book room B110").</li>
+        <li>Change (draft, 2026-11-24): the card shows a "Projector" badge only when the room has one (NULL = unspecified, no badge). The Free Now filters are Faculty, Min seats and Projector.</li>
+        <li>Not on the card: board type, access notes and equipment notes. They are returned by the API and stay off the card (open point: see the question in the report).</li>
       </ul>
     </main>
   </body>

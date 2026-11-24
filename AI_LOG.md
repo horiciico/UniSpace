@@ -8,6 +8,18 @@ Each entry follows the same shape:
 
 ```
 
+## 2026-11-24 · Classroom attributes: schema, ETL protection, admin and Free Now API (backend), mocks for the UI
+Tool: Claude Code (Haiku 5.5), /plan then build
+What I asked: a simplified spec. Keep has_projector nullable (backfill NULL), add board_type (enum), access_notes (VARCHAR 255), equipment_notes (free text, VARCHAR 500). No access_type column, no equipment tables. Admin list and PATCH of room attributes; Free Now returns the attributes and filters by min capacity and projector. ETL must not overwrite the admin fields. Then the UI, after confirmation.
+What I got:
+- Migration `f3a9c2d71e05` (head after `a7c3e91f0d52`): has_projector nullable, backfilled to NULL; access_status renamed to access_notes VARCHAR(255); board_type enum; equipment_notes VARCHAR(500). Round trip (downgrade, upgrade) checked on the local database.
+- Models: `classroom.py`, `enums.py` (BoardType, lowercase values), `models/__init__.py`.
+- Routers: `backend/app/routers/classroom_attributes.py` (GET and PATCH under `/api/admin/classrooms`, ADMIN only; reuses `require_admin` and `faculty_condition`); `classrooms.py` (Free Now adds board_type, access_notes, equipment_notes); `main.py` registers the router.
+- Tests: `backend/tests/test_classroom_attributes.py` (5 new), `etl/schedule/tests/test_loader_db.py` (1 new: a rerun keeps the admin fields).
+- Mocks drawn, not built: `docs/design/mocks/DS-unispace-admin-rooms.html` (status draft in `registry.yaml`), and a Projector badge added to `docs/design/mocks/DS-unispace-free-rooms.html` (the registry entry stays `implemented`; the change is marked as a draft).
+- Ledger: not changed. Proposals P1 (ETL protection) and P2 (C-003 change) are in the report for approval.
+What I did with it: on branch `feature/classroom-attributes-equipment`. Backend 177 passed (baseline 172), ETL 114, frontend 347; `node scripts/test-all.mjs` passed (638). `docker compose config` and `docker compose build backend` pass. The admin Rooms tab and the Free Now UI are not built, waiting for mock confirmation. Not pushed.
+
 ## 2026-11-24 · Student room booking, step 2: booking endpoints and conflict check
 Tool: Claude Code (Haiku 5.5), /plan then build
 What I asked: after the defaults were confirmed, build POST /api/bookings (conflict check against recurring activities and approved bookings, 409 on a clash), GET /api/bookings/my, DELETE /api/bookings/{id} (owner only, pending only, soft cancel), and Free Now fields. Decisions from the user: any signed-in role books; admin bookings are approved at once; professors wait for approval.

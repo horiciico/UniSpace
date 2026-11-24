@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MOCK · DS-unispace-admin-rooms · draft</title>
+    <!-- Mock only: the real page will be frontend/pages/admin/index.html, with a third tab. -->
+    <link rel="stylesheet" href="../../../frontend/styles/tokens.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/base.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/header.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/buttons.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/pills.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/cards.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/tables-and-lists.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/forms.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/notice.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/tabs-and-chips.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/utilities.css" />
+    <style>
+      /* Mock scaffolding only. */
+      .mock-bar { display: flex; gap: var(--space-2); padding: var(--space-3) var(--space-4); background: var(--color-warning-bg); color: var(--color-warning-text); flex-wrap: wrap; }
+      .mock-label { margin: var(--space-7) 0 var(--space-2); font-size: var(--text-sm); font-weight: 700; color: var(--color-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+      .mock-state { border-top: 1px dashed var(--color-border); padding-top: var(--space-4); }
+      /* New in the real page (tokens only). */
+      .room-panel { display: grid; gap: var(--space-3); margin-top: var(--space-4); }
+    </style>
+  </head>
+  <body>
+    <div class="mock-bar">
+      <strong>Draft mock, not built.</strong>
+      <span>Admin Rooms tab. Needs your confirmation before the tab is built (DESIGN.md).</span>
+      <button class="btn btn-small" type="button" onclick="var d=document.documentElement;d.dataset.theme=d.dataset.theme==='dark'?'light':'dark'">Toggle light / dark</button>
+    </div>
+
+    <main id="main" class="container">
+      <p class="eyebrow">Admin</p>
+      <h1>Rooms</h1>
+      <p class="muted">Set what each room has and how to get into it. Students see the projector and the access on Free now.</p>
+
+      <div class="tabs my-5" role="tablist" aria-label="Views">
+        <button class="tab" role="tab" type="button" aria-selected="false">Pending requests</button>
+        <button class="tab" role="tab" type="button" aria-selected="false">Booking history</button>
+        <button class="tab" role="tab" type="button" aria-selected="true">Rooms</button>
+      </div>
+
+      <p class="mock-label">1 · Default: the rooms, filtered by faculty and name</p>
+      <div class="mock-state">
+        <div class="filter-bar">
+          <div class="field">
+            <label for="rm-faculty">Faculty</label>
+            <select id="rm-faculty">
+              <option>All</option>
+              <option>Campus</option>
+              <option>Facultatea de Inginerie</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="rm-search">Search by room name</label>
+            <input id="rm-search" type="search" placeholder="B110" />
+          </div>
+        </div>
+        <div class="table-wrap mt-3">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Room</th>
+                <th scope="col">Faculty</th>
+                <th scope="col">Seats</th>
+                <th scope="col">Bookable</th>
+                <th scope="col">Projector</th>
+                <th scope="col">Board</th>
+                <th scope="col">Access</th>
+                <th scope="col"><span class="visually-hidden">Edit</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>B110</strong></td>
+                <td>Facultatea de Inginerie</td>
+                <td>30</td>
+                <td><span class="pill pill--confirmed">Yes</span></td>
+                <td>Yes</td>
+                <td>Smartboard</td>
+                <td>Cheia la portar</td>
+                <td><button class="btn btn-secondary btn-small" type="button">Edit room B110</button></td>
+              </tr>
+              <tr>
+                <td><strong>L2</strong></td>
+                <td>Campus</td>
+                <td>24</td>
+                <td><span class="pill pill--danger">No</span></td>
+                <td>Unspecified</td>
+                <td>Unspecified</td>
+                <td>Unspecified</td>
+                <td><button class="btn btn-secondary btn-small" type="button">Edit room L2</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <p class="mock-label">2 · Editing one room (opens under the table)</p>
+      <section class="card mock-state" aria-labelledby="edit-title">
+        <h2 id="edit-title">Edit room B110</h2>
+        <p class="muted">Facultatea de Inginerie · 30 seats (from the ULBS list, not editable here).</p>
+        <form class="room-panel">
+          <div class="field">
+            <label><input type="checkbox" checked /> Bookable (students can request it)</label>
+          </div>
+          <div class="field">
+            <label for="rm-projector">Projector</label>
+            <select id="rm-projector">
+              <option>Unspecified</option>
+              <option selected>Yes</option>
+              <option>No</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="rm-board">Board type</label>
+            <select id="rm-board">
+              <option>Unspecified</option>
+              <option>Whiteboard</option>
+              <option>Blackboard</option>
+              <option selected>Smartboard</option>
+              <option>None</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="rm-access">Access notes</label>
+            <input id="rm-access" type="text" maxlength="255" value="Cheia la portar" />
+            <span class="muted">Plain words, for example: "Key from the porter, room 2, ground floor."</span>
+          </div>
+          <div class="field">
+            <label for="rm-equipment">Equipment and inventory notes</label>
+            <textarea id="rm-equipment" maxlength="500">24 PCs, 10 oscilloscopes, 6 soldering irons</textarea>
+            <span class="muted">Admin only. Not shown on Free now.</span>
+          </div>
+          <div class="btn-group">
+            <button class="btn" type="submit">Save</button>
+            <button class="btn btn-secondary" type="button">Cancel</button>
+          </div>
+        </form>
+      </section>
+
+      <p class="mock-label">3 · Notes</p>
+      <ul class="muted">
+        <li>The Rooms tab is the third tab. The two existing tabs do not change.</li>
+        <li>Each field has a label. "Unspecified" clears the value (NULL). Students see no "unspecified" text on Free now.</li>
+        <li>Save names the action. A failed save says what happened and what to do next.</li>
+        <li>Notes are plain text, no formatting. Access notes up to 255 characters, equipment notes up to 500.</li>
+      </ul>
+    </main>
+  </body>
+</html>
