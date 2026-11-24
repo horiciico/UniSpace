@@ -26,7 +26,9 @@ describe("grid.js: free modules of a bookable room", () => {
     const button = container.querySelector(".tt-free");
     expect(button.tagName).toBe("BUTTON");
     expect(button.type).toBe("button");
-    expect(button.textContent).toBe("Book 10:00–11:30");
+    expect(button.querySelector(".tt-free__plus").textContent).toBe("+");
+    expect(button.querySelector(".tt-free__plus").getAttribute("aria-hidden")).toBe("true");
+    expect(button.querySelector(".tt-free__label").textContent).toBe("Book 10:00–11:30");
     expect(button.getAttribute("aria-label")).toBe("Book 10:00–11:30, Tue");
     expect(button.disabled).toBe(false);
     expect(button.parentElement.classList.contains("tt-day")).toBe(true);
@@ -44,6 +46,8 @@ describe("grid.js: free modules of a bookable room", () => {
 
     const button = container.querySelector(".tt-free");
     expect(button.disabled).toBe(true);
+    expect(button.classList.contains("tt-free--past")).toBe(true);
+    expect(button.textContent).toBe("");
     expect(button.hasAttribute("aria-label")).toBe(false);
     button.click();
     expect(onClick).not.toHaveBeenCalled();

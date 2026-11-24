@@ -223,25 +223,60 @@
 .legend__swatch--other { background: var(--color-danger-text); }
 .legend__swatch--booking { background: var(--color-accent); }
 
-/* A free module of a bookable room in the room view: a dashed box that opens the Bookings page. */
+/* A free module of a bookable room in the room view. Clean at rest: a faint plus. On hover or focus
+   it gets a soft tint and border, and the "+ Book" label. A past module is blank and cannot be clicked. */
 .tt-free {
   position: absolute;
   box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--space-1);
-  border: 1px dashed var(--color-primary);
+  padding: 0;
+  border: 1px solid transparent;
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--color-primary);
+  font: inherit;
   font-size: var(--text-sm);
   font-weight: 600;
   cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease;
 }
 
-.tt-free:hover {
-  background: var(--color-info-bg);
+.tt-free__plus,
+.tt-free__label {
+  transition: opacity 150ms ease;
+}
+
+.tt-free__plus {
+  font-size: var(--text-lg);
+  color: var(--color-slot-icon);
+}
+
+.tt-free__label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  white-space: nowrap;
+}
+
+.tt-free:not(.tt-free--past):hover,
+.tt-free:not(.tt-free--past):focus-visible {
+  background: var(--color-slot-hover-bg);
+  border-color: var(--color-slot-hover-border);
+}
+
+.tt-free:not(.tt-free--past):hover .tt-free__plus,
+.tt-free:not(.tt-free--past):focus-visible .tt-free__plus {
+  opacity: 0;
+}
+
+.tt-free:not(.tt-free--past):hover .tt-free__label,
+.tt-free:not(.tt-free--past):focus-visible .tt-free__label {
+  opacity: 1;
 }
 
 .tt-free:focus-visible {
@@ -249,10 +284,13 @@
   outline-offset: 1px;
 }
 
-.tt-free:disabled {
-  border-style: solid;
-  border-color: var(--color-border);
-  color: var(--color-muted);
-  cursor: not-allowed;
-  background: transparent;
+.tt-free--past {
+  cursor: default;
+  background: var(--color-border);
+  opacity: 0.35;
+}
+
+.tt-hint {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-sm);
 }

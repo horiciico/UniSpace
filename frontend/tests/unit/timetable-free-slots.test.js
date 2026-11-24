@@ -53,15 +53,19 @@ describe("timetable.js: free modules of a bookable room", () => {
 
     // 7 days x 8 modules, less the one Monday module that the course takes (09:40-11:10).
     expect(freeButtons()).toHaveLength(7 * 8 - 1);
-    const labels = freeButtons().map((b) => b.textContent);
-    expect(labels.filter((label) => label === "Book 09:40–11:10")).toHaveLength(6);
+    expect(document.getElementById("tt-hint").hidden).toBe(false);
+    const at0940 = freeButtons().filter((b) => b.getAttribute("aria-label").startsWith("Book 09:40–11:10"));
+    expect(at0940).toHaveLength(6);
+    expect(freeButtons().find((b) => !b.disabled).querySelector(".tt-free__label").textContent).toBe("+ Book");
   });
 
   it("disables the modules that have already started today", async () => {
     await setup();
 
     const disabled = freeButtons().filter((b) => b.disabled);
-    expect(disabled.map((b) => b.textContent)).toEqual(["Past"]);
+    expect(disabled).toHaveLength(1);
+    expect(disabled[0].classList.contains("tt-free--past")).toBe(true);
+    expect(disabled[0].getAttribute("aria-label")).toBe("Past");
   });
 
   it("opens the Bookings page for the room and the module that was clicked", async () => {
@@ -82,6 +86,7 @@ describe("timetable.js: free modules of a bookable room", () => {
     await setup({ bookable: false });
 
     expect(freeButtons()).toHaveLength(0);
+    expect(document.getElementById("tt-hint").hidden).toBe(true);
     expect(document.querySelectorAll(".tt-block")).toHaveLength(1);
   });
 });

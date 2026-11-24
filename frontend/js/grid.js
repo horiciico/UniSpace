@@ -126,9 +126,19 @@
     }
 
     (freeSlots || []).forEach(function (slot) {
-      var button = element("button", "tt-free", slot.label);
+      // A free slot is blank until it is hovered or focused, when its label appears (see timetable.css).
+      // A past slot is blank and cannot be clicked.
+      var button = element("button", "tt-free");
       button.type = "button";
       button.disabled = Boolean(slot.disabled);
+      if (slot.disabled) {
+        button.classList.add("tt-free--past");
+      } else {
+        var plus = element("span", "tt-free__plus", "+");
+        plus.setAttribute("aria-hidden", "true");
+        button.appendChild(plus);
+        button.appendChild(element("span", "tt-free__label", slot.label));
+      }
       if (slot.ariaLabel) button.setAttribute("aria-label", slot.ariaLabel);
       placeBlock(button, { startMin: slot.startMin, endMin: slot.endMin, lane: 0, lanes: 1 });
       button.addEventListener("click", slot.onClick);

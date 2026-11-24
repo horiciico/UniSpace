@@ -24,6 +24,7 @@
   var weekLabel = document.getElementById("tt-week-label");
   var dialog = document.getElementById("tt-dialog");
   var tabs = document.querySelectorAll("[role='tab'][data-mode]");
+  var bookHint = document.getElementById("tt-hint");
 
   var ENTITY_LABEL_KEYS = {
     group: "timetable.entityGroup",
@@ -270,8 +271,8 @@
           startMin: module.startMin,
           endMin: module.endMin,
           disabled: opens <= now,
-          label: opens <= now ? t("bookings.slotPast") : t("bookings.bookSlot", { range: range }),
-          ariaLabel: t("bookings.bookSlotAria", { range: range, day: t(dayKey) }),
+          label: t("bookings.bookSlotShort"),
+          ariaLabel: opens <= now ? t("bookings.slotPast") : t("bookings.bookSlotAria", { range: range, day: t(dayKey) }),
           onClick: function () {
             window.location.assign(window.UniSpaceBookings.link({
               faculty_id: state.facultyId, room: state.entity.id, date: iso, start: module.start, end: module.end
@@ -283,9 +284,10 @@
     return slots;
   }
 
-  // Callers draw only when there are items.
+  // Callers draw only when there are items. The helper line shows for a bookable room only.
   function drawGrid() {
     grid.render(gridElement, state.items, openDetails, freeSlots());
+    bookHint.hidden = !(state.mode === "room" && state.entity && state.entity.bookable);
   }
 
   function openDetails(item) {

@@ -29,6 +29,9 @@
   --color-info-bg: #dbe7f2;
   --color-info-text: #1d3f63;
   --color-shadow: rgb(14 36 60 / 0.08);
+  --color-slot-hover-bg: rgb(45 212 191 / 0.08);
+  --color-slot-hover-border: rgb(45 212 191 / 0.35);
+  --color-slot-icon: rgb(45 212 191 / 0.2);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -54,6 +57,9 @@
     --color-info-bg: #1a3350;
     --color-info-text: #bcd9f2;
     --color-shadow: rgb(0 0 0 / 0.45);
+    --color-slot-hover-bg: rgb(45 212 191 / 0.08);
+    --color-slot-hover-border: rgb(45 212 191 / 0.35);
+    --color-slot-icon: rgb(45 212 191 / 0.2);
   }
 }
 
@@ -79,6 +85,9 @@
   --color-info-bg: #1a3350;
   --color-info-text: #bcd9f2;
   --color-shadow: rgb(0 0 0 / 0.45);
+  --color-slot-hover-bg: rgb(45 212 191 / 0.08);
+  --color-slot-hover-border: rgb(45 212 191 / 0.35);
+  --color-slot-icon: rgb(45 212 191 / 0.2);
 }
 
 :root {

@@ -18,6 +18,17 @@ What I got:
 - Contract C-005 added; C-003 change note added; Q-017 opened for cancelled and moved occurrences, which the shared helper ignores.
 What I did with it: on branch `feature/student-room-booking`. Backend 142 passed, ETL 113, frontend 252. `docker compose config` and `docker compose build backend` pass. Not committed or pushed. The Bookings page move to `pages/shared` is not done in this step.
 
+## 2026-11-24 · Free-slot polish in the room view
+Tool: Claude Code (Haiku 5.5), build
+What I asked: make the room-view free slots clean and modern: no border or text at rest (a faint plus), a 150ms hover with a tint, border and a + Book label; past slots blank and dimmed; a muted helper line above the grid for a bookable room.
+What I got:
+- Tokens: `--color-slot-hover-bg`, `--color-slot-hover-border`, `--color-slot-icon` in tokens.css (all three theme blocks). The hover values are your rgba values, now tokens (DESIGN.md: no raw colours in components).
+- `frontend/styles/components/timetable.css`: resting, hover and focus, past, and hint styles. `grid.js`: plus and label spans; past slots blank. `timetable.js`: label "+ Book", past name "Past", helper line `#tt-hint` shown for a bookable room.
+- i18n: bookings.bookSlotShort, timetable.bookHint; bookings.bookSlot removed (unused).
+- Tests updated for the new structure (grid-free-slots, timetable-free-slots) and the helper line checked.
+- Screenshots refreshed: docs/design/screens/DS-unispace-timetable-grid.{light,dark}.png (resting state only; hover not captured).
+What I did with it: on branch `feature/student-room-booking`. All suites pass: 565 (backend 152, ETL 113, frontend 300). Not committed or pushed.
+
 ## 2026-11-24 · Approved bookings shown in the room timetable
 Tool: Claude Code (Haiku 5.5), build
 What I asked: once approved, a booking should appear in the timetable.
