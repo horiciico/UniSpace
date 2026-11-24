@@ -119,6 +119,25 @@ describe("bookings page: the user's requests", () => {
     expect(approved.querySelector(".decision-note")).toBeNull();
   });
 
+  it("labels the submit button by what happens: a request for a student, a booking for an admin", async () => {
+    await setup();
+    expect($("bk-send").textContent).toBe("Request to book");
+  });
+
+  it("labels the submit button 'Book the room' for an admin, whose booking is approved at once", async () => {
+    await setup({ me: () => response(ADMIN) });
+    expect($("bk-send").textContent).toBe("Book the room");
+    expect($("bk-send").getAttribute("data-i18n")).toBe("bookings.book");
+  });
+
+  it("keeps the submit label in the new language", async () => {
+    await setup({ me: () => response(ADMIN), language: "en" });
+    window.UniSpaceI18n.setLanguage("ro");
+    await flush();
+    expect($("bk-send").textContent).toBe("Rezervă sala");
+    window.UniSpaceI18n.setLanguage("en");
+  });
+
   it("says so when there are no requests yet", async () => {
     await setup({ routes: { "/api/bookings/my": () => response([]) } });
 

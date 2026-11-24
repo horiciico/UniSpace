@@ -18,6 +18,12 @@ What I got:
 - Contract C-005 added; C-003 change note added; Q-017 opened for cancelled and moved occurrences, which the shared helper ignores.
 What I did with it: on branch `feature/student-room-booking`. Backend 142 passed, ETL 113, frontend 252. `docker compose config` and `docker compose build backend` pass. Not committed or pushed. The Bookings page move to `pages/shared` is not done in this step.
 
+## 2026-11-24 · Bookings page copy: intro, admin note and submit label
+Tool: Claude Code (Haiku 5.5), build
+What I asked: the intro line was not suitable, and the submit button must not say "Send request" when the booking is approved at once.
+What I got: new intro (students' and organizations' requests wait for an admin; admin bookings are approved at once), admin note reworded, and the submit button reads "Book the room" for an admin and "Request to book" for everyone else (Romanian: "Rezervă sala" / "Trimite solicitarea"). The label is a dictionary key, so it follows the language. Keys: bookings.book and bookings.requestBook added, bookings.send removed. Tests: 3 new in bookings-page.test.js.
+What I did with it: on branch `feature/23-admin-booking-review`. Frontend 319; all suites run below. Not committed or pushed. Not re-captured in a screenshot.
+
 ## 2026-11-24 · Issue #23: admin review page and the requester's note (frontend)
 Tool: Claude Code (Haiku 5.5), build
 What I asked: the mock for the admin review page was confirmed; build it, and show the administrator's message to the requester.
