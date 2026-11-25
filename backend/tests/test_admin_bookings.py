@@ -1,11 +1,12 @@
 """Issue #23: an admin reviews pending booking requests and accepts or rejects them.
 
-GET /api/admin/bookings/pending lists the pending requests with the requester's name, email and role.
-POST /api/admin/bookings/{id}/decision accepts (approve) or rejects (reject) one, with an optional message.
-Only an admin may do either. A decision is kept with who made it and when, and the requester sees it.
+GET /api/admin/bookings/pending lists pending requests with requester name, email and role.
+POST /api/admin/bookings/{id}/decision approves or rejects one, with an optional message.
+Only an admin may do either. A decision records who made it and when; the requester sees it.
 
 DB tests: the endpoints run against the rolled-back `db` fixture (PATTERN-005, PATTERN-006).
 """
+
 import uuid
 from collections.abc import Iterator
 from datetime import date, datetime, time
@@ -41,9 +42,21 @@ def make_client(db: Session) -> TestClient:
     return TestClient(app, base_url="https://testserver")
 
 
-def sign_in(db: Session, client: TestClient, monkeypatch: pytest.MonkeyPatch, sub: str, email: str,
-            role: Role = Role.STUDENT) -> User:
-    claims = {"sub": sub, "email": email, "email_verified": True, "hd": "ulbsibiu.ro", "name": "Test"}
+def sign_in(
+    db: Session,
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+    sub: str,
+    email: str,
+    role: Role = Role.STUDENT,
+) -> User:
+    claims = {
+        "sub": sub,
+        "email": email,
+        "email_verified": True,
+        "hd": "ulbsibiu.ro",
+        "name": "Test",
+    }
 
     async def fake(request):
         return {"userinfo": claims}
@@ -66,8 +79,14 @@ def room(db: Session) -> Classroom:
 
 
 def booking(db: Session, user: User, room: Classroom, **kw) -> Booking:
-    values = dict(user_id=user.id, classroom_id=room.id, specific_date=date(2026, 12, 14),
-                  start_time=time(13, 0), end_time=time(14, 30), title="Club")
+    values = dict(
+        user_id=user.id,
+        classroom_id=room.id,
+        specific_date=date(2026, 12, 14),
+        start_time=time(13, 0),
+        end_time=time(14, 30),
+        title="Club",
+    )
     values.update(kw)
     row = Booking(**values)
     db.add(row)
@@ -89,13 +108,24 @@ def test_the_pending_list_shows_each_requester_and_role(db, room, monkeypatch) -
     db.add(org)
     db.flush()
     booking(db, org, room, title="Robotics workshop")
-    booking(db, org, room, title="Approved one", status=BookingStatus.APPROVED, start_time=time(15, 0),
-            end_time=time(16, 30))
+    booking(
+        db,
+        org,
+        room,
+        title="Approved one",
+        status=BookingStatus.APPROVED,
+        start_time=time(15, 0),
+        end_time=time(16, 30),
+    )
 
     rows = admin.get("/api/admin/bookings/pending").json()
 
     assert [r["title"] for r in rows] == ["Robotics workshop"]
-    assert rows[0]["requester"] == {"name": "Clubul de robotica", "email": "org@ulbsibiu.ro", "role": "STUDENT_ORG"}
+    assert rows[0]["requester"] == {
+        "name": "Clubul de robotica",
+        "email": "org@ulbsibiu.ro",
+        "role": "STUDENT_ORG",
+    }
     assert rows[0]["room_name"] == room.name
     assert rows[0]["specific_date"] == DAY
 
@@ -105,7 +135,9 @@ def test_an_admin_accepts_a_request_and_the_requester_sees_it(db, room, monkeypa
     user = sign_in(db, student, monkeypatch, "sub-a3", "accept.student@ulbsibiu.ro")
     row = booking(db, user, room)
     admin = make_client(db)
-    admin_user = sign_in(db, admin, monkeypatch, "sub-a4", "accept.admin@ulbsibiu.ro", role=Role.ADMIN)
+    admin_user = sign_in(
+        db, admin, monkeypatch, "sub-a4", "accept.admin@ulbsibiu.ro", role=Role.ADMIN
+    )
 
     r = admin.post(f"/api/admin/bookings/{row.id}/decision", json={"decision": "approve"})
 
@@ -127,8 +159,10 @@ def test_an_admin_rejects_with_a_message_and_the_requester_reads_it(db, room, mo
     admin = make_client(db)
     sign_in(db, admin, monkeypatch, "sub-a6", "reject.admin@ulbsibiu.ro", role=Role.ADMIN)
 
-    r = admin.post(f"/api/admin/bookings/{row.id}/decision",
-                   json={"decision": "reject", "message": "Sala e rezervată pentru un examen."})
+    r = admin.post(
+        f"/api/admin/bookings/{row.id}/decision",
+        json={"decision": "reject", "message": "Sala e rezervată pentru un examen."},
+    )
 
     assert r.status_code == 200
     assert r.json()["status"] == "rejected"
@@ -144,7 +178,9 @@ def test_a_rejection_without_a_message_stores_none(db, room, monkeypatch) -> Non
     admin = make_client(db)
     sign_in(db, admin, monkeypatch, "sub-a8", "quiet.admin@ulbsibiu.ro", role=Role.ADMIN)
 
-    admin.post(f"/api/admin/bookings/{row.id}/decision", json={"decision": "reject", "message": "   "})
+    admin.post(
+        f"/api/admin/bookings/{row.id}/decision", json={"decision": "reject", "message": "   "}
+    )
 
     db.refresh(row)
     assert row.status == BookingStatus.REJECTED
@@ -158,7 +194,9 @@ def test_a_message_longer_than_100_characters_is_refused(db, room, monkeypatch) 
     admin = make_client(db)
     sign_in(db, admin, monkeypatch, "sub-a10", "long.admin@ulbsibiu.ro", role=Role.ADMIN)
 
-    r = admin.post(f"/api/admin/bookings/{row.id}/decision", json={"decision": "reject", "message": "x" * 101})
+    r = admin.post(
+        f"/api/admin/bookings/{row.id}/decision", json={"decision": "reject", "message": "x" * 101}
+    )
 
     assert r.status_code == 422
     db.refresh(row)
@@ -183,7 +221,9 @@ def test_accepting_a_request_that_now_clashes_is_409(db, room, monkeypatch) -> N
     student = make_client(db)
     user = sign_in(db, student, monkeypatch, "sub-a13", "clash.student@ulbsibiu.ro")
     pending = booking(db, user, room, start_time=time(13, 0), end_time=time(14, 30))
-    booking(db, user, room, start_time=time(13, 0), end_time=time(14, 30), status=BookingStatus.APPROVED)
+    booking(
+        db, user, room, start_time=time(13, 0), end_time=time(14, 30), status=BookingStatus.APPROVED
+    )
     admin = make_client(db)
     sign_in(db, admin, monkeypatch, "sub-a14", "clash.admin@ulbsibiu.ro", role=Role.ADMIN)
 
@@ -209,8 +249,16 @@ def test_a_student_cannot_decide(db, room, monkeypatch) -> None:
 def test_an_unknown_request_is_404_and_a_bad_decision_is_422(db, room, monkeypatch) -> None:
     admin = make_client(db)
     sign_in(db, admin, monkeypatch, "sub-a16", "unknown.admin@ulbsibiu.ro", role=Role.ADMIN)
-    assert admin.post(f"/api/admin/bookings/{uuid.uuid4()}/decision", json={"decision": "approve"}).status_code == 404
+    assert (
+        admin.post(
+            f"/api/admin/bookings/{uuid.uuid4()}/decision", json={"decision": "approve"}
+        ).status_code
+        == 404
+    )
 
     user = db.scalar(select(User).where(User.email == "unknown.admin@ulbsibiu.ro"))
     row = booking(db, user, room)
-    assert admin.post(f"/api/admin/bookings/{row.id}/decision", json={"decision": "maybe"}).status_code == 422
+    assert (
+        admin.post(f"/api/admin/bookings/{row.id}/decision", json={"decision": "maybe"}).status_code
+        == 422
+    )

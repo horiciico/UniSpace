@@ -1,11 +1,12 @@
 """Shared fixtures. DB tests run the real Alembic migration, then roll every test back."""
+
 from collections.abc import Iterator
 
 import pytest
-from alembic import command
 from alembic.config import Config
 from sqlalchemy.orm import Session
 
+from alembic import command
 from app.db import engine
 
 

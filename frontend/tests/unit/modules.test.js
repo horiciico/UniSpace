@@ -11,7 +11,12 @@ describe("modules.js: the module schedule", () => {
     const { list } = window.UniSpaceModules;
     expect(list).toHaveLength(8);
     expect(list.map((m) => m.number)).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
-    expect(list[0]).toMatchObject({ start: "08:00", end: "09:30", startMin: 480, endMin: 570 });
+    expect(list[0]).toMatchObject({
+      start: "08:00",
+      end: "09:30",
+      startMin: 480,
+      endMin: 570,
+    });
     expect(list[1]).toMatchObject({ start: "09:40", end: "11:10" });
     expect(list[7]).toMatchObject({ start: "19:40", end: "21:10" });
   });

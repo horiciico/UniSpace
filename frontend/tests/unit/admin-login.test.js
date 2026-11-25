@@ -1,5 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { deferred, flush, loadI18n, loadScript, mountPage } from "../helpers.js";
+import {
+  deferred,
+  flush,
+  loadI18n,
+  loadScript,
+  mountPage,
+} from "../helpers.js";
 
 const realLocation = window.location;
 const $ = (id) => document.getElementById(id);
@@ -11,7 +17,7 @@ async function loadAdminLogin({ language = "en" } = {}) {
   const replace = vi.fn();
   Object.defineProperty(window, "location", {
     configurable: true,
-    value: { pathname: "/login", search: "", replace }
+    value: { pathname: "/login", search: "", replace },
   });
   mountPage("pages/shared/login.html");
   await loadI18n(language);
@@ -26,19 +32,36 @@ function fetchAnswers(result) {
   return fetch;
 }
 
-const ok = () => ({ ok: true, status: 200, json: () => Promise.resolve({ role: "ADMIN" }) });
-const status = (code) => ({ ok: false, status: code, json: () => Promise.resolve({}) });
+const ok = () => ({
+  ok: true,
+  status: 200,
+  json: () => Promise.resolve({ role: "ADMIN" }),
+});
+const status = (code) => ({
+  ok: false,
+  status: code,
+  json: () => Promise.resolve({}),
+});
 
 function type(id, value) {
   $(id).value = value;
 }
 
 function press(key, options = {}, target = document) {
-  target.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true, cancelable: true, ...options }));
+  target.dispatchEvent(
+    new KeyboardEvent("keydown", {
+      key,
+      bubbles: true,
+      cancelable: true,
+      ...options,
+    }),
+  );
 }
 
 function submitForm() {
-  $("admin-form").dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+  $("admin-form").dispatchEvent(
+    new Event("submit", { bubbles: true, cancelable: true }),
+  );
 }
 
 describe("admin-login.js: the administrator sign-in modal", () => {
@@ -47,7 +70,10 @@ describe("admin-login.js: the administrator sign-in modal", () => {
   });
 
   afterEach(() => {
-    Object.defineProperty(window, "location", { configurable: true, value: realLocation });
+    Object.defineProperty(window, "location", {
+      configurable: true,
+      value: realLocation,
+    });
     vi.unstubAllGlobals();
   });
 
@@ -136,7 +162,10 @@ describe("admin-login.js: the administrator sign-in modal", () => {
     expect(url).toBe("/auth/admin-login");
     expect(options.method).toBe("POST");
     expect(options.headers["Content-Type"]).toBe("application/json");
-    expect(JSON.parse(options.body)).toEqual({ username: "admin", password: "s3cret" });
+    expect(JSON.parse(options.body)).toEqual({
+      username: "admin",
+      password: "s3cret",
+    });
     expect(replace).toHaveBeenCalledWith("/");
   });
 
@@ -152,7 +181,9 @@ describe("admin-login.js: the administrator sign-in modal", () => {
 
     expect(dialog().hidden).toBe(false);
     expect($("admin-error").hidden).toBe(false);
-    expect($("admin-error").textContent).toBe(window.UniSpaceI18n.t("admin.invalid"));
+    expect($("admin-error").textContent).toBe(
+      window.UniSpaceI18n.t("admin.invalid"),
+    );
     expect($("admin-username").getAttribute("aria-invalid")).toBe("true");
     expect($("admin-password").value).toBe("");
     expect(document.activeElement).toBe($("admin-password"));
@@ -167,7 +198,9 @@ describe("admin-login.js: the administrator sign-in modal", () => {
     submitForm();
     await flush();
 
-    expect($("admin-error").textContent).toBe(window.UniSpaceI18n.t("admin.failed"));
+    expect($("admin-error").textContent).toBe(
+      window.UniSpaceI18n.t("admin.failed"),
+    );
     expect($("admin-password").getAttribute("aria-invalid")).toBe("false");
   });
 
@@ -179,7 +212,9 @@ describe("admin-login.js: the administrator sign-in modal", () => {
     submitForm();
     await flush();
 
-    expect($("admin-error").textContent).toBe(window.UniSpaceI18n.t("admin.failed"));
+    expect($("admin-error").textContent).toBe(
+      window.UniSpaceI18n.t("admin.failed"),
+    );
   });
 
   it("sends one request at a time and disables Sign in while it waits", async () => {
@@ -209,7 +244,9 @@ describe("admin-login.js: the administrator sign-in modal", () => {
     window.UniSpaceI18n.setLanguage("ro");
     await flush();
 
-    expect($("admin-error").textContent).toBe(window.UniSpaceI18n.t("admin.invalid"));
+    expect($("admin-error").textContent).toBe(
+      window.UniSpaceI18n.t("admin.invalid"),
+    );
     expect($("admin-error").textContent).not.toBe(english);
   });
 
@@ -237,7 +274,9 @@ describe("admin-login.js: the administrator sign-in modal", () => {
     vi.resetModules();
     document.body.innerHTML = "<main><p>No admin link here</p></main>";
     await loadI18n("en");
-    await expect(loadScript("components/admin-login.js")).resolves.toBeUndefined();
+    await expect(
+      loadScript("components/admin-login.js"),
+    ).resolves.toBeUndefined();
     expect(document.getElementById("admin-open")).toBeNull();
   });
 });

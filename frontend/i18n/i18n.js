@@ -17,9 +17,7 @@
  * A key missing in the chosen language falls back to English, then to the key itself,
  * with a console warning, so a gap is visible rather than silent.
  */
-(function () {
-  "use strict";
-
+(() => {
   var LANGUAGES = ["ro", "en"];
   var DEFAULT_LANGUAGE = "ro";
   var STORAGE_KEY = "unispace-lang";
@@ -27,7 +25,7 @@
 
   function fromStorage() {
     try {
-      var value = localStorage.getItem(STORAGE_KEY);
+      const value = localStorage.getItem(STORAGE_KEY);
       return LANGUAGES.indexOf(value) !== -1 ? value : null;
     } catch (error) {
       return null;
@@ -35,11 +33,12 @@
   }
 
   function fromBrowser() {
-    var list = navigator.languages && navigator.languages.length
-      ? navigator.languages
-      : [navigator.language || ""];
-    for (var i = 0; i < list.length; i++) {
-      var code = String(list[i]).toLowerCase().split("-")[0];
+    var list =
+      navigator.languages && navigator.languages.length
+        ? navigator.languages
+        : [navigator.language || ""];
+    for (let i = 0; i < list.length; i++) {
+      const code = String(list[i]).toLowerCase().split("-")[0];
       if (LANGUAGES.indexOf(code) !== -1) return code;
     }
     return DEFAULT_LANGUAGE;
@@ -50,7 +49,7 @@
 
   function lookup(language, key) {
     var dictionary = dictionaries[language];
-    return dictionary && Object.prototype.hasOwnProperty.call(dictionary, key)
+    return dictionary && Object.hasOwn(dictionary, key)
       ? dictionary[key]
       : undefined;
   }
@@ -59,13 +58,13 @@
     var text = lookup(current, key);
     if (text === undefined) text = lookup("en", key);
     if (text === undefined) {
-      console.warn("i18n: no text for key \"" + key + "\"");
+      console.warn('i18n: no text for key "' + key + '"');
       return key;
     }
     if (vars) {
-      text = text.replace(/\{(\w+)\}/g, function (match, name) {
-        return vars[name] !== undefined ? vars[name] : match;
-      });
+      text = text.replace(/\{(\w+)\}/g, (match, name) =>
+        vars[name] !== undefined ? vars[name] : match,
+      );
     }
     return text;
   }
@@ -73,25 +72,33 @@
   // "time:14:30;n:5" -> { time: "14:30", n: "5" }. The first colon separates name and value.
   function parseVars(spec) {
     var vars = {};
-    spec.split(";").forEach(function (pair) {
+    spec.split(";").forEach((pair) => {
       var index = pair.indexOf(":");
-      if (index > 0) vars[pair.slice(0, index).trim()] = pair.slice(index + 1).trim();
+      if (index > 0)
+        vars[pair.slice(0, index).trim()] = pair.slice(index + 1).trim();
     });
     return vars;
   }
 
   function applyTo(root) {
-    root.querySelectorAll("[data-i18n]").forEach(function (el) {
-      var vars = el.hasAttribute("data-i18n-vars") ? parseVars(el.getAttribute("data-i18n-vars")) : null;
+    root.querySelectorAll("[data-i18n]").forEach((el) => {
+      var vars = el.hasAttribute("data-i18n-vars")
+        ? parseVars(el.getAttribute("data-i18n-vars"))
+        : null;
       el.textContent = t(el.getAttribute("data-i18n"), vars);
     });
-    root.querySelectorAll("[data-i18n-attr]").forEach(function (el) {
-      el.getAttribute("data-i18n-attr").split(";").forEach(function (pair) {
-        var index = pair.indexOf(":");
-        if (index > 0) {
-          el.setAttribute(pair.slice(0, index).trim(), t(pair.slice(index + 1).trim()));
-        }
-      });
+    root.querySelectorAll("[data-i18n-attr]").forEach((el) => {
+      el.getAttribute("data-i18n-attr")
+        .split(";")
+        .forEach((pair) => {
+          var index = pair.indexOf(":");
+          if (index > 0) {
+            el.setAttribute(
+              pair.slice(0, index).trim(),
+              t(pair.slice(index + 1).trim()),
+            );
+          }
+        });
     });
   }
 
@@ -105,24 +112,24 @@
     }
     document.documentElement.lang = language;
     applyTo(document);
-    document.dispatchEvent(new CustomEvent("unispace:langchange", { detail: { lang: language } }));
+    document.dispatchEvent(
+      new CustomEvent("unispace:langchange", { detail: { lang: language } }),
+    );
   }
 
   window.UniSpaceI18n = {
     languages: LANGUAGES.slice(),
-    register: function (language, dictionary) {
+    register: (language, dictionary) => {
       dictionaries[language] = dictionary;
     },
     t: t,
-    current: function () {
-      return current;
-    },
+    current: () => current,
     setLanguage: setLanguage,
-    apply: applyTo
+    apply: applyTo,
   };
 
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", () => {
       applyTo(document);
     });
   } else {

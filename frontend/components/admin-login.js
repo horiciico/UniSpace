@@ -4,9 +4,7 @@
  * inline error and keeps the modal open; success loads the home page, which then shows the
  * signed-in admin. The password is never stored, logged or shown.
  */
-(function () {
-  "use strict";
-
+(() => {
   var t = window.UniSpaceI18n.t;
   var state = { opener: null, errorKey: null, busy: false };
 
@@ -21,7 +19,7 @@
   function focusable() {
     return Array.prototype.slice
       .call(dialog().querySelectorAll("input, button"))
-      .filter(function (el) { return !el.disabled; });
+      .filter((el) => !el.disabled);
   }
 
   function renderError() {
@@ -31,7 +29,7 @@
   }
 
   function setInvalid(invalid) {
-    ["admin-username", "admin-password"].forEach(function (id) {
+    ["admin-username", "admin-password"].forEach((id) => {
       $(id).setAttribute("aria-invalid", invalid ? "true" : "false");
     });
   }
@@ -62,25 +60,32 @@
     setBusy(true);
     fetch("/auth/admin-login", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
-      body: JSON.stringify({ username: $("admin-username").value, password: $("admin-password").value })
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        username: $("admin-username").value,
+        password: $("admin-password").value,
+      }),
     })
-      .then(function (response) {
+      .then((response) => {
         if (response.ok) {
           window.location.replace("/");
           return;
         }
-        state.errorKey = response.status === 401 ? "admin.invalid" : "admin.failed";
+        state.errorKey =
+          response.status === 401 ? "admin.invalid" : "admin.failed";
         setInvalid(response.status === 401);
         $("admin-password").value = "";
         $("admin-password").focus();
         renderError();
       })
-      .catch(function () {
+      .catch(() => {
         state.errorKey = "admin.failed";
         renderError();
       })
-      .then(function () {
+      .then(() => {
         setBusy(false);
       });
   }

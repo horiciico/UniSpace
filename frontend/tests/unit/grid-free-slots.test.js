@@ -20,15 +20,27 @@ describe("grid.js: free modules of a bookable room", () => {
   it("draws each free module as a button in its day column, with its label and name", () => {
     const onClick = vi.fn();
     grid.render(container, [], undefined, [
-      { day_of_week: 2, startMin: 600, endMin: 690, label: "Book 10:00–11:30", ariaLabel: "Book 10:00–11:30, Tue", disabled: false, onClick }
+      {
+        day_of_week: 2,
+        startMin: 600,
+        endMin: 690,
+        label: "Book 10:00–11:30",
+        ariaLabel: "Book 10:00–11:30, Tue",
+        disabled: false,
+        onClick,
+      },
     ]);
 
     const button = container.querySelector(".tt-free");
     expect(button.tagName).toBe("BUTTON");
     expect(button.type).toBe("button");
     expect(button.querySelector(".tt-free__plus").textContent).toBe("+");
-    expect(button.querySelector(".tt-free__plus").getAttribute("aria-hidden")).toBe("true");
-    expect(button.querySelector(".tt-free__label").textContent).toBe("Book 10:00–11:30");
+    expect(
+      button.querySelector(".tt-free__plus").getAttribute("aria-hidden"),
+    ).toBe("true");
+    expect(button.querySelector(".tt-free__label").textContent).toBe(
+      "Book 10:00–11:30",
+    );
     expect(button.getAttribute("aria-label")).toBe("Book 10:00–11:30, Tue");
     expect(button.disabled).toBe(false);
     expect(button.parentElement.classList.contains("tt-day")).toBe(true);
@@ -41,7 +53,14 @@ describe("grid.js: free modules of a bookable room", () => {
   it("draws a disabled slot that cannot be clicked, and a slot with no name without an aria label", () => {
     const onClick = vi.fn();
     grid.render(container, [], undefined, [
-      { day_of_week: 1, startMin: 480, endMin: 570, label: "Past", disabled: true, onClick }
+      {
+        day_of_week: 1,
+        startMin: 480,
+        endMin: 570,
+        label: "Past",
+        disabled: true,
+        onClick,
+      },
     ]);
 
     const button = container.querySelector(".tt-free");

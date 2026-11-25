@@ -2,19 +2,18 @@
  * Component: the RO | EN language switch (a two-segment pill in the header).
  * Clicking a segment calls UniSpaceI18n.setLanguage; the app rebuilds the chrome.
  */
-(function () {
-  "use strict";
+(() => {
+  window.UniSpaceUI = window.UniSpaceUI || {};
+  var UI = window.UniSpaceUI;
 
-  var UI = (window.UniSpaceUI = window.UniSpaceUI || {});
-
-  UI.languageToggle = function () {
+  UI.languageToggle = () => {
     var t = window.UniSpaceI18n.t;
     var group = document.createElement("div");
     group.className = "lang-toggle";
     group.setAttribute("role", "group");
     group.setAttribute("aria-label", t("header.language"));
     var current = window.UniSpaceI18n.current();
-    window.UniSpaceI18n.languages.forEach(function (code) {
+    window.UniSpaceI18n.languages.forEach((code) => {
       var button = document.createElement("button");
       button.type = "button";
       button.className = "lang-toggle__btn";
@@ -23,7 +22,7 @@
       button.setAttribute("aria-pressed", String(code === current));
       group.appendChild(button);
     });
-    group.addEventListener("click", function (event) {
+    group.addEventListener("click", (event) => {
       var button = event.target.closest("[data-lang]");
       if (button) window.UniSpaceI18n.setLanguage(button.dataset.lang);
     });

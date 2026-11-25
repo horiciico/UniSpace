@@ -55,7 +55,8 @@ describe("toast.js: messages and the placeholder actions", () => {
     });
 
     it("stops a placeholder form from sending and says nothing was saved", () => {
-      document.body.innerHTML = '<form data-placeholder><button>Save</button></form>';
+      document.body.innerHTML =
+        "<form data-placeholder><button>Save</button></form>";
       const submit = new Event("submit", { bubbles: true, cancelable: true });
       document.querySelector("form").dispatchEvent(submit);
       expect(submit.defaultPrevented).toBe(true);
@@ -80,22 +81,30 @@ describe("toast.js: messages and the placeholder actions", () => {
     it("runs a placeholder action with its own message, without following the link", () => {
       document.body.innerHTML =
         '<a id="go" href="#x" data-placeholder-action="placeholder.icsDownload"><span id="inner">Go</span></a>';
-      const click = new MouseEvent("click", { bubbles: true, cancelable: true });
+      const click = new MouseEvent("click", {
+        bubbles: true,
+        cancelable: true,
+      });
       document.getElementById("inner").dispatchEvent(click);
       expect(click.defaultPrevented).toBe(true);
       expect(toastEl().textContent).toBe(t("placeholder.icsDownload"));
     });
 
     it("uses the generic message for a placeholder action with no message key", () => {
-      document.body.innerHTML = '<button id="b" data-placeholder-action=""></button>';
+      document.body.innerHTML =
+        '<button id="b" data-placeholder-action=""></button>';
       document.getElementById("b").click();
       expect(toastEl().textContent).toBe(t("placeholder.generic"));
     });
 
     it("copies the value of the named input and confirms it", async () => {
       const writeText = vi.fn(() => Promise.resolve());
-      Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
-      document.body.innerHTML = '<input id="src" value="abc"><button id="c" data-copy="#src"></button>';
+      Object.defineProperty(navigator, "clipboard", {
+        configurable: true,
+        value: { writeText },
+      });
+      document.body.innerHTML =
+        '<input id="src" value="abc"><button id="c" data-copy="#src"></button>';
       document.getElementById("c").click();
       expect(writeText).toHaveBeenCalledWith("abc");
       await flush();
@@ -104,7 +113,10 @@ describe("toast.js: messages and the placeholder actions", () => {
     });
 
     it("says copying is unavailable when the input is not on the page", () => {
-      Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: vi.fn() } });
+      Object.defineProperty(navigator, "clipboard", {
+        configurable: true,
+        value: { writeText: vi.fn() },
+      });
       document.body.innerHTML = '<button id="c" data-copy="#missing"></button>';
       document.getElementById("c").click();
       expect(toastEl().textContent).toBe(t("toast.copyUnavailable"));
@@ -112,14 +124,18 @@ describe("toast.js: messages and the placeholder actions", () => {
     });
 
     it("says copying is unavailable when the browser has no clipboard", () => {
-      document.body.innerHTML = '<input id="src" value="abc"><button id="c" data-copy="#src"></button>';
+      document.body.innerHTML =
+        '<input id="src" value="abc"><button id="c" data-copy="#src"></button>';
       document.getElementById("c").click();
       expect(toastEl().textContent).toBe(t("toast.copyUnavailable"));
     });
 
     it("ignores clicks on anything else", () => {
       document.body.innerHTML = '<p id="plain">Text</p>';
-      const click = new MouseEvent("click", { bubbles: true, cancelable: true });
+      const click = new MouseEvent("click", {
+        bubbles: true,
+        cancelable: true,
+      });
       document.getElementById("plain").dispatchEvent(click);
       expect(click.defaultPrevented).toBe(false);
       expect(toastEl()).toBeNull();

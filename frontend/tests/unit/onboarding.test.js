@@ -1,5 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { deferred, flush, loadI18n, loadScript, queryOf, response, stubFetch } from "../helpers.js";
+import {
+  deferred,
+  flush,
+  loadI18n,
+  loadScript,
+  queryOf,
+  response,
+  stubFetch,
+} from "../helpers.js";
 
 const realLocation = window.location;
 const $ = (id) => document.getElementById(id);
@@ -7,30 +15,42 @@ const panel = () => document.getElementById("onboarding");
 
 const FACULTIES = [
   { id: "f1", code: "ing", name: "Inginerie" },
-  { id: "f2", code: "dre", name: "Drept" }
+  { id: "f2", code: "dre", name: "Drept" },
 ];
 const FORMATIONS = [
   { id: "g1", name: "332CA", faculty_id: "f1" },
-  { id: "g2", name: "331AB", faculty_id: "f1" }
+  { id: "g2", name: "331AB", faculty_id: "f1" },
 ];
-const NEW_STUDENT = { id: "u1", email: "ana@ulbsibiu.ro", name: "Ana", role: "STUDENT", needs_onboarding: true };
+const NEW_STUDENT = {
+  id: "u1",
+  email: "ana@ulbsibiu.ro",
+  name: "Ana",
+  role: "STUDENT",
+  needs_onboarding: true,
+};
 
 // The default answers of the backend: all faculties; formations only for f1.
 function defaultRoutes(overrides = {}) {
   return {
     "/api/faculties": () => response(FACULTIES),
-    "/api/groups": (url) => response(queryOf(url).faculty_id === "f1" ? FORMATIONS : []),
-    "/api/me/study-profile": () => response({ ...NEW_STUDENT, needs_onboarding: false }),
-    ...overrides
+    "/api/groups": (url) =>
+      response(queryOf(url).faculty_id === "f1" ? FORMATIONS : []),
+    "/api/me/study-profile": () =>
+      response({ ...NEW_STUDENT, needs_onboarding: false }),
+    ...overrides,
   };
 }
 
 // Loads the real api.js and the component for a visitor, the way head.html does.
-async function start({ user = NEW_STUDENT, path = "/", routes = defaultRoutes() } = {}) {
+async function start({
+  user = NEW_STUDENT,
+  path = "/",
+  routes = defaultRoutes(),
+} = {}) {
   vi.resetModules();
   Object.defineProperty(window, "location", {
     configurable: true,
-    value: { pathname: path, search: "", replace: vi.fn(), assign: vi.fn() }
+    value: { pathname: path, search: "", replace: vi.fn(), assign: vi.fn() },
   });
   document.body.innerHTML = "<main><p>The home page</p></main>";
   await loadI18n("en");
@@ -49,14 +69,24 @@ function choose(id, value) {
 }
 
 function submitForm() {
-  $("onboarding-form").dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+  $("onboarding-form").dispatchEvent(
+    new Event("submit", { bubbles: true, cancelable: true }),
+  );
 }
 
 function press(key, options = {}, target = document) {
-  target.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true, cancelable: true, ...options }));
+  target.dispatchEvent(
+    new KeyboardEvent("keydown", {
+      key,
+      bubbles: true,
+      cancelable: true,
+      ...options,
+    }),
+  );
 }
 
-const optionValues = (id) => Array.from($(id).options).map((option) => option.value);
+const optionValues = (id) =>
+  Array.from($(id).options).map((option) => option.value);
 
 describe("onboarding.js: a student's faculty and study formation", () => {
   beforeEach(() => {
@@ -64,7 +94,10 @@ describe("onboarding.js: a student's faculty and study formation", () => {
   });
 
   afterEach(() => {
-    Object.defineProperty(window, "location", { configurable: true, value: realLocation });
+    Object.defineProperty(window, "location", {
+      configurable: true,
+      value: realLocation,
+    });
     vi.unstubAllGlobals();
     delete window.UniSpaceAuth;
   });
@@ -94,7 +127,9 @@ describe("onboarding.js: a student's faculty and study formation", () => {
     expect(optionValues("onboarding-faculty")).toEqual(["", "f1", "f2"]);
     expect($("onboarding-faculty").options[1].textContent).toBe("Inginerie");
     expect($("onboarding-formation").disabled).toBe(true);
-    expect($("onboarding-formation").options[0].textContent).toBe("Choose a faculty first.");
+    expect($("onboarding-formation").options[0].textContent).toBe(
+      "Choose a faculty first.",
+    );
     expect($("onboarding-save").disabled).toBe(true);
     expect(document.activeElement).toBe($("onboarding-faculty"));
   });
@@ -105,11 +140,15 @@ describe("onboarding.js: a student's faculty and study formation", () => {
     choose("onboarding-faculty", "f1");
     await flush();
 
-    const groupCall = fetch.mock.calls.find(([url]) => url.startsWith("/api/groups"));
+    const groupCall = fetch.mock.calls.find(([url]) =>
+      url.startsWith("/api/groups"),
+    );
     expect(queryOf(groupCall[0])).toEqual({ faculty_id: "f1" });
     expect(optionValues("onboarding-formation")).toEqual(["", "g1", "g2"]);
     expect($("onboarding-formation").disabled).toBe(false);
-    expect($("onboarding-formation").options[0].textContent).toBe("Choose a study formation");
+    expect($("onboarding-formation").options[0].textContent).toBe(
+      "Choose a study formation",
+    );
   });
 
   it("says so when a faculty has no formations, and keeps that list disabled", async () => {
@@ -119,7 +158,9 @@ describe("onboarding.js: a student's faculty and study formation", () => {
     await flush();
 
     expect($("onboarding-hint").hidden).toBe(false);
-    expect($("onboarding-hint").textContent).toBe("No study formations are listed for this faculty yet.");
+    expect($("onboarding-hint").textContent).toBe(
+      "No study formations are listed for this faculty yet.",
+    );
     expect($("onboarding-formation").disabled).toBe(true);
   });
 
@@ -133,7 +174,9 @@ describe("onboarding.js: a student's faculty and study formation", () => {
 
     expect(optionValues("onboarding-formation")).toEqual([""]);
     expect($("onboarding-formation").disabled).toBe(true);
-    expect($("onboarding-formation").options[0].textContent).toBe("Choose a faculty first.");
+    expect($("onboarding-formation").options[0].textContent).toBe(
+      "Choose a faculty first.",
+    );
     expect($("onboarding-save").disabled).toBe(true);
     expect($("onboarding-hint").hidden).toBe(true);
   });
@@ -158,11 +201,16 @@ describe("onboarding.js: a student's faculty and study formation", () => {
     submitForm();
     await flush();
 
-    const [url, options] = fetch.mock.calls.find(([called]) => called === "/api/me/study-profile");
+    const [url, options] = fetch.mock.calls.find(
+      ([called]) => called === "/api/me/study-profile",
+    );
     expect(url).toBe("/api/me/study-profile");
     expect(options.method).toBe("PUT");
     expect(options.headers["Content-Type"]).toBe("application/json");
-    expect(JSON.parse(options.body)).toEqual({ faculty_id: "f1", study_formation_id: "g1" });
+    expect(JSON.parse(options.body)).toEqual({
+      faculty_id: "f1",
+      study_formation_id: "g1",
+    });
     expect(panel()).toBeNull();
   });
 
@@ -179,7 +227,9 @@ describe("onboarding.js: a student's faculty and study formation", () => {
 
   it("keeps the dialog open with the message when the save is refused", async () => {
     await start({
-      routes: defaultRoutes({ "/api/me/study-profile": () => response({ detail: "nope" }, 422) })
+      routes: defaultRoutes({
+        "/api/me/study-profile": () => response({ detail: "nope" }, 422),
+      }),
     });
     choose("onboarding-faculty", "f1");
     await flush();
@@ -190,7 +240,9 @@ describe("onboarding.js: a student's faculty and study formation", () => {
 
     expect(panel()).not.toBeNull();
     expect($("onboarding-error").hidden).toBe(false);
-    expect($("onboarding-error-text").textContent).toBe("Nothing was saved. Try again.");
+    expect($("onboarding-error-text").textContent).toBe(
+      "Nothing was saved. Try again.",
+    );
     expect($("onboarding-retry").hidden).toBe(true);
     expect($("onboarding-save").disabled).toBe(false);
   });
@@ -198,7 +250,7 @@ describe("onboarding.js: a student's faculty and study formation", () => {
   it("sends one save at a time and shows Saving while it waits", async () => {
     const answer = deferred();
     const { fetch } = await start({
-      routes: defaultRoutes({ "/api/me/study-profile": () => answer.promise })
+      routes: defaultRoutes({ "/api/me/study-profile": () => answer.promise }),
     });
     choose("onboarding-faculty", "f1");
     await flush();
@@ -207,7 +259,9 @@ describe("onboarding.js: a student's faculty and study formation", () => {
     submitForm();
     submitForm();
 
-    expect(fetch.mock.calls.filter(([url]) => url === "/api/me/study-profile")).toHaveLength(1);
+    expect(
+      fetch.mock.calls.filter(([url]) => url === "/api/me/study-profile"),
+    ).toHaveLength(1);
     expect($("onboarding-save").textContent).toBe("Saving…");
     expect($("onboarding-save").disabled).toBe(true);
 
@@ -222,7 +276,9 @@ describe("onboarding.js: a student's faculty and study formation", () => {
     submitForm();
     await flush();
 
-    expect(fetch.mock.calls.some(([url]) => url === "/api/me/study-profile")).toBe(false);
+    expect(
+      fetch.mock.calls.some(([url]) => url === "/api/me/study-profile"),
+    ).toBe(false);
   });
 
   it("shows a load failure with Try again, which loads the faculties again", async () => {
@@ -231,13 +287,17 @@ describe("onboarding.js: a student's faculty and study formation", () => {
       routes: defaultRoutes({
         "/api/faculties": () => {
           calls += 1;
-          return calls === 1 ? response({ detail: "down" }, 500) : response(FACULTIES);
-        }
-      })
+          return calls === 1
+            ? response({ detail: "down" }, 500)
+            : response(FACULTIES);
+        },
+      }),
     });
 
     expect($("onboarding-error").hidden).toBe(false);
-    expect($("onboarding-error-text").textContent).toBe("The list could not be loaded.");
+    expect($("onboarding-error-text").textContent).toBe(
+      "The list could not be loaded.",
+    );
     expect($("onboarding-retry").hidden).toBe(false);
     expect($("onboarding-faculty").disabled).toBe(true);
 
@@ -254,9 +314,11 @@ describe("onboarding.js: a student's faculty and study formation", () => {
       routes: defaultRoutes({
         "/api/groups": () => {
           calls += 1;
-          return calls === 1 ? response({ detail: "down" }, 500) : response(FORMATIONS);
-        }
-      })
+          return calls === 1
+            ? response({ detail: "down" }, 500)
+            : response(FORMATIONS);
+        },
+      }),
     });
     choose("onboarding-faculty", "f1");
     await flush();
@@ -275,8 +337,9 @@ describe("onboarding.js: a student's faculty and study formation", () => {
     const slow = deferred();
     await start({
       routes: defaultRoutes({
-        "/api/groups": (url) => (queryOf(url).faculty_id === "f1" ? slow.promise : response([]))
-      })
+        "/api/groups": (url) =>
+          queryOf(url).faculty_id === "f1" ? slow.promise : response([]),
+      }),
     });
     choose("onboarding-faculty", "f1");
     choose("onboarding-faculty", "f2");
@@ -293,8 +356,9 @@ describe("onboarding.js: a student's faculty and study formation", () => {
     const slow = deferred();
     await start({
       routes: defaultRoutes({
-        "/api/groups": (url) => (queryOf(url).faculty_id === "f1" ? slow.promise : response([]))
-      })
+        "/api/groups": (url) =>
+          queryOf(url).faculty_id === "f1" ? slow.promise : response([]),
+      }),
     });
     choose("onboarding-faculty", "f1");
     choose("onboarding-faculty", "f2");
@@ -350,6 +414,8 @@ describe("onboarding.js: a student's faculty and study formation", () => {
 
     expect($("onboarding-title").textContent).toBe("Datele tale de studiu");
     expect($("onboarding-faculty-label").textContent).toBe("Facultatea");
-    expect($("onboarding-faculty").options[0].textContent).toBe("Alege facultatea");
+    expect($("onboarding-faculty").options[0].textContent).toBe(
+      "Alege facultatea",
+    );
   });
 });

@@ -12,10 +12,15 @@ describe("language-toggle.js: the RO | EN switch", () => {
   it("builds one button per language, and marks the current one", () => {
     const group = window.UniSpaceUI.languageToggle();
     expect(group.getAttribute("role")).toBe("group");
-    expect(group.getAttribute("aria-label")).toBe(window.UniSpaceI18n.t("header.language"));
+    expect(group.getAttribute("aria-label")).toBe(
+      window.UniSpaceI18n.t("header.language"),
+    );
     const buttons = [...group.querySelectorAll("button")];
     expect(buttons.map((b) => b.textContent)).toEqual(["RO", "EN"]);
-    expect(buttons.map((b) => b.getAttribute("aria-pressed"))).toEqual(["false", "true"]);
+    expect(buttons.map((b) => b.getAttribute("aria-pressed"))).toEqual([
+      "false",
+      "true",
+    ]);
     expect(buttons[0].dataset.lang).toBe("ro");
   });
 
@@ -54,7 +59,9 @@ describe("theme-toggle.js: the auto, light and dark button", () => {
     document.body.innerHTML = '<button class="theme-toggle"></button>';
     window.UniSpaceUI.applyTheme("dark");
     expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
-    expect(document.querySelector(".theme-toggle").textContent).toBe(window.UniSpaceI18n.t("theme.dark"));
+    expect(document.querySelector(".theme-toggle").textContent).toBe(
+      window.UniSpaceI18n.t("theme.dark"),
+    );
   });
 
   it("removes the override for auto, so the system setting applies", () => {
@@ -91,7 +98,9 @@ describe("theme-toggle.js: the auto, light and dark button", () => {
     document.body.innerHTML = '<button class="theme-toggle"></button>';
     window.UniSpaceUI.bindTheme();
     expect(document.documentElement.getAttribute("data-theme")).toBe("light");
-    expect(document.querySelector(".theme-toggle").textContent).toBe(window.UniSpaceI18n.t("theme.light"));
+    expect(document.querySelector(".theme-toggle").textContent).toBe(
+      window.UniSpaceI18n.t("theme.light"),
+    );
   });
 
   it("saves each click's choice in storage", () => {

@@ -10,8 +10,9 @@ describe("ui.js and footer.js: shared helpers and the footer", () => {
 
   describe("escapeHtml", () => {
     it("escapes the characters that are special in HTML", () => {
-      expect(window.UniSpaceUI.escapeHtml(`<a href="x">Tom & 'Jerry'</a>`))
-        .toBe("&lt;a href=&quot;x&quot;&gt;Tom &amp; &#39;Jerry&#39;&lt;/a&gt;");
+      expect(
+        window.UniSpaceUI.escapeHtml(`<a href="x">Tom & 'Jerry'</a>`),
+      ).toBe("&lt;a href=&quot;x&quot;&gt;Tom &amp; &#39;Jerry&#39;&lt;/a&gt;");
     });
 
     it("leaves plain text alone, and turns numbers into text", () => {
@@ -38,12 +39,17 @@ describe("ui.js and footer.js: shared helpers and the footer", () => {
       window.UniSpaceUI.buildFooter();
       const footer = document.querySelector("footer.site-footer");
       expect(footer).not.toBeNull();
-      expect(footer.querySelector("p").textContent).toBe(window.UniSpaceI18n.t("footer.note"));
+      expect(footer.querySelector("p").textContent).toBe(
+        window.UniSpaceI18n.t("footer.note"),
+      );
       const links = [...footer.querySelectorAll("a")];
-      expect(links.map((a) => a.getAttribute("href"))).toEqual(["/", "/calendar"]);
+      expect(links.map((a) => a.getAttribute("href"))).toEqual([
+        "/",
+        "/calendar",
+      ]);
       expect(links.map((a) => a.textContent)).toEqual([
         window.UniSpaceI18n.t("footer.home"),
-        window.UniSpaceI18n.t("footer.subscribe")
+        window.UniSpaceI18n.t("footer.subscribe"),
       ]);
     });
   });
@@ -55,7 +61,7 @@ describe("ui.js and footer.js: shared helpers and the footer", () => {
       "components/header.js",
       "components/language-toggle.js",
       "components/theme-toggle.js",
-      "components/toast.js"
+      "components/toast.js",
     ])("%s", async (file) => {
       delete window.UniSpaceUI;
       await loadScript(file);

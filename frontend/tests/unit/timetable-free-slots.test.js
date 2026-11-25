@@ -1,5 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { flush, loadI18n, loadScript, mountPage, response, stubFetch } from "../helpers.js";
+import {
+  flush,
+  loadI18n,
+  loadScript,
+  mountPage,
+  response,
+  stubFetch,
+} from "../helpers.js";
 
 // Monday 23 November 2026 at 10:00, the week shown. The Monday 08:00 module has started, so it is
 // shown but disabled.
@@ -7,25 +14,54 @@ const NOW = new Date(2026, 10, 23, 10, 0);
 
 const FACULTIES = [{ id: "f1", code: "dre", name: "Facultatea de Drept" }];
 const SCHEDULE = {
-  week_start: "2026-11-23", week_end: "2026-11-29", week_number: 9, parity: "ODD",
-  entity_type: "room", entity_label: "Sala 107", items: [
+  week_start: "2026-11-23",
+  week_end: "2026-11-29",
+  week_number: 9,
+  parity: "ODD",
+  entity_type: "room",
+  entity_label: "Sala 107",
+  items: [
     {
-      id: "i1", title: "Algebra", activity_type: "COURSE", priority: 5, day_of_week: 1, date: "2026-11-23",
-      start_time: "09:40", end_time: "11:10", parity: "ODD", room_id: "r1", room_name: "Sala 107",
-      professor: null, groups: [], is_recurring: true
-    }
-  ]
+      id: "i1",
+      title: "Algebra",
+      activity_type: "COURSE",
+      priority: 5,
+      day_of_week: 1,
+      date: "2026-11-23",
+      start_time: "09:40",
+      end_time: "11:10",
+      parity: "ODD",
+      room_id: "r1",
+      room_name: "Sala 107",
+      professor: null,
+      groups: [],
+      is_recurring: true,
+    },
+  ],
 };
 
 function rooms(bookable) {
-  return [{ id: "r1", name: "Sala 107", faculty_id: "f1", capacity: 30, is_bookable: bookable, is_field_verified: true }];
+  return [
+    {
+      id: "r1",
+      name: "Sala 107",
+      faculty_id: "f1",
+      capacity: 30,
+      is_bookable: bookable,
+      is_field_verified: true,
+    },
+  ];
 }
 
 // Mounts the timetable on the room view of room r1 and waits for its week.
 async function setup({ bookable = true } = {}) {
   vi.useFakeTimers({ toFake: ["Date"] });
   vi.setSystemTime(NOW);
-  window.history.replaceState(null, "", "/timetable?mode=room&faculty_id=f1&id=r1&date=2026-11-23");
+  window.history.replaceState(
+    null,
+    "",
+    "/timetable?mode=room&faculty_id=f1&id=r1&date=2026-11-23",
+  );
   mountPage("pages/student/timetable.html");
   await loadI18n("en");
   await loadScript("js/modules.js");
@@ -35,7 +71,7 @@ async function setup({ bookable = true } = {}) {
   const fetch = stubFetch({
     "/api/faculties": () => response(FACULTIES),
     "/api/classrooms": () => response(rooms(bookable)),
-    "/api/schedule": () => response(SCHEDULE)
+    "/api/schedule": () => response(SCHEDULE),
   });
   await loadScript("js/pages/timetable.js");
   await flush();
@@ -54,9 +90,15 @@ describe("timetable.js: free modules of a bookable room", () => {
     // 7 days x 8 modules, less the one Monday module that the course takes (09:40-11:10).
     expect(freeButtons()).toHaveLength(7 * 8 - 1);
     expect(document.getElementById("tt-hint").hidden).toBe(false);
-    const at0940 = freeButtons().filter((b) => b.getAttribute("aria-label").startsWith("Book 09:40–11:10"));
+    const at0940 = freeButtons().filter((b) =>
+      b.getAttribute("aria-label").startsWith("Book 09:40–11:10"),
+    );
     expect(at0940).toHaveLength(6);
-    expect(freeButtons().find((b) => !b.disabled).querySelector(".tt-free__label").textContent).toBe("+ Book");
+    expect(
+      freeButtons()
+        .find((b) => !b.disabled)
+        .querySelector(".tt-free__label").textContent,
+    ).toBe("+ Book");
   });
 
   it("disables the modules that have already started today", async () => {
@@ -72,13 +114,23 @@ describe("timetable.js: free modules of a bookable room", () => {
     await setup();
     const original = window.location;
     const assign = vi.fn();
-    Object.defineProperty(window, "location", { configurable: true, value: { ...original, assign } });
+    Object.defineProperty(window, "location", {
+      configurable: true,
+      value: { ...original, assign },
+    });
     try {
-      const wednesdayModule = freeButtons().find((b) => b.getAttribute("aria-label") === "Book 11:20–12:50, Wed");
+      const wednesdayModule = freeButtons().find(
+        (b) => b.getAttribute("aria-label") === "Book 11:20–12:50, Wed",
+      );
       wednesdayModule.click();
-      expect(assign).toHaveBeenCalledWith("/bookings/?faculty_id=f1&room=r1&date=2026-11-25&start=11%3A20&end=12%3A50");
+      expect(assign).toHaveBeenCalledWith(
+        "/bookings/?faculty_id=f1&room=r1&date=2026-11-25&start=11%3A20&end=12%3A50",
+      );
     } finally {
-      Object.defineProperty(window, "location", { configurable: true, value: original });
+      Object.defineProperty(window, "location", {
+        configurable: true,
+        value: original,
+      });
     }
   });
 

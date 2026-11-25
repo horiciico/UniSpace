@@ -1,19 +1,24 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { deferred, flush, loadI18n, loadScript } from "../helpers.js";
 
-const STUDENT = { id: "u1", name: "Ana", email: "ana@ulbsibiu.ro", role: "STUDENT" };
+const STUDENT = {
+  id: "u1",
+  name: "Ana",
+  email: "ana@ulbsibiu.ro",
+  role: "STUDENT",
+};
 
 // Loads the shared chrome in the order head.html does, with the session as a promise the
 // test settles (the real session script waits for /auth/me).
 async function loadChrome({ language = "en" } = {}) {
   vi.resetModules();
-  document.body.innerHTML = '<main><span data-user-name></span></main>';
+  document.body.innerHTML = "<main><span data-user-name></span></main>";
   await loadI18n(language);
   const session = deferred();
   window.UniSpaceAuth = {
     ready: session.promise,
     roleLabel: (role) => role,
-    logout: vi.fn()
+    logout: vi.fn(),
   };
   await loadScript("components/ui.js");
   await loadScript("components/language-toggle.js");
@@ -56,7 +61,9 @@ describe("app.js: the shared chrome", () => {
     await flush();
     expect(count("header.site-header")).toBe(1);
     expect(count("nav.nav")).toBe(0);
-    expect(document.querySelector("[data-user-name]").textContent).toBe(window.UniSpaceI18n.t("common.guest"));
+    expect(document.querySelector("[data-user-name]").textContent).toBe(
+      window.UniSpaceI18n.t("common.guest"),
+    );
   });
 
   it("wires the theme button and the placeholder actions", async () => {
@@ -65,9 +72,14 @@ describe("app.js: the shared chrome", () => {
     await flush();
     document.querySelector(".theme-toggle").click();
     expect(localStorage.getItem("unispace-theme")).toBe("light");
-    document.body.insertAdjacentHTML("beforeend", '<button id="later" data-placeholder-action="placeholder.icsDownload"></button>');
+    document.body.insertAdjacentHTML(
+      "beforeend",
+      '<button id="later" data-placeholder-action="placeholder.icsDownload"></button>',
+    );
     document.getElementById("later").click();
-    expect(document.getElementById("toast").textContent).toBe(window.UniSpaceI18n.t("placeholder.icsDownload"));
+    expect(document.getElementById("toast").textContent).toBe(
+      window.UniSpaceI18n.t("placeholder.icsDownload"),
+    );
   });
 
   it("does nothing on a language change before the session is known", async () => {
@@ -85,7 +97,9 @@ describe("app.js: the shared chrome", () => {
     await flush();
     expect(count("header.site-header")).toBe(1);
     expect(count("footer.site-footer")).toBe(1);
-    expect(document.querySelector(".logout").textContent).toBe(window.UniSpaceI18n.t("header.logout"));
+    expect(document.querySelector(".logout").textContent).toBe(
+      window.UniSpaceI18n.t("header.logout"),
+    );
     expect(document.querySelector(".user-chip")).not.toBeNull();
     expect(document.querySelector("[data-user-name]").textContent).toBe("Ana");
   });

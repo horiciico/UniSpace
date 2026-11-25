@@ -8,6 +8,24 @@ Each entry follows the same shape:
 
 ```
 
+## 2026-11-25 · Graphical report rows for lint and typecheck in test-all.mjs
+Tool: Antigravity, free prompt
+What I asked: add a graphical report in the `test-all` script for the linter and typecheck, just like the one for the tests.
+What I got:
+- Updated `scripts/test-all.mjs` to split `Backend Lint` (Ruff check & format), `Backend Types` (mypy), `Frontend Lint` (Biome), and `Frontend Types` (TypeScript `checkJs`) into their own rows with progress bars, pass/fail status, elapsed time, and summary lines in `output/test-report.md`.
+- Added `group` filtering so `node scripts/test-all.mjs backend|etl|frontend` still runs the lint, typecheck, and test rows for that group in CI.
+What I did with it: Kept as implemented; verified with `node scripts/test-all.mjs`.
+
+## 2026-11-25 · Linting, formatting & typechecking setup (Ruff, mypy, Biome, checkJs)
+Tool: Antigravity, free prompt
+What I asked: set up Ruff + mypy for backend, Biome + TypeScript `checkJs` for frontend, fix existing issues, wire them into `scripts/test-all.mjs` and `.github/workflows/tests.yml`, and verify all checks and ledger lint pass.
+What I got:
+- Backend: added `ruff` and `mypy` to `backend/requirements-dev.txt`, configured `backend/pyproject.toml` (excluding `alembic/versions`, ignoring FastAPI `B008`), converted `str, enum.Enum` to `enum.StrEnum`, added `from exc`/`from None` for `B904`, added `TYPE_CHECKING` imports in models, narrowed types in routers, and wrapped `E501` lines.
+- Frontend: added `@biomejs/biome` and `typescript` devDependencies in `frontend/package.json` with `lint`, `lint:fix`, and `typecheck` scripts; created `frontend/biome.json` and `frontend/jsconfig.json`; added `frontend/js/types.d.ts` and JSDoc DOM casts; fixed Biome lint and formatting issues across JS files.
+- CI & Runner: updated `scripts/test-all.mjs` so `backend` runs `ruff check . && ruff format --check . && mypy app/ && pytest -q` and `frontend` runs `npm run lint && npm run typecheck && npx vitest run --coverage --reporter=verbose` (automatically invoked by `.github/workflows/tests.yml`).
+- Ledger: marked `Q-006` answered in `docs/agents/OPEN-QUESTIONS.md`.
+What I did with it: Kept as implemented; verified with `ledger-lint.py --fix` and `node scripts/test-all.mjs`.
+
 ## 2026-11-25 · Admin rooms: paginate room list (15 per page)
 Tool: Antigravity, free prompt
 What I asked: in the admin page, under rooms section, paginate the result keeping a list of 15 entries and adding next/previous buttons to navigate through the pages, ensuring test coverage and i18n integration.
@@ -24,6 +42,24 @@ What I got:
 - In `frontend/js/pages/admin-rooms.js`: called `editCard.scrollIntoView({ behavior: "smooth", block: "start" })` after `openEditor(room)` in the Edit button click handler.
 - In `frontend/tests/unit/admin-rooms.test.js`: added a unit test verifying `scrollIntoView` is called when clicking Edit.
 What I did with it: Kept as implemented; verified with `docker compose --profile test run --rm frontend-test` and `node scripts/test-all.mjs`.
+
+## 2026-11-24 · test-all: live progress back, every suite listed, bars fill as tests finish
+Tool: Claude Code (Haiku 5.5), build
+What I asked: put the progress display back: list every suite from the start, and fill each green bar as its tests complete.
+What I got: in a terminal the live display is the default again. The first frame lists all seven suites as waiting. Each bar fills per test as output arrives. `TEST_ALL_PLAIN=1` gives the one-line-per-suite output, for a terminal that keeps every redraw. Checked: a recorded live run replayed at 80 columns ends with one block; the first frame lists all seven suites; 1,528 frames show a suite running.
+What I did with it: `scripts/test-all.mjs` changed in the working tree. Not committed: the file also has other uncommitted changes that were not made in this step. I could not see the user's terminal, so whether the block repeats there is not verified.
+
+## 2026-11-24 · test-all: no redraw by default
+Tool: Claude Code (Haiku 5.5), build
+What I asked: fix the test-all script: it outputs a new graph every time it updates. The earlier fix (cutting lines to the terminal width) did not solve it.
+What I got: the live display (bars redrawn in place) is now off by default. Each suite prints its bar once, when it finishes, with a failure reason under a failed suite. `TEST_ALL_LIVE=1` turns the live display on in a terminal. Checked: a full run with output to a file shows one line per suite and no escape codes.
+What I did with it: `scripts/test-all.mjs` changed in the working tree. Not committed: the file also has other uncommitted changes that were not made in this step.
+
+## 2026-11-24 · test-all: live progress no longer leaves a copy of the block on each update
+Tool: Claude Code (Haiku 5.5), build
+What I asked: the test-all script prints a new graph every time it updates.
+What I got: the live display redraws by moving the cursor up as many rows as it drew. A line wider than the terminal wraps onto a second row, so the cursor move falls one row short and each redraw leaves a copy. Reproduced: at 60 columns, every refresh added a "Test run" block. Fix in `scripts/test-all.mjs`: each line is cut to the terminal width (colour codes kept), and the bar can shrink to zero width in very narrow terminals. Checked by replaying the recorded output through a terminal emulator at 60 and 40 columns: one block remains.
+What I did with it: `scripts/test-all.mjs` changed in the working tree. Not committed: the file also has other uncommitted changes that were not made in this step.
 
 ## 2026-11-24 · Room description (access notes) in the timetable; ledger P1 and P2 approved
 Tool: Claude Code (Haiku 5.5), build

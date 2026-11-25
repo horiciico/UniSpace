@@ -7,11 +7,11 @@ from app.db import Base
 
 
 class Professor(Base):
-    """A professor from the ULBS professors list. `id` is the ULBS professorId (no default: it comes from the API)."""
+    """A professor from the ULBS list. `id` is the ULBS professorId (from the API, no default)."""
 
     __tablename__ = "professors"
     __table_args__ = (
-        # Stored normalized: strip().lower() of the address (the ETL does it; the CHECK keeps it so).
+        # Stored normalized: strip().lower() of the address (checked by DB constraint).
         CheckConstraint("email = lower(btrim(email))", name="ck_professor_email_normalized"),
     )
 

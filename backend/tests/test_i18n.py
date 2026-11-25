@@ -2,6 +2,7 @@
 scripts use exists. Also checks the page template (components/head.html) and that no page
 has inline styles. Reads the frontend folder, mounted read-only at /frontend in compose
 (FRONTEND_DIR overrides the location)."""
+
 import json
 import os
 import re
@@ -19,13 +20,15 @@ DYNAMIC_KEYS = (
     + [f"login.{reason}{part}" for reason in ("denied", "failed") for part in ("Title", "Text")]
 )
 # A key is a dotted name such as "nav.timetable" in quotes.
-KEY_IN_SCRIPT = re.compile(r'"((?:nav|header|footer|theme|role|toast|placeholder|login|onboarding|status|kind|day|timetable|common|home|announce|calendar|changes|admin|adminHistory|bookings|rooms|roomDetail|free|notFound)\.[A-Za-z0-9_.]+)"')
+KEY_IN_SCRIPT = re.compile(
+    r'"((?:nav|header|footer|theme|role|toast|placeholder|login|onboarding|status|kind|day|timetable|common|home|announce|calendar|changes|admin|adminHistory|bookings|rooms|roomDetail|free|notFound)\.[A-Za-z0-9_.]+)"'
+)
 
 
 def load_dictionary(language: str) -> dict:
     source = (FRONTEND / "i18n" / f"{language}.js").read_text(encoding="utf-8")
     start = source.index("register(")
-    body = source[source.index("{", start): source.rindex("}") + 1]
+    body = source[source.index("{", start) : source.rindex("}") + 1]
     return json.loads(body)
 
 
@@ -76,7 +79,9 @@ def test_both_languages_have_the_same_keys(dictionaries: dict) -> None:
 
 @pytest.mark.parametrize("language", LANGUAGES)
 def test_every_text_is_a_non_empty_string(dictionaries: dict, language: str) -> None:
-    empty = [k for k, v in dictionaries[language].items() if not isinstance(v, str) or not v.strip()]
+    empty = [
+        k for k, v in dictionaries[language].items() if not isinstance(v, str) or not v.strip()
+    ]
     assert empty == [], f"empty or non-string values in {language}.js: {empty}"
 
 
@@ -103,7 +108,9 @@ def test_every_page_includes_the_shared_head() -> None:
     head = (FRONTEND / "components" / "head.html").read_text(encoding="utf-8")
     for script in ("/i18n/i18n.js", "/i18n/ro.js", "/i18n/en.js"):
         assert script in head, f"components/head.html does not load {script}"
-    assert head.index("/i18n/i18n.js") < head.index("/components/app.js"), "i18n must load before the components"
+    assert head.index("/i18n/i18n.js") < head.index("/components/app.js"), (
+        "i18n must load before the components"
+    )
     for page in html_pages():
         text = page.read_text(encoding="utf-8")
         assert '<!--#include virtual="/components/head.html" -->' in text, (
@@ -112,7 +119,7 @@ def test_every_page_includes_the_shared_head() -> None:
 
 
 def test_no_inline_styles_in_pages() -> None:
-    # Pages use classes (styles/); the timetable sets grid positions from JavaScript, which is allowed.
+    # Pages use classes (styles/); the timetable sets grid positions from JS, which is allowed.
     for page in html_pages():
         assert 'style="' not in page.read_text(encoding="utf-8"), (
             f"{page.relative_to(FRONTEND)} has an inline style attribute; move it to styles/"

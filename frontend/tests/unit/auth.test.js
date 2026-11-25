@@ -1,8 +1,24 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { flush, loadI18n, loadScript, response, stubFetch } from "../helpers.js";
+import {
+  flush,
+  loadI18n,
+  loadScript,
+  response,
+  stubFetch,
+} from "../helpers.js";
 
-const STUDENT = { id: "u1", name: "Ana", email: "ana@ulbsibiu.ro", role: "STUDENT" };
-const ADMIN = { id: "u2", name: "Ion", email: "ion@ulbsibiu.ro", role: "ADMIN" };
+const STUDENT = {
+  id: "u1",
+  name: "Ana",
+  email: "ana@ulbsibiu.ro",
+  role: "STUDENT",
+};
+const ADMIN = {
+  id: "u2",
+  name: "Ion",
+  email: "ion@ulbsibiu.ro",
+  role: "ADMIN",
+};
 
 const realLocation = window.location;
 
@@ -11,19 +27,23 @@ function setLocation(pathname) {
   const replace = vi.fn();
   Object.defineProperty(window, "location", {
     configurable: true,
-    value: { pathname, search: "", replace }
+    value: { pathname, search: "", replace },
   });
   return replace;
 }
 
 // Loads the session script for a page at `pathname`, with the answer to /auth/me.
-async function loadSession({ pathname = "/timetable", me = () => response(STUDENT), logout } = {}) {
+async function loadSession({
+  pathname = "/timetable",
+  me = () => response(STUDENT),
+  logout,
+} = {}) {
   vi.resetModules();
   const replace = setLocation(pathname);
   await loadI18n("en");
   const fetch = stubFetch({
     "/auth/me": me,
-    "/auth/logout": logout || (() => response(null, 204))
+    "/auth/logout": logout || (() => response(null, 204)),
   });
   await loadScript("js/auth.js");
   return { fetch, replace, auth: window.UniSpaceAuth };
@@ -35,14 +55,19 @@ describe("auth.js: the session in the browser", () => {
   });
 
   afterEach(() => {
-    Object.defineProperty(window, "location", { configurable: true, value: realLocation });
+    Object.defineProperty(window, "location", {
+      configurable: true,
+      value: realLocation,
+    });
     vi.restoreAllMocks();
   });
 
   describe("who is signed in", () => {
     it("reads the user from /auth/me, and keeps it", async () => {
       const { fetch, replace, auth } = await loadSession();
-      expect(fetch).toHaveBeenCalledWith("/auth/me", { credentials: "same-origin" });
+      expect(fetch).toHaveBeenCalledWith("/auth/me", {
+        credentials: "same-origin",
+      });
       await expect(auth.ready).resolves.toEqual(STUDENT);
       expect(auth.user()).toEqual(STUDENT);
       expect(replace).not.toHaveBeenCalled();
@@ -65,30 +90,45 @@ describe("auth.js: the session in the browser", () => {
 
   describe("signed out", () => {
     it("hides the page and sends the visitor to /login", async () => {
-      const { replace, auth } = await loadSession({ pathname: "/timetable", me: () => response({}, 401) });
+      const { replace, auth } = await loadSession({
+        pathname: "/timetable",
+        me: () => response({}, 401),
+      });
       await expect(auth.ready).resolves.toBeNull();
       expect(document.documentElement.style.display).toBe("none");
       expect(replace).toHaveBeenCalledWith("/login");
     });
 
     it("stays on the login page when signed out there", async () => {
-      const { replace, auth } = await loadSession({ pathname: "/login", me: () => response({}, 401) });
+      const { replace, auth } = await loadSession({
+        pathname: "/login",
+        me: () => response({}, 401),
+      });
       await expect(auth.ready).resolves.toBeNull();
       expect(replace).not.toHaveBeenCalled();
       expect(document.documentElement.style.display).toBe("");
     });
 
     it("recognises the login page with a trailing slash or the .html name", async () => {
-      const slash = await loadSession({ pathname: "/login/", me: () => response({}, 401) });
+      const slash = await loadSession({
+        pathname: "/login/",
+        me: () => response({}, 401),
+      });
       await slash.auth.ready;
       expect(slash.replace).not.toHaveBeenCalled();
-      const html = await loadSession({ pathname: "/login.html", me: () => response({}, 401) });
+      const html = await loadSession({
+        pathname: "/login.html",
+        me: () => response({}, 401),
+      });
       await html.auth.ready;
       expect(html.replace).not.toHaveBeenCalled();
     });
 
     it("has no user, and admin is false, when signed out", async () => {
-      const { auth } = await loadSession({ pathname: "/login", me: () => response({}, 401) });
+      const { auth } = await loadSession({
+        pathname: "/login",
+        me: () => response({}, 401),
+      });
       await auth.ready;
       expect(auth.user()).toBeNull();
       expect(auth.isAdmin()).toBe(false);
@@ -98,9 +138,15 @@ describe("auth.js: the session in the browser", () => {
   describe("when the session cannot be read", () => {
     it("logs the problem and treats the visitor as having no user, without redirecting", async () => {
       const error = vi.spyOn(console, "error").mockImplementation(() => {});
-      const { replace, auth } = await loadSession({ pathname: "/timetable", me: () => response({}, 500) });
+      const { replace, auth } = await loadSession({
+        pathname: "/timetable",
+        me: () => response({}, 500),
+      });
       await expect(auth.ready).resolves.toBeNull();
-      expect(error).toHaveBeenCalledWith("Could not read the session:", expect.any(Error));
+      expect(error).toHaveBeenCalledWith(
+        "Could not read the session:",
+        expect.any(Error),
+      );
       expect(replace).not.toHaveBeenCalled();
     });
 
@@ -108,7 +154,7 @@ describe("auth.js: the session in the browser", () => {
       const error = vi.spyOn(console, "error").mockImplementation(() => {});
       const { auth } = await loadSession({
         pathname: "/timetable",
-        me: () => Promise.reject(new Error("offline"))
+        me: () => Promise.reject(new Error("offline")),
       });
       await expect(auth.ready).resolves.toBeNull();
       expect(error).toHaveBeenCalled();
@@ -120,7 +166,10 @@ describe("auth.js: the session in the browser", () => {
       const { fetch, replace, auth } = await loadSession();
       await auth.ready;
       await auth.logout();
-      expect(fetch).toHaveBeenCalledWith("/auth/logout", { method: "POST", credentials: "same-origin" });
+      expect(fetch).toHaveBeenCalledWith("/auth/logout", {
+        method: "POST",
+        credentials: "same-origin",
+      });
       expect(auth.user()).toBeNull();
       expect(replace).toHaveBeenCalledWith("/login");
     });
@@ -128,11 +177,14 @@ describe("auth.js: the session in the browser", () => {
     it("still goes to the login page when the request fails, and says why", async () => {
       const error = vi.spyOn(console, "error").mockImplementation(() => {});
       const { replace, auth } = await loadSession({
-        logout: () => Promise.reject(new Error("offline"))
+        logout: () => Promise.reject(new Error("offline")),
       });
       await auth.ready;
       await auth.logout();
-      expect(error).toHaveBeenCalledWith("Log out request failed:", expect.any(Error));
+      expect(error).toHaveBeenCalledWith(
+        "Log out request failed:",
+        expect.any(Error),
+      );
       expect(replace).toHaveBeenCalledWith("/login");
     });
 

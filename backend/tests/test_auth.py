@@ -1,4 +1,5 @@
 """Google sign-in ("bouncer") tests. Google is mocked; the database is real (see conftest.py)."""
+
 import uuid
 from collections.abc import Iterator
 
@@ -6,7 +7,7 @@ import pytest
 from authlib.integrations.base_client import OAuthError
 from fastapi.responses import RedirectResponse
 from fastapi.testclient import TestClient
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app import config
@@ -16,7 +17,9 @@ from app.db import get_db
 from app.main import app
 from app.models import Invitation, Professor, Role, User
 
-DENIED = "Access denied. Login is restricted to @ulbsibiu.ro accounts or registered faculty members."
+DENIED = (
+    "Access denied. Login is restricted to @ulbsibiu.ro accounts or registered faculty members."
+)
 
 
 @pytest.fixture
@@ -29,8 +32,13 @@ def client(db: Session) -> Iterator[TestClient]:
 
 
 def google_returns(monkeypatch: pytest.MonkeyPatch, **claims) -> None:
-    payload = {"sub": "sub-1", "email": "ana@ulbsibiu.ro", "email_verified": True,
-               "hd": "ulbsibiu.ro", "name": "Ana Pop"}
+    payload = {
+        "sub": "sub-1",
+        "email": "ana@ulbsibiu.ro",
+        "email_verified": True,
+        "hd": "ulbsibiu.ro",
+        "name": "Ana Pop",
+    }
     payload.update(claims)
     payload = {k: v for k, v in payload.items() if v is not None}
 
@@ -120,7 +128,7 @@ def test_second_login_does_not_duplicate(client, db, monkeypatch) -> None:
     google_returns(monkeypatch)
     callback(client)
     callback(client)
-    # Count only this test's account: the database may hold other users (a real sign-in, seeded data).
+    # Count only this test's account: the database may hold other users (seeded data, etc.).
     assert len(users(db, "ana@ulbsibiu.ro")) == 1
 
 
@@ -146,7 +154,9 @@ def test_existing_university_row_is_linked_and_role_resolved(client, db, monkeyp
 
     [user] = users(db, "ana@ulbsibiu.ro")
     assert user.google_sub == "sub-1"
-    assert user.role == Role.STUDENT  # D-020: not in the professor list, so the role is resolved again
+    assert (
+        user.role == Role.STUDENT
+    )  # D-020: not in the professor list, so the role is resolved again
 
 
 def test_existing_row_with_other_sub_is_forbidden(client, db, monkeypatch) -> None:
@@ -184,8 +194,12 @@ def test_stranger_is_rejected_with_message(client, db, monkeypatch) -> None:
 
 
 def test_invitation_does_not_clash_with_existing_email(client, db, monkeypatch) -> None:
-    db.add_all([User(email="bob@gmail.com", name="B", role=Role.STUDENT),
-                Invitation(email="bob@gmail.com", role=Role.ADMIN)])
+    db.add_all(
+        [
+            User(email="bob@gmail.com", name="B", role=Role.STUDENT),
+            Invitation(email="bob@gmail.com", role=Role.ADMIN),
+        ]
+    )
     db.commit()
     google_returns(monkeypatch, sub="sub-9", email="bob@gmail.com", hd=None)
 
@@ -239,6 +253,7 @@ def test_admin_check_is_204_for_admin(client, db, monkeypatch) -> None:
 
 # --- D-020: role on every sign-in ---------------------------------------------------------
 
+
 def add_professor(db: Session, email: str) -> Professor:
     professor = Professor(id=uuid.uuid4(), name="Prof Test", email=email)
     db.add(professor)
@@ -287,9 +302,18 @@ def test_non_professor_external_address_is_forbidden(client, db, monkeypatch) ->
     assert users(db, "eve.stranger@gmail.com") == []
 
 
-def test_former_professor_on_a_university_address_goes_back_to_student(client, db, monkeypatch) -> None:
-    db.add(User(email="left@ulbsibiu.ro", name="Left", role=Role.PROFESSOR, google_sub="sub-l",
-                professor_id=uuid.uuid4()))
+def test_former_professor_on_a_university_address_goes_back_to_student(
+    client, db, monkeypatch
+) -> None:
+    db.add(
+        User(
+            email="left@ulbsibiu.ro",
+            name="Left",
+            role=Role.PROFESSOR,
+            google_sub="sub-l",
+            professor_id=uuid.uuid4(),
+        )
+    )
     db.commit()
     google_returns(monkeypatch, sub="sub-l", email="left@ulbsibiu.ro", name="Left")
     assert callback(client).status_code == 303
@@ -323,7 +347,9 @@ def test_student_org_is_not_lowered_by_a_university_login(client, db, monkeypatc
     assert user.role == Role.STUDENT_ORG
 
 
-def test_student_association_hook_is_checked_before_the_student_tier(client, db, monkeypatch) -> None:
+def test_student_association_hook_is_checked_before_the_student_tier(
+    client, db, monkeypatch
+) -> None:
     monkeypatch.setattr("app.auth.is_student_association", lambda email: True)
     google_returns(monkeypatch, email="club.lead@ulbsibiu.ro")
     callback(client)
@@ -333,10 +359,12 @@ def test_student_association_hook_is_checked_before_the_student_tier(client, db,
 
 def test_the_default_association_hook_admits_nobody() -> None:
     from app.auth import is_student_association
+
     assert is_student_association("anyone@ulbsibiu.ro") is False
 
 
 # --- D-021: admin sign-in with the .env credentials ---------------------------------------
+
 
 @pytest.fixture
 def admin_env(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -344,7 +372,9 @@ def admin_env(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(config, "ADMIN_PASSWORD", "s3cret-test-value")
 
 
-def admin_login(client: TestClient, username: str = "uni-admin", password: str = "s3cret-test-value"):
+def admin_login(
+    client: TestClient, username: str = "uni-admin", password: str = "s3cret-test-value"
+):
     return client.post("/auth/admin-login", json={"username": username, "password": password})
 
 

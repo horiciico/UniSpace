@@ -25,7 +25,9 @@ def faculty_condition(value: str | None):
     try:
         return Classroom.faculty_id == uuid.UUID(value)
     except ValueError:
-        raise HTTPException(status_code=400, detail="faculty_id must be a UUID or 'campus'")
+        raise HTTPException(
+            status_code=400, detail="faculty_id must be a UUID or 'campus'"
+        ) from None
 
 
 def _minutes(value: time) -> int:
@@ -83,9 +85,9 @@ def free_classrooms(
         # bookable by module, but none starts at this time, so nothing is free for it.
         if day > today:
             return []
-        raise HTTPException(status_code=400, detail=str(exc))
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc))
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     stmt = (
         select(Classroom, Faculty.name)
@@ -105,7 +107,10 @@ def free_classrooms(
 
     busy: dict[uuid.UUID, list[tuple[time, time]]] = {}
     for occurrence in occurrences(db, day, day):
-        busy.setdefault(occurrence.activity.classroom_id, []).append((occurrence.start_time, occurrence.end_time))
+        assert occurrence.start_time is not None and occurrence.end_time is not None
+        busy.setdefault(occurrence.activity.classroom_id, []).append(
+            (occurrence.start_time, occurrence.end_time)
+        )
     for room_id, booked_start, booked_end in approved_busy(db, day):
         busy.setdefault(room_id, []).append((booked_start, booked_end))
 
@@ -116,25 +121,27 @@ def free_classrooms(
             continue
         next_starts = [s for s, _ in intervals if s >= window_end]
         free_until = min(next_starts) if next_starts else BOOKING_END
-        found.append((
-            {
-                "id": str(room.id),
-                "name": room.name,
-                "faculty_id": str(room.faculty_id) if room.faculty_id else None,
-                "faculty_name": faculty_name,
-                "capacity": room.capacity,
-                "has_projector": room.has_projector,
-                "has_outlets": room.has_outlets,
-                "board_type": room.board_type.value if room.board_type else None,
-                "access_notes": room.access_notes,
-                "equipment_notes": room.equipment_notes,
-                "is_field_verified": room.is_field_verified,
-                "start_time": hhmm(window_start),
-                "end_time": hhmm(window_end),
-                "free_until": hhmm(free_until),
-            },
-            free_until,
-        ))
+        found.append(
+            (
+                {
+                    "id": str(room.id),
+                    "name": room.name,
+                    "faculty_id": str(room.faculty_id) if room.faculty_id else None,
+                    "faculty_name": faculty_name,
+                    "capacity": room.capacity,
+                    "has_projector": room.has_projector,
+                    "has_outlets": room.has_outlets,
+                    "board_type": room.board_type.value if room.board_type else None,
+                    "access_notes": room.access_notes,
+                    "equipment_notes": room.equipment_notes,
+                    "is_field_verified": room.is_field_verified,
+                    "start_time": hhmm(window_start),
+                    "end_time": hhmm(window_end),
+                    "free_until": hhmm(free_until),
+                },
+                free_until,
+            )
+        )
 
     def sort_key(item: tuple[dict, time]):
         room, free_until = item

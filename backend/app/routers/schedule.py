@@ -3,18 +3,27 @@ from collections import defaultdict
 from datetime import date, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import func, select
+from sqlalchemy import ColumnElement, func, select
 from sqlalchemy.orm import Session
 
 from app.db import get_db
-from app.models import Activity, ActivityGroup, Booking, BookingStatus, Classroom, PlanningTimeUnit, StudentGroup
+from app.models import (
+    Activity,
+    ActivityGroup,
+    Booking,
+    BookingStatus,
+    Classroom,
+    PlanningTimeUnit,
+    StudentGroup,
+)
 from app.planning import hhmm, local_today, occurrences, week_info, week_monday
 
 router = APIRouter(prefix="/api/schedule", tags=["schedule"])
 
 
-def _timetable_unit(db: Session, faculty_id: uuid.UUID | None, monday: date, sunday: date,
-                    conditions: list) -> PlanningTimeUnit | None:
+def _timetable_unit(
+    db: Session, faculty_id: uuid.UUID | None, monday: date, sunday: date, conditions: list
+) -> PlanningTimeUnit | None:
     """The planning unit this week's timetable is drawn from (None: nothing to draw from)."""
     if faculty_id is not None:
         return db.scalars(
@@ -65,16 +74,23 @@ def get_schedule(
     name = professor.strip() if professor and professor.strip() else None
     given = [value for value in (group_id, name, room_id) if value is not None]
     if len(given) != 1:
-        raise HTTPException(status_code=400, detail="Give exactly one of group_id, professor or room_id")
+        raise HTTPException(
+            status_code=400, detail="Give exactly one of group_id, professor or room_id"
+        )
 
     monday = week_monday(day or local_today())
     sunday = monday + timedelta(days=6)
 
+    conditions: list[ColumnElement[bool]]
     if group_id is not None:
         group = db.get(StudentGroup, group_id)
         if group is None:
             raise HTTPException(status_code=404, detail="Group not found")
-        conditions = [Activity.id.in_(select(ActivityGroup.activity_id).where(ActivityGroup.group_id == group_id))]
+        conditions = [
+            Activity.id.in_(
+                select(ActivityGroup.activity_id).where(ActivityGroup.group_id == group_id)
+            )
+        ]
         entity_type, entity_label = "group", group.name
     elif name is not None:
         conditions = [Activity.professor_name.contains(name, autoescape=True)]
@@ -89,11 +105,16 @@ def get_schedule(
     found = occurrences(db, monday, sunday, *conditions)
     if name is not None:
         # "contains" matched the text; keep only the exact name among the joined names.
-        found = [o for o in found if name in [p.strip() for p in (o.activity.professor_name or "").split(" / ")]]
+        found = [
+            o
+            for o in found
+            if name in [p.strip() for p in (o.activity.professor_name or "").split(" / ")]
+        ]
 
     unit = _timetable_unit(db, faculty_id, monday, sunday, conditions)
     found = [
-        o for o in found
+        o
+        for o in found
         if o.activity.specific_date is not None
         or (unit is not None and o.activity.planning_time_unit_id == unit.id)
     ]
@@ -112,25 +133,28 @@ def get_schedule(
     items = []
     for o in sorted(found, key=lambda o: (o.day, o.start_time, o.activity.name)):
         a = o.activity
-        items.append({
-            "id": str(a.id),
-            "title": a.name,
-            "activity_type": a.type.value,
-            "priority": a.priority,
-            "day_of_week": o.day.isoweekday(),
-            "date": o.day.isoformat(),
-            "start_time": hhmm(o.start_time),
-            "end_time": hhmm(o.end_time),
-            "parity": a.parity.value,
-            "room_id": str(a.classroom_id),
-            "room_name": a.classroom.name,
-            "professor": a.professor_name,
-            "groups": sorted(group_names.get(a.id, [])),
-            "is_recurring": a.specific_date is None,
-        })
+        assert o.start_time is not None and o.end_time is not None
+        items.append(
+            {
+                "id": str(a.id),
+                "title": a.name,
+                "activity_type": a.type.value,
+                "priority": a.priority,
+                "day_of_week": o.day.isoweekday(),
+                "date": o.day.isoformat(),
+                "start_time": hhmm(o.start_time),
+                "end_time": hhmm(o.end_time),
+                "parity": a.parity.value,
+                "room_id": str(a.classroom_id),
+                "room_name": a.classroom.name,
+                "professor": a.professor_name,
+                "groups": sorted(group_names.get(a.id, [])),
+                "is_recurring": a.specific_date is None,
+            }
+        )
 
     if room_id is not None:
-        # Approved room bookings of the week show in the room's timetable (pending and cancelled ones do not).
+        # Approved room bookings show in the room's timetable (pending and cancelled do not).
         for booking, room_name in db.execute(
             select(Booking, Classroom.name)
             .join(Classroom, Classroom.id == Booking.classroom_id)
@@ -140,22 +164,24 @@ def get_schedule(
                 Booking.specific_date.between(monday, sunday),
             )
         ).all():
-            items.append({
-                "id": str(booking.id),
-                "title": booking.title,
-                "activity_type": "BOOKING",
-                "priority": None,
-                "day_of_week": booking.specific_date.isoweekday(),
-                "date": booking.specific_date.isoformat(),
-                "start_time": hhmm(booking.start_time),
-                "end_time": hhmm(booking.end_time),
-                "parity": "ALL",
-                "room_id": str(booking.classroom_id),
-                "room_name": room_name,
-                "professor": None,
-                "groups": [],
-                "is_recurring": False,
-            })
+            items.append(
+                {
+                    "id": str(booking.id),
+                    "title": booking.title,
+                    "activity_type": "BOOKING",
+                    "priority": None,
+                    "day_of_week": booking.specific_date.isoweekday(),
+                    "date": booking.specific_date.isoformat(),
+                    "start_time": hhmm(booking.start_time),
+                    "end_time": hhmm(booking.end_time),
+                    "parity": "ALL",
+                    "room_id": str(booking.classroom_id),
+                    "room_name": room_name,
+                    "professor": None,
+                    "groups": [],
+                    "is_recurring": False,
+                }
+            )
 
     week_no, parity = week_info(unit.start_date, monday) if unit is not None else (None, None)
     return {

@@ -11,24 +11,35 @@
  *
  * Text comes from the backend as it arrives (D-012). Labels are from the i18n dictionaries.
  */
-(function () {
-  "use strict";
-
+(() => {
   var MODULES = window.UniSpaceModules;
   var FIRST_MINUTE = MODULES.list[0].startMin; // 08:00
-  var LAST_MINUTE = MODULES.endMin;            // 21:10
+  var LAST_MINUTE = MODULES.endMin; // 21:10
   var SLOT_MINUTES = 10;
   var SLOT_COUNT = (LAST_MINUTE - FIRST_MINUTE) / SLOT_MINUTES; // 79
-  var DAY_KEYS = ["day.mon", "day.tue", "day.wed", "day.thu", "day.fri", "day.sat", "day.sun"];
+  var DAY_KEYS = [
+    "day.mon",
+    "day.tue",
+    "day.wed",
+    "day.thu",
+    "day.fri",
+    "day.sat",
+    "day.sun",
+  ];
   var KIND_KEYS = {
     COURSE: "kind.course",
     SEMINAR: "kind.seminar",
     LAB: "kind.lab",
     EXAM: "kind.exam",
     RESERVATION: "kind.reservation",
-    BOOKING: "kind.booking"
+    BOOKING: "kind.booking",
   };
-  var KIND_CLASS = { COURSE: "course", SEMINAR: "seminar", LAB: "lab", BOOKING: "booking" };
+  var KIND_CLASS = {
+    COURSE: "course",
+    SEMINAR: "seminar",
+    LAB: "lab",
+    BOOKING: "booking",
+  };
 
   function toMinutes(hhmm) {
     var parts = String(hhmm).split(":");
@@ -44,31 +55,34 @@
 
   // Places items that overlap in time side by side. Returns the entries with lane/lanes set.
   function layoutDay(entries) {
-    var sorted = entries.slice().sort(function (a, b) {
-      return a.startMin - b.startMin || a.endMin - b.endMin;
-    });
+    var sorted = entries
+      .slice()
+      .sort((a, b) => a.startMin - b.startMin || a.endMin - b.endMin);
     var placed = [];
     var cluster = [];
     var clusterEnd = 0;
 
     function closeCluster() {
       var laneEnds = [];
-      cluster.forEach(function (entry) {
+      cluster.forEach((entry) => {
         var lane = 0;
-        while (lane < laneEnds.length && laneEnds[lane] > entry.startMin) lane++;
+        while (lane < laneEnds.length && laneEnds[lane] > entry.startMin)
+          lane++;
         laneEnds[lane] = entry.endMin;
         entry.lane = lane;
       });
-      cluster.forEach(function (entry) {
+      cluster.forEach((entry) => {
         entry.lanes = laneEnds.length;
         placed.push(entry);
       });
       cluster = [];
     }
 
-    sorted.forEach(function (entry) {
+    sorted.forEach((entry) => {
       if (cluster.length && entry.startMin >= clusterEnd) closeCluster();
-      clusterEnd = cluster.length ? Math.max(clusterEnd, entry.endMin) : entry.endMin;
+      clusterEnd = cluster.length
+        ? Math.max(clusterEnd, entry.endMin)
+        : entry.endMin;
       cluster.push(entry);
     });
     if (cluster.length) closeCluster();
@@ -76,7 +90,7 @@
   }
 
   function percentOf(minutes) {
-    return (minutes - FIRST_MINUTE) / (SLOT_COUNT * SLOT_MINUTES) * 100;
+    return ((minutes - FIRST_MINUTE) / (SLOT_COUNT * SLOT_MINUTES)) * 100;
   }
 
   function placeBlock(block, entry) {
@@ -85,7 +99,7 @@
     var share = 100 / entry.lanes;
     block.style.top = "calc(" + top + "% + 1px)";
     block.style.height = "calc(" + height + "% - 2px)";
-    block.style.left = "calc(" + (entry.lane * share) + "% + 2px)";
+    block.style.left = "calc(" + entry.lane * share + "% + 2px)";
     block.style.width = "calc(" + share + "% - 4px)";
   }
 
@@ -101,31 +115,34 @@
     container.textContent = "";
 
     container.appendChild(element("div", "tt-corner", t("timetable.time")));
-    DAY_KEYS.forEach(function (key, index) {
+    DAY_KEYS.forEach((key, index) => {
       var head = element("div", "tt-head", t(key));
       head.style.gridColumn = String(index + 2);
       head.style.gridRow = "1";
       container.appendChild(head);
     });
 
-    MODULES.list.forEach(function (module) {
+    MODULES.list.forEach((module) => {
       var label = element("div", "tt-time", module.start + "–" + module.end);
       label.style.gridColumn = "1";
-      label.style.gridRow = ((module.startMin - FIRST_MINUTE) / SLOT_MINUTES + 2) + " / span " +
-        ((module.endMin - module.startMin) / SLOT_MINUTES);
+      label.style.gridRow =
+        (module.startMin - FIRST_MINUTE) / SLOT_MINUTES +
+        2 +
+        " / span " +
+        (module.endMin - module.startMin) / SLOT_MINUTES;
       container.appendChild(label);
     });
 
     var columns = [];
-    for (var day = 0; day < DAY_KEYS.length; day++) {
-      var column = element("div", "tt-day");
+    for (let day = 0; day < DAY_KEYS.length; day++) {
+      const column = element("div", "tt-day");
       column.style.gridColumn = String(day + 2);
       column.style.gridRow = "2 / " + (SLOT_COUNT + 2);
       container.appendChild(column);
       columns.push({ element: column, entries: [] });
     }
 
-    (freeSlots || []).forEach(function (slot) {
+    (freeSlots || []).forEach((slot) => {
       // A free slot is blank until it is hovered or focused, when its label appears (see timetable.css).
       // A past slot is blank and cannot be clicked.
       var button = element("button", "tt-free");
@@ -134,39 +151,52 @@
       if (slot.disabled) {
         button.classList.add("tt-free--past");
       } else {
-        var plus = element("span", "tt-free__plus", "+");
+        const plus = element("span", "tt-free__plus", "+");
         plus.setAttribute("aria-hidden", "true");
         button.appendChild(plus);
         button.appendChild(element("span", "tt-free__label", slot.label));
       }
       if (slot.ariaLabel) button.setAttribute("aria-label", slot.ariaLabel);
-      placeBlock(button, { startMin: slot.startMin, endMin: slot.endMin, lane: 0, lanes: 1 });
+      placeBlock(button, {
+        startMin: slot.startMin,
+        endMin: slot.endMin,
+        lane: 0,
+        lanes: 1,
+      });
       button.addEventListener("click", slot.onClick);
       columns[slot.day_of_week - 1].element.appendChild(button);
     });
 
-    items.forEach(function (item) {
+    items.forEach((item) => {
       var dayIndex = Number(item.day_of_week) - 1;
       if (dayIndex < 0 || dayIndex >= columns.length) return;
       var startMin = Math.max(toMinutes(item.start_time), FIRST_MINUTE);
       var endMin = Math.min(toMinutes(item.end_time), LAST_MINUTE);
       if (endMin <= startMin) return;
-      columns[dayIndex].entries.push({ item: item, startMin: startMin, endMin: endMin });
+      columns[dayIndex].entries.push({
+        item: item,
+        startMin: startMin,
+        endMin: endMin,
+      });
     });
 
-    columns.forEach(function (column) {
-      layoutDay(column.entries).forEach(function (entry) {
+    columns.forEach((column) => {
+      layoutDay(column.entries).forEach((entry) => {
         var item = entry.item;
         var kindClass = KIND_CLASS[item.activity_type] || "other";
         var block = element("button", "tt-block tt-block--" + kindClass);
         block.type = "button";
         block.setAttribute("data-kind", item.activity_type);
         block.appendChild(element("strong", null, item.title));
-        var kind = KIND_KEYS[item.activity_type] ? t(KIND_KEYS[item.activity_type]) : item.activity_type;
+        var kind = KIND_KEYS[item.activity_type]
+          ? t(KIND_KEYS[item.activity_type])
+          : item.activity_type;
         block.appendChild(element("span", null, kind + " · " + item.room_name));
-        block.appendChild(element("span", null, item.start_time + "–" + item.end_time));
+        block.appendChild(
+          element("span", null, item.start_time + "–" + item.end_time),
+        );
         placeBlock(block, entry);
-        block.addEventListener("click", function () {
+        block.addEventListener("click", () => {
           if (onSelect) onSelect(item);
         });
         column.element.appendChild(block);

@@ -4,9 +4,7 @@
  * optional message the requester will see. The backend decides: it refuses a clash (409) and a request
  * already decided (409). Names and times from the backend are shown as they arrive (D-012).
  */
-(function () {
-  "use strict";
-
+(() => {
   var t = window.UniSpaceI18n.t;
   var api = window.UniSpaceApi;
 
@@ -25,13 +23,25 @@
   // "Mon 14 Dec", from the date the backend sent (YYYY-MM-DD).
   function formatDay(iso) {
     var parts = iso.split("-");
-    var day = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
-    return new Intl.DateTimeFormat(locale(), { weekday: "short", day: "numeric", month: "short" }).format(day);
+    var day = new Date(
+      Number(parts[0]),
+      Number(parts[1]) - 1,
+      Number(parts[2]),
+    );
+    return new Intl.DateTimeFormat(locale(), {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+    }).format(day);
   }
 
   function formatRequested(stamp) {
-    return new Intl.DateTimeFormat(locale(), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
-      .format(new Date(stamp));
+    return new Intl.DateTimeFormat(locale(), {
+      day: "numeric",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(new Date(stamp));
   }
 
   function setStatus(key, isError) {
@@ -39,7 +49,9 @@
     state.statusError = Boolean(isError);
     statusLine.hidden = !key;
     statusLine.textContent = key ? t(key) : "";
-    statusLine.className = state.statusError ? "notice notice--error" : "notice";
+    statusLine.className = state.statusError
+      ? "notice notice--error"
+      : "notice";
   }
 
   function cell() {
@@ -81,28 +93,41 @@
     asked.appendChild(document.createElement("br"));
     var when = document.createElement("span");
     when.className = "muted requester";
-    when.textContent = t("admin.requested", { when: formatRequested(request.created_at) });
+    when.textContent = t("admin.requested", {
+      when: formatRequested(request.created_at),
+    });
     asked.appendChild(when);
     row.appendChild(asked);
 
     var room = cell();
-    room.textContent = request.room_name + (request.faculty_name ? " · " + request.faculty_name : "");
+    room.textContent =
+      request.room_name +
+      (request.faculty_name ? " · " + request.faculty_name : "");
     room.appendChild(document.createElement("br"));
     var slot = document.createElement("span");
     slot.className = "muted requester";
-    slot.textContent = formatDay(request.specific_date) + " · " + request.start_time + "–" + request.end_time;
+    slot.textContent =
+      formatDay(request.specific_date) +
+      " · " +
+      request.start_time +
+      "–" +
+      request.end_time;
     room.appendChild(slot);
     row.appendChild(room);
 
     var actions = cell();
     var group = document.createElement("div");
     group.className = "btn-group";
-    group.appendChild(button(t("admin.accept"), "btn btn-primary btn-small", function () {
-      decide(request, { decision: "approve" });
-    }));
-    group.appendChild(button(t("admin.reject"), "btn btn-small", function () {
-      openReject(request, row);
-    }));
+    group.appendChild(
+      button(t("admin.accept"), "btn btn-primary btn-small", () => {
+        decide(request, { decision: "approve" });
+      }),
+    );
+    group.appendChild(
+      button(t("admin.reject"), "btn btn-small", () => {
+        openReject(request, row);
+      }),
+    );
     actions.appendChild(group);
     row.appendChild(actions);
     return row;
@@ -120,7 +145,9 @@
     field.className = "field";
     var label = document.createElement("label");
     label.setAttribute("for", "bk-reject-" + request.id);
-    label.textContent = t("admin.messageLabel", { name: request.requester.name });
+    label.textContent = t("admin.messageLabel", {
+      name: request.requester.name,
+    });
     field.appendChild(label);
     var box = document.createElement("textarea");
     box.id = "bk-reject-" + request.id;
@@ -136,12 +163,14 @@
 
     var group = document.createElement("div");
     group.className = "btn-group mt-3";
-    group.appendChild(button(t("admin.rejectConfirm"), "btn btn-primary", function () {
-      var message = box.value.trim();
-      var body = { decision: "reject" };
-      if (message) body.message = message;
-      decide(request, body);
-    }));
+    group.appendChild(
+      button(t("admin.rejectConfirm"), "btn btn-primary", () => {
+        var message = box.value.trim();
+        var body = { decision: "reject" };
+        if (message) body.message = message;
+        decide(request, body);
+      }),
+    );
     group.appendChild(button(t("admin.cancel"), "btn", closeRejects));
     td.appendChild(group);
 
@@ -152,26 +181,29 @@
 
   function closeRejects() {
     var panels = queue.querySelectorAll("tr.decide");
-    for (var i = 0; i < panels.length; i++) queue.removeChild(panels[i]);
+    for (let i = 0; i < panels.length; i++) queue.removeChild(panels[i]);
   }
 
   function draw() {
     queue.textContent = "";
-    state.requests.forEach(function (request) {
+    state.requests.forEach((request) => {
       queue.appendChild(requestRow(request));
     });
     emptyCard.hidden = state.requests.length > 0;
   }
 
   function load() {
-    return api.pendingBookings().then(function (requests) {
-      state.requests = requests;
-      draw();
-    }).catch(function () {
-      state.requests = [];
-      draw();
-      setStatus("admin.loadError", true);
-    });
+    return api
+      .pendingBookings()
+      .then((requests) => {
+        state.requests = requests;
+        draw();
+      })
+      .catch(() => {
+        state.requests = [];
+        draw();
+        setStatus("admin.loadError", true);
+      });
   }
 
   // The backend's answer to a decision, in words the administrator can act on.
@@ -183,19 +215,24 @@
     if (state.busy) return;
     state.busy = true;
     var accepted = body.decision === "approve";
-    api.decideBooking(request.id, body).then(function () {
-      state.busy = false;
-      state.requests = state.requests.filter(function (item) { return item.id !== request.id; });
-      draw();
-      setStatus(accepted ? "admin.accepted" : "admin.rejected");
-    }).catch(function (error) {
-      state.busy = false;
-      setStatus(errorKey(error.status), true);
-    });
+    api
+      .decideBooking(request.id, body)
+      .then(() => {
+        state.busy = false;
+        state.requests = state.requests.filter(
+          (item) => item.id !== request.id,
+        );
+        draw();
+        setStatus(accepted ? "admin.accepted" : "admin.rejected");
+      })
+      .catch((error) => {
+        state.busy = false;
+        setStatus(errorKey(error.status), true);
+      });
   }
 
   // Everything built by the script is translated again when the language changes.
-  document.addEventListener("unispace:langchange", function () {
+  document.addEventListener("unispace:langchange", () => {
     draw();
     setStatus(state.statusKey, state.statusError);
   });

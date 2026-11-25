@@ -4,16 +4,14 @@
  * rebuilds them when the language changes. Access control is nginx's; this script
  * only decides how the chrome looks.
  */
-(function () {
-  "use strict";
-
+(() => {
   var UI = window.UniSpaceUI;
   var currentUser = null;
   var built = false;
 
   function rebuildChrome() {
     if (!built) return;
-    document.querySelectorAll(".site-header, .site-footer").forEach(function (el) {
+    document.querySelectorAll(".site-header, .site-footer").forEach((el) => {
       el.remove();
     });
     UI.buildHeader(currentUser);
@@ -27,7 +25,7 @@
   // Apply the saved theme at once; the header (and its toggle) waits for the session
   // so the navigation does not flash in and out.
   UI.applyTheme(UI.currentTheme());
-  window.UniSpaceAuth.ready.then(function (user) {
+  window.UniSpaceAuth.ready.then((user) => {
     currentUser = user;
     UI.buildHeader(user);
     UI.fillUserName(user);

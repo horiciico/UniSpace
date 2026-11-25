@@ -4,9 +4,7 @@
  * be closed: there is no Close button, and Escape does nothing. The server decides everything
  * that matters (who is a student, which formations a faculty has); this only shows the choice.
  */
-(function () {
-  "use strict";
-
+(() => {
   var t = window.UniSpaceI18n.t;
   var api = window.UniSpaceApi;
   var state = {
@@ -18,7 +16,7 @@
     loadingFormations: false,
     formationId: "",
     busy: false,
-    saveFailed: false
+    saveFailed: false,
   };
   var root = null;
 
@@ -67,7 +65,7 @@
     var select = $("onboarding-faculty");
     select.innerHTML = "";
     select.appendChild(option("", t("onboarding.pickFaculty")));
-    state.faculties.forEach(function (faculty) {
+    state.faculties.forEach((faculty) => {
       select.appendChild(option(faculty.id, faculty.name));
     });
     select.value = state.facultyId;
@@ -77,17 +75,26 @@
   function renderFormations() {
     var select = $("onboarding-formation");
     var hint = $("onboarding-hint");
-    var empty = !!state.facultyId && !state.loadingFormations && !state.formationsFailed && state.formations.length === 0;
+    var empty =
+      !!state.facultyId &&
+      !state.loadingFormations &&
+      !state.formationsFailed &&
+      state.formations.length === 0;
     var placeholder = t("onboarding.pickFormation");
     if (!state.facultyId) placeholder = t("onboarding.chooseFacultyFirst");
     else if (state.loadingFormations) placeholder = t("onboarding.loading");
     select.innerHTML = "";
     select.appendChild(option("", placeholder));
-    state.formations.forEach(function (formation) {
+    state.formations.forEach((formation) => {
       select.appendChild(option(formation.id, formation.name));
     });
     select.value = state.formationId;
-    select.disabled = !state.facultyId || state.loadingFormations || state.formationsFailed || empty || state.busy;
+    select.disabled =
+      !state.facultyId ||
+      state.loadingFormations ||
+      state.formationsFailed ||
+      empty ||
+      state.busy;
     hint.hidden = !empty;
     hint.textContent = empty ? t("onboarding.noFormations") : "";
   }
@@ -96,7 +103,9 @@
     var box = $("onboarding-error");
     var loadFailed = state.facultiesFailed || state.formationsFailed;
     box.hidden = !(loadFailed || state.saveFailed);
-    $("onboarding-error-text").textContent = state.saveFailed ? t("onboarding.saveFailed") : t("onboarding.loadFailed");
+    $("onboarding-error-text").textContent = state.saveFailed
+      ? t("onboarding.saveFailed")
+      : t("onboarding.loadFailed");
     $("onboarding-retry").hidden = !loadFailed;
     $("onboarding-retry").textContent = t("onboarding.retry");
   }
@@ -106,7 +115,9 @@
     $("onboarding-lead").textContent = t("onboarding.lead");
     $("onboarding-faculty-label").textContent = t("onboarding.faculty");
     $("onboarding-formation-label").textContent = t("onboarding.formation");
-    $("onboarding-save").textContent = state.busy ? t("onboarding.saving") : t("onboarding.save");
+    $("onboarding-save").textContent = state.busy
+      ? t("onboarding.saving")
+      : t("onboarding.save");
     $("onboarding-save").disabled = state.busy || !state.formationId;
     renderFaculties();
     renderFormations();
@@ -116,11 +127,12 @@
   function loadFaculties() {
     state.facultiesFailed = false;
     render();
-    api.faculties()
-      .then(function (list) {
+    api
+      .faculties()
+      .then((list) => {
         state.faculties = list;
       })
-      .catch(function () {
+      .catch(() => {
         state.facultiesFailed = true;
       })
       .then(render);
@@ -135,14 +147,15 @@
     state.loadingFormations = true;
     state.formationId = "";
     render();
-    api.groups(asked)
-      .then(function (list) {
+    api
+      .groups(asked)
+      .then((list) => {
         if (asked === state.facultyId) state.formations = list;
       })
-      .catch(function () {
+      .catch(() => {
         if (asked === state.facultyId) state.formationsFailed = true;
       })
-      .then(function () {
+      .then(() => {
         if (asked !== state.facultyId) return;
         state.loadingFormations = false;
         render();
@@ -184,11 +197,12 @@
     state.busy = true;
     state.saveFailed = false;
     render();
-    api.saveStudyProfile(state.facultyId, state.formationId)
-      .then(close, function () {
+    api
+      .saveStudyProfile(state.facultyId, state.formationId)
+      .then(close, () => {
         state.saveFailed = true;
       })
-      .then(function () {
+      .then(() => {
         state.busy = false;
         if (root) render();
       });
@@ -199,7 +213,7 @@
     if (!root || event.key !== "Tab") return;
     var items = Array.prototype.slice
       .call(root.querySelectorAll("select, button"))
-      .filter(function (el) { return !el.disabled && !el.hidden; });
+      .filter((el) => !el.disabled && !el.hidden);
     var first = items[0];
     var last = items[items.length - 1];
     if (event.shiftKey && document.activeElement === first) {
@@ -219,14 +233,14 @@
     $("onboarding-form").addEventListener("submit", submit);
     $("onboarding-retry").addEventListener("click", retry);
     document.addEventListener("keydown", onKeydown);
-    document.addEventListener("unispace:langchange", function () {
+    document.addEventListener("unispace:langchange", () => {
       if (root) render();
     });
     loadFaculties();
     $("onboarding-faculty").focus();
   }
 
-  window.UniSpaceAuth.ready.then(function (user) {
+  window.UniSpaceAuth.ready.then((user) => {
     if (user && user.needs_onboarding && !onLoginPage()) start();
   });
 })();

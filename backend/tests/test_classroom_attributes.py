@@ -4,6 +4,7 @@ GET /api/admin/classrooms and PATCH /api/admin/classrooms/{id} are ADMIN only. F
 (GET /api/classrooms/free) returns the attributes of each room. DB tests run against the
 rolled-back `db` fixture (PATTERN-005, PATTERN-006).
 """
+
 import uuid
 from collections.abc import Iterator
 
@@ -31,9 +32,21 @@ def make_client(db: Session) -> TestClient:
     return TestClient(app, base_url="https://testserver")
 
 
-def sign_in(db: Session, client: TestClient, monkeypatch: pytest.MonkeyPatch, sub: str, email: str,
-            role: Role = Role.STUDENT) -> User:
-    claims = {"sub": sub, "email": email, "email_verified": True, "hd": "ulbsibiu.ro", "name": "Test"}
+def sign_in(
+    db: Session,
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+    sub: str,
+    email: str,
+    role: Role = Role.STUDENT,
+) -> User:
+    claims = {
+        "sub": sub,
+        "email": email,
+        "email_verified": True,
+        "hd": "ulbsibiu.ro",
+        "name": "Test",
+    }
 
     async def fake(request):
         return {"userinfo": claims}
@@ -53,9 +66,16 @@ def rooms(db: Session) -> dict:
     faculty = Faculty(code=f"t{tag}", name="Facultatea de Test")
     db.add(faculty)
     db.flush()
-    owned = Classroom(name=f"A-{tag}", capacity=30, faculty_id=faculty.id, external_id=f"own-{tag}",
-                      has_projector=True, board_type=BoardType.SMARTBOARD, access_notes="Cheia la portar",
-                      equipment_notes="24 PC-uri")
+    owned = Classroom(
+        name=f"A-{tag}",
+        capacity=30,
+        faculty_id=faculty.id,
+        external_id=f"own-{tag}",
+        has_projector=True,
+        board_type=BoardType.SMARTBOARD,
+        access_notes="Cheia la portar",
+        equipment_notes="24 PC-uri",
+    )
     campus = Classroom(name=f"B-{tag}", capacity=10, faculty_id=None, external_id=f"cam-{tag}")
     db.add_all([owned, campus])
     db.flush()
@@ -72,22 +92,34 @@ def test_only_an_admin_can_list_or_edit_the_rooms(db: Session, rooms: dict, monk
     assert make_client(db).patch(room_url, json={"is_bookable": False}).status_code == 401
 
 
-def test_the_admin_list_shows_every_attribute_and_filters_by_faculty(db: Session, rooms: dict, monkeypatch) -> None:
+def test_the_admin_list_shows_every_attribute_and_filters_by_faculty(
+    db: Session, rooms: dict, monkeypatch
+) -> None:
     admin = make_client(db)
     sign_in(db, admin, monkeypatch, "sub-r2", "rooms.admin@ulbsibiu.ro", role=Role.ADMIN)
 
     everything = {row["id"]: row for row in admin.get("/api/admin/classrooms").json()}
     assert everything[str(rooms["owned"].id)] == {
-        "id": str(rooms["owned"].id), "name": rooms["owned"].name, "faculty_id": str(rooms["faculty"].id),
-        "capacity": 30, "is_bookable": True, "has_projector": True, "board_type": "smartboard",
-        "access_notes": "Cheia la portar", "equipment_notes": "24 PC-uri",
+        "id": str(rooms["owned"].id),
+        "name": rooms["owned"].name,
+        "faculty_id": str(rooms["faculty"].id),
+        "capacity": 30,
+        "is_bookable": True,
+        "has_projector": True,
+        "board_type": "smartboard",
+        "access_notes": "Cheia la portar",
+        "equipment_notes": "24 PC-uri",
     }
-    own_only = admin.get("/api/admin/classrooms", params={"faculty_id": str(rooms["faculty"].id)}).json()
+    own_only = admin.get(
+        "/api/admin/classrooms", params={"faculty_id": str(rooms["faculty"].id)}
+    ).json()
     assert [row["id"] for row in own_only] == [str(rooms["owned"].id)]
     campus = admin.get("/api/admin/classrooms", params={"faculty_id": "campus"}).json()
     assert str(rooms["campus"].id) in {row["id"] for row in campus}
     assert str(rooms["owned"].id) not in {row["id"] for row in campus}
-    assert admin.get("/api/admin/classrooms", params={"faculty_id": "not-a-uuid"}).status_code == 400
+    assert (
+        admin.get("/api/admin/classrooms", params={"faculty_id": "not-a-uuid"}).status_code == 400
+    )
 
 
 def test_a_patch_changes_only_the_fields_sent(db: Session, rooms: dict, monkeypatch) -> None:
@@ -101,10 +133,15 @@ def test_a_patch_changes_only_the_fields_sent(db: Session, rooms: dict, monkeypa
     assert r.json()["has_projector"] is True
     assert r.json()["access_notes"] == "Cheia la portar"
 
-    r = admin.patch(url, json={
-        "has_projector": None, "board_type": "whiteboard", "access_notes": "  Portarul, etajul 2  ",
-        "equipment_notes": "",
-    })
+    r = admin.patch(
+        url,
+        json={
+            "has_projector": None,
+            "board_type": "whiteboard",
+            "access_notes": "  Portarul, etajul 2  ",
+            "equipment_notes": "",
+        },
+    )
     assert r.status_code == 200
     body = r.json()
     assert body["has_projector"] is None
@@ -114,7 +151,9 @@ def test_a_patch_changes_only_the_fields_sent(db: Session, rooms: dict, monkeypa
     assert body["is_bookable"] is False
 
 
-def test_a_patch_rejects_bad_values_and_unknown_rooms(db: Session, rooms: dict, monkeypatch) -> None:
+def test_a_patch_rejects_bad_values_and_unknown_rooms(
+    db: Session, rooms: dict, monkeypatch
+) -> None:
     admin = make_client(db)
     sign_in(db, admin, monkeypatch, "sub-r4", "bad.admin@ulbsibiu.ro", role=Role.ADMIN)
     url = f"/api/admin/classrooms/{rooms['owned'].id}"
@@ -123,15 +162,31 @@ def test_a_patch_rejects_bad_values_and_unknown_rooms(db: Session, rooms: dict, 
     assert admin.patch(url, json={"access_notes": "x" * 256}).status_code == 422
     assert admin.patch(url, json={"equipment_notes": "x" * 501}).status_code == 422
     assert admin.patch(url, json={"is_bookable": None}).status_code == 422
-    assert admin.patch(f"/api/admin/classrooms/{uuid.uuid4()}", json={"is_bookable": False}).status_code == 404
+    assert (
+        admin.patch(
+            f"/api/admin/classrooms/{uuid.uuid4()}", json={"is_bookable": False}
+        ).status_code
+        == 404
+    )
 
 
-def test_free_now_returns_the_attributes_and_filters_by_capacity_and_projector(db: Session, rooms: dict) -> None:
+def test_free_now_returns_the_attributes_and_filters_by_capacity_and_projector(
+    db: Session, rooms: dict
+) -> None:
     client = make_client(db)
-    params = {"date": DAY, "start_time": "09:40", "end_time": "11:10", "faculty_id": str(rooms["faculty"].id)}
+    params = {
+        "date": DAY,
+        "start_time": "09:40",
+        "end_time": "11:10",
+        "faculty_id": str(rooms["faculty"].id),
+    }
     # A second room of the faculty whose projector is unknown (NULL), with no notes.
-    unknown = Classroom(name=f"U-{uuid.uuid4().hex[:6]}", capacity=50, faculty_id=rooms["faculty"].id,
-                        external_id=f"unk-{uuid.uuid4().hex[:8]}")
+    unknown = Classroom(
+        name=f"U-{uuid.uuid4().hex[:6]}",
+        capacity=50,
+        faculty_id=rooms["faculty"].id,
+        external_id=f"unk-{uuid.uuid4().hex[:8]}",
+    )
     db.add(unknown)
     db.flush()
 
@@ -143,16 +198,30 @@ def test_free_now_returns_the_attributes_and_filters_by_capacity_and_projector(d
 
     big = client.get("/api/classrooms/free", params={**params, "min_capacity": 40}).json()
     assert [row["id"] for row in big] == [str(unknown.id)]
-    projector = client.get("/api/classrooms/free", params={**params, "has_projector": "true"}).json()
+    projector = client.get(
+        "/api/classrooms/free", params={**params, "has_projector": "true"}
+    ).json()
     assert [row["id"] for row in projector] == [str(rooms["owned"].id)]
 
 
 def test_the_room_list_carries_the_room_attributes(db: Session, rooms: dict) -> None:
-    """C-003 (P2): /api/classrooms includes the room attributes, so the timetable can show access notes."""
+    """C-003 (P2): /api/classrooms includes room attributes so the timetable shows access notes."""
     client = make_client(db)
-    rows = {row["id"]: row for row in client.get("/api/classrooms", params={"faculty_id": str(rooms["faculty"].id)}).json()}
+    rows = {
+        row["id"]: row
+        for row in client.get(
+            "/api/classrooms", params={"faculty_id": str(rooms["faculty"].id)}
+        ).json()
+    }
     assert rows[str(rooms["owned"].id)] == {
-        "id": str(rooms["owned"].id), "name": rooms["owned"].name, "faculty_id": str(rooms["faculty"].id),
-        "capacity": 30, "is_bookable": True, "is_field_verified": False, "has_projector": True,
-        "board_type": "smartboard", "access_notes": "Cheia la portar", "equipment_notes": "24 PC-uri",
+        "id": str(rooms["owned"].id),
+        "name": rooms["owned"].name,
+        "faculty_id": str(rooms["faculty"].id),
+        "capacity": 30,
+        "is_bookable": True,
+        "is_field_verified": False,
+        "has_projector": True,
+        "board_type": "smartboard",
+        "access_notes": "Cheia la portar",
+        "equipment_notes": "24 PC-uri",
     }

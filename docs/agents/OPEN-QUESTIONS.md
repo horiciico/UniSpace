@@ -14,7 +14,7 @@
 - Q-003 · How are UI screenshots taken for review? · _answered_
 - Q-004 · Is there a design board (Claude Design) or Figma for the UI? · _answered_
 - Q-005 · Where and how is the platform deployed? · _answered_
-- Q-006 · Which lint and type-check tools should run?
+- Q-006 · Which lint and type-check tools should run? · _answered_
 - Q-007 · How do users sign in (university account, password, or both)? · _answered_
 - Q-008 · How is the semester customized (holidays, breaks, inverted-parity weeks)?
 - Q-009 · How does a university (@ulbsibiu.ro) user get a role above STUDENT? · _answered_
@@ -62,11 +62,10 @@
 - **Who answers:** the user
 
 ## Q-006 · Which lint and type-check tools should run?
-- **Status:** open
-- **Blocks:** the lint and type-check lines in AGENTS.md sections 2 and 6.
+- **Status:** answered
+- **Answer (user, 2026-11-25):** Backend uses `ruff` (lint + format) and `mypy` (`backend/pyproject.toml`). Frontend uses `@biomejs/biome` and TypeScript `checkJs` (`frontend/biome.json`, `frontend/jsconfig.json`). Both are wired into `scripts/test-all.mjs` and `.github/workflows/tests.yml`.
+- **Blocks:** nothing now.
 - **Who answers:** the user
-- **Note (user, 2026-11-19):** will be configured in the future. Stays open until then.
-- **Note (user, 2026-11-22):** will be configured later. Stays open until then.
 
 ## Q-007 · How do users sign in (university account, password, or both)?
 - **Status:** answered

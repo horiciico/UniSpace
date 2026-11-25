@@ -5,19 +5,18 @@
  *   /bookings/?faculty_id=UUID|campus&room=UUID&date=YYYY-MM-DD&start=HH:MM&end=HH:MM
  * Every value is optional. A value that is not in the right shape is dropped when read.
  */
-(function () {
-  "use strict";
-
+(() => {
   var DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
   var TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
-  var UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  var UUID_PATTERN =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
   // Status word (the backend's value) -> the i18n key of its label and the pill class.
   var STATUSES = {
     pending: { key: "bookings.statusPending", pill: "pill pill--pending" },
     approved: { key: "status.approved", pill: "pill pill--approved" },
     rejected: { key: "bookings.statusRejected", pill: "pill pill--rejected" },
-    cancelled: { key: "status.cancelled", pill: "pill" }
+    cancelled: { key: "status.cancelled", pill: "pill" },
   };
 
   // Builds the Bookings page link. Empty values are left out.
@@ -41,11 +40,12 @@
     }
     var faculty = params.get("faculty_id") || "";
     return {
-      faculty_id: faculty === "campus" ? "campus" : pick("faculty_id", UUID_PATTERN),
+      faculty_id:
+        faculty === "campus" ? "campus" : pick("faculty_id", UUID_PATTERN),
       room: pick("room", UUID_PATTERN),
       date: pick("date", DATE_PATTERN),
       start: pick("start", TIME_PATTERN),
-      end: pick("end", TIME_PATTERN)
+      end: pick("end", TIME_PATTERN),
     };
   }
 
@@ -63,6 +63,6 @@
     link: bookingLink,
     readPrefill: readPrefill,
     statusInfo: statusInfo,
-    canCancel: canCancel
+    canCancel: canCancel,
   };
 })();

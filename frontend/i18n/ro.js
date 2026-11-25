@@ -25,8 +25,10 @@ window.UniSpaceI18n.register("ro", {
   "header.settings": "Setări",
   "settings.title": "Setări · UniSpace",
   "settings.heading": "Setări",
-  "settings.lead": "Preferințele și setările utilizatorului vor putea fi configurate aici.",
-  "footer.note": "UniSpace · versiune de probă · toate datele de pe ecran sunt date de probă",
+  "settings.lead":
+    "Preferințele și setările utilizatorului vor putea fi configurate aici.",
+  "footer.note":
+    "UniSpace · versiune de probă · toate datele de pe ecran sunt date de probă",
   "footer.home": "Acasă",
   "footer.subscribe": "Abonează-te la orarul tău",
   "theme.auto": "Temă: automată",
@@ -38,37 +40,48 @@ window.UniSpaceI18n.register("ro", {
   "role.ADMIN": "Administrator",
   "toast.copied": "Linkul de abonare a fost copiat",
   "toast.copyUnavailable": "Copierea nu este disponibilă în acest browser",
-  "placeholder.generic": "Machetă: nu s-a salvat nimic. Endpoint-ul din backend pentru asta vine mai târziu.",
-  "placeholder.nothingSaved": "Machetă: nu s-a salvat nimic. Endpoint-ul din backend pentru asta vine mai târziu.",
-  "placeholder.icsDownload": "Machetă: descărcarea .ics vine odată cu backend-ul",
-  "placeholder.bookingRequests": "Machetă: cererile de rezervare vin odată cu backend-ul",
+  "placeholder.generic":
+    "Machetă: nu s-a salvat nimic. Endpoint-ul din backend pentru asta vine mai târziu.",
+  "placeholder.nothingSaved":
+    "Machetă: nu s-a salvat nimic. Endpoint-ul din backend pentru asta vine mai târziu.",
+  "placeholder.icsDownload":
+    "Machetă: descărcarea .ics vine odată cu backend-ul",
+  "placeholder.bookingRequests":
+    "Machetă: cererile de rezervare vin odată cu backend-ul",
   "login.title": "Autentificare · UniSpace",
   "login.eyebrow": "Sălile facultății, într-un singur loc",
   "login.heading": "Autentifică-te în UniSpace",
-  "login.lead": "Orarul, sălile libere și rezervările sunt pentru persoane cu cont. Autentifică-te cu contul tău Google universitar.",
+  "login.lead":
+    "Orarul, sălile libere și rezervările sunt pentru persoane cu cont. Autentifică-te cu contul tău Google universitar.",
   "login.button": "Autentificare cu Google",
-  "login.note": "Folosește contul @ulbsibiu.ro. Cadrele didactice înregistrate pot folosi propriul cont Google.",
+  "login.note":
+    "Folosește contul @ulbsibiu.ro. Cadrele didactice înregistrate pot folosi propriul cont Google.",
   "login.deniedTitle": "Nu te-am putut autentifica.",
-  "login.deniedText": "Acces refuzat. Autentificarea este permisă doar conturilor @ulbsibiu.ro și cadrelor didactice înregistrate.",
+  "login.deniedText":
+    "Acces refuzat. Autentificarea este permisă doar conturilor @ulbsibiu.ro și cadrelor didactice înregistrate.",
   "login.failedTitle": "Autentificarea cu Google nu a fost finalizată.",
   "login.failedText": "Nu s-a salvat nimic. Încearcă din nou.",
   "admin.open": "Acces administrator",
-  "admin.lead": "Introdu datele administratorului. Nu se folosește contul Google.",
+  "admin.lead":
+    "Introdu datele administratorului. Nu se folosește contul Google.",
   "admin.username": "Nume de utilizator",
   "admin.password": "Parolă",
   "admin.submit": "Autentificare",
   "admin.cancel": "Anulează",
-  "admin.invalid": "Nume de utilizator sau parolă incorecte. Verifică datele și încearcă din nou.",
+  "admin.invalid":
+    "Nume de utilizator sau parolă incorecte. Verifică datele și încearcă din nou.",
   "admin.failed": "Nu am putut ajunge la server. Încearcă din nou.",
   "onboarding.title": "Datele tale de studiu",
-  "onboarding.lead": "Alege facultatea și formația ta de studiu. Ai nevoie de amândouă ca să folosești UniSpace.",
+  "onboarding.lead":
+    "Alege facultatea și formația ta de studiu. Ai nevoie de amândouă ca să folosești UniSpace.",
   "onboarding.faculty": "Facultatea",
   "onboarding.formation": "Formația de studiu",
   "onboarding.pickFaculty": "Alege facultatea",
   "onboarding.pickFormation": "Alege formația de studiu",
   "onboarding.chooseFacultyFirst": "Alege mai întâi facultatea.",
   "onboarding.loading": "Se încarcă…",
-  "onboarding.noFormations": "Nu există încă formații de studiu pentru această facultate.",
+  "onboarding.noFormations":
+    "Nu există încă formații de studiu pentru această facultate.",
   "onboarding.loadFailed": "Lista nu a putut fi încărcată.",
   "onboarding.retry": "Încearcă din nou",
   "onboarding.save": "Salvează și continuă",
@@ -95,10 +108,13 @@ window.UniSpaceI18n.register("ro", {
   "day.thu": "Joi",
   "day.fri": "Vin",
   "home.title": "UniSpace · Săli și orar al facultății",
-  "home.metaDescription": "UniSpace: orarul facultății, sălile libere și rezervările studențești, într-un singur loc.",
+  "home.metaDescription":
+    "UniSpace: orarul facultății, sălile libere și rezervările studențești, într-un singur loc.",
   "home.welcome": "Bine ai revenit,",
-  "home.heroTitle": "Știi unde e cursul tău. Găsești o sală liberă în câteva secunde.",
-  "home.heroLead": "UniSpace importă orarul real, îl arată pe grupe, profesori și săli și permite organizațiilor studențești să rezerve săli cu priorități clare.",
+  "home.heroTitle":
+    "Știi unde e cursul tău. Găsești o sală liberă în câteva secunde.",
+  "home.heroLead":
+    "UniSpace importă orarul real, îl arată pe grupe, profesori și săli și permite organizațiilor studențești să rezerve săli cu priorități clare.",
   "home.openTimetable": "Deschide orarul",
   "home.freeRoomsNow": "Săli libere acum",
   "home.statsAria": "Statistici de probă",
@@ -116,41 +132,51 @@ window.UniSpaceI18n.register("ro", {
   "home.allAnnouncements": "Toate anunțurile",
   "home.howTitle": "Cum funcționează o rezervare",
   "home.step1Title": "Cere o sală.",
-  "home.step1Text": "Alege o sală, o oră și activitatea ta. UniSpace verifică suprapunerile înainte să trimiți cererea.",
+  "home.step1Text":
+    "Alege o sală, o oră și activitatea ta. UniSpace verifică suprapunerile înainte să trimiți cererea.",
   "home.step2Title": "Un administrator o analizează.",
-  "home.step2Text": "Cursurile și examenele au întotdeauna prioritate. O activitate cu prioritate mai mare poate realoca o rezervare, iar rezervarea realocată primește o sală alternativă.",
+  "home.step2Text":
+    "Cursurile și examenele au întotdeauna prioritate. O activitate cu prioritate mai mare poate realoca o rezervare, iar rezervarea realocată primește o sală alternativă.",
   "home.step3Title": "Primești confirmarea.",
-  "home.step3Text": "Sala apare în calendarul organizației tale și în orarul sălii.",
+  "home.step3Text":
+    "Sala apare în calendarul organizației tale și în orarul sălii.",
   "home.soonTitle": "În curând",
   "home.soon1Title": "Abonare la calendar",
-  "home.soon1Text": "Un link pentru fiecare grupă, sincronizat în Google sau Apple Calendar.",
+  "home.soon1Text":
+    "Un link pentru fiecare grupă, sincronizat în Google sau Apple Calendar.",
   "home.soon2Title": "Istoric modificări",
   "home.soon2Text": "Fiecare curs mutat punctual, cu cine l-a mutat și când.",
   "home.soon3Title": "Realocări cu prioritate",
-  "home.soon3Text": "Rezervările realocate, sălile alternative și termenul de răspuns, într-o singură coadă.",
+  "home.soon3Text":
+    "Rezervările realocate, sălile alternative și termenul de răspuns, într-o singură coadă.",
   "announce.title": "Anunțuri · UniSpace",
   "announce.eyebrow": "Anunțuri",
   "announce.heading": "Ce s-a schimbat",
-  "announce.intro": "Anulări, schimbări de sală și note de la profesori, pe disciplină sau grupă.",
+  "announce.intro":
+    "Anulări, schimbări de sală și note de la profesori, pe disciplină sau grupă.",
   "announce.filterAria": "Filtrează anunțurile",
   "announce.filterAll": "Toate",
   "announce.filterMine": "Grupele mele",
   "announce.discipline": "Disciplină",
   "announce.postTitle": "Publică un anunț",
-  "announce.postIntro": "Pentru profesori. Formular de probă: publicarea vine odată cu backend-ul și trimite un e-mail grupei.",
+  "announce.postIntro":
+    "Pentru profesori. Formular de probă: publicarea vine odată cu backend-ul și trimite un e-mail grupei.",
   "announce.type": "Tip",
   "announce.message": "Mesaj",
-  "announce.messagePlaceholder": "Spune ce s-a schimbat și ce trebuie să facă studenții",
+  "announce.messagePlaceholder":
+    "Spune ce s-a schimbat și ce trebuie să facă studenții",
   "announce.submit": "Publică și trimite e-mail grupei",
   "calendar.title": "Calendar · UniSpace",
   "calendar.eyebrow": "Calendar",
   "calendar.heading": "Ține orarul în calendarul tău",
-  "calendar.intro": "Abonează-te o singură dată. Google Calendar și Apple Calendar se actualizează singure când se schimbă orarul.",
+  "calendar.intro":
+    "Abonează-te o singură dată. Google Calendar și Apple Calendar se actualizează singure când se schimbă orarul.",
   "calendar.subTitle": "Linkul tău de abonare",
   "calendar.group": "Grupă",
   "calendar.url": "Adresa de abonare",
   "calendar.copy": "Copiază",
-  "calendar.urlNote": "Adresă de probă. Linkul real se creează pentru fiecare grupă.",
+  "calendar.urlNote":
+    "Adresă de probă. Linkul real se creează pentru fiecare grupă.",
   "calendar.howTitle": "Cum îl adaugi",
   "calendar.step1Title": "Copiază linkul",
   "calendar.step1Text": "Folosește butonul din stânga.",
@@ -159,12 +185,14 @@ window.UniSpaceI18n.register("ro", {
   "calendar.step3Title": "Apple Calendar",
   "calendar.step3Text": "Fișier → Abonament nou la calendar → lipește.",
   "calendar.oneTitle": "Fișier pentru o zi",
-  "calendar.oneText": "Machetă: descarcă o săptămână ca fișier .ics pentru un import punctual.",
+  "calendar.oneText":
+    "Machetă: descarcă o săptămână ca fișier .ics pentru un import punctual.",
   "calendar.download": "Descarcă săptămâna aceasta (.ics)",
   "changes.title": "Modificări · UniSpace",
   "changes.eyebrow": "Istoric modificări",
   "changes.heading": "Modificări punctuale",
-  "changes.intro": "Fiecare oră mutată sau anulată pentru o singură săptămână, păstrată cu istoricul ei. Rânduri de probă.",
+  "changes.intro":
+    "Fiecare oră mutată sau anulată pentru o singură săptămână, păstrată cu istoricul ei. Rânduri de probă.",
   "changes.caption": "Modificări pentru grupa {name}",
   "changes.colWeek": "Săptămâna",
   "changes.colActivity": "Activitate",
@@ -172,7 +200,8 @@ window.UniSpaceI18n.register("ro", {
   "changes.colNow": "Acum",
   "changes.colBy": "Modificat de",
   "changes.colStatus": "Stare",
-  "changes.footnote": "Machetă: fiecare rând își păstrează istoricul. Studenții abonați la grupă primesc un e-mail pentru fiecare modificare.",
+  "changes.footnote":
+    "Machetă: fiecare rând își păstrează istoricul. Studenții abonați la grupă primesc un e-mail pentru fiecare modificare.",
   "admin.title": "Administrare · UniSpace",
   "admin.eyebrow": "Administrare",
   "admin.heading": "Cereri de rezervare",
@@ -180,7 +209,8 @@ window.UniSpaceI18n.register("ro", {
   "admin.tabHistory": "Istoric rezervări",
   "admin.tabRooms": "Săli",
   "adminRooms.title": "Săli",
-  "adminRooms.intro": "Notează ce are fiecare sală și cum se intră în ea. Studenții văd proiectorul pe pagina Liber acum.",
+  "adminRooms.intro":
+    "Notează ce are fiecare sală și cum se intră în ea. Studenții văd proiectorul pe pagina Liber acum.",
   "rooms.faculty": "Facultate",
   "rooms.searchLabel": "Caută după numele sălii",
   "rooms.colRoom": "Sală",
@@ -214,13 +244,15 @@ window.UniSpaceI18n.register("ro", {
   "rooms.editTitle": "Editează sala {name}",
   "rooms.seatsUnknown": "Capacitate necunoscută",
   "rooms.saved": "Sala a fost salvată.",
-  "rooms.invalid": "Verifică valorile: notele de acces au cel mult 255 de caractere, iar cele despre dotări 500.",
+  "rooms.invalid":
+    "Verifică valorile: notele de acces au cel mult 255 de caractere, iar cele despre dotări 500.",
   "rooms.saveError": "Sala nu a putut fi salvată. Încearcă din nou.",
   "rooms.loadError": "Sălile nu au putut fi încărcate. Încearcă din nou.",
   "adminHistory.title": "Istoric rezervări",
   "adminHistory.faculty": "Facultate",
   "adminHistory.room": "Sală",
-  "adminHistory.roomHint": "Alege mai întâi o facultate ca să restrângi sălile.",
+  "adminHistory.roomHint":
+    "Alege mai întâi o facultate ca să restrângi sălile.",
   "adminHistory.status": "Stare",
   "adminHistory.statusAll": "Toate",
   "adminHistory.allFaculties": "Toate facultățile",
@@ -240,27 +272,35 @@ window.UniSpaceI18n.register("ro", {
   "adminHistory.cancel": "Anulează",
   "adminHistory.cancelAria": "Anulează rezervarea {title}",
   "adminHistory.confirmTitle": "Anulezi rezervarea {title}?",
-  "adminHistory.confirmText": "{room} · {when}. Rezervarea devine respinsă, iar solicitantul vede mesajul tău.",
+  "adminHistory.confirmText":
+    "{room} · {when}. Rezervarea devine respinsă, iar solicitantul vede mesajul tău.",
   "adminHistory.confirmYes": "Anulează rezervarea",
   "adminHistory.keep": "Păstrează-o",
   "adminHistory.messageLabel": "Mesaj pentru solicitant (opțional)",
   "adminHistory.messageHint": "Până la 100 de caractere.",
   "adminHistory.cancelled": "Rezervarea a fost anulată și marcată ca respinsă.",
   "adminHistory.cancelRefused": "Rezervarea nu mai poate fi anulată.",
-  "adminHistory.loadError": "Nu am putut încărca rezervările. Încearcă din nou.",
-  "admin.intro": "Fiecare cerere așteaptă o decizie. Acceptă-o ca să rezervi sala sau respinge-o cu un mesaj opțional pe care solicitantul îl va vedea.",
-  "admin.queueTitle": "În așteptarea aprobării",
+  "adminHistory.loadError":
+    "Nu am putut încărca rezervările. Încearcă din nou.",
+  "admin.intro":
+    "Fiecare cerere așteaptă o decizie. Acceptă-o ca să rezervi sala sau respinge-o cu un mesaj opțional pe care solicitantul îl va vedea.",
+  "admin.queueTitle": "În așteptarea aprobării",
+
   "bookings.decisionNote": "Mesaj de la administrator: {message}",
   "admin.loadError": "Nu am putut încărca cererile. Încearcă din nou.",
   "admin.errorGeneric": "Ceva nu a mers. Încearcă din nou.",
-  "admin.errorClash": "Sala este ocupată la acest interval. Respinge cererea sau cere solicitantului alt interval.",
+  "admin.errorClash":
+    "Sala este ocupată la acest interval. Respinge cererea sau cere solicitantului alt interval.",
   "admin.rejected": "Cererea a fost respinsă.",
   "admin.accepted": "Rezervarea a fost aprobată.",
   "admin.rejectConfirm": "Respinge cererea",
-  "admin.messageHint": "Până la 100 de caractere. {name} îl va vedea pe pagina Rezervări.",
-  "admin.messagePlaceholder": "Explică decizia, de exemplu că sala a fost cerută deja pentru un eveniment",
+  "admin.messageHint":
+    "Până la 100 de caractere. {name} îl va vedea pe pagina Rezervări.",
+  "admin.messagePlaceholder":
+    "Explică decizia, de exemplu că sala a fost cerută deja pentru un eveniment",
   "admin.messageLabel": "Mesaj pentru {name} (opțional)",
-  "admin.emptyText": "Cererile noi de rezervare apar aici imediat ce sunt trimise.",
+  "admin.emptyText":
+    "Cererile noi de rezervare apar aici imediat ce sunt trimise.",
   "admin.emptyTitle": "Nicio cerere nu așteaptă",
   "admin.requested": "Solicitată {when}",
   "admin.accept": "Acceptă",
@@ -272,10 +312,13 @@ window.UniSpaceI18n.register("ro", {
   "bookings.title": "Rezervări · UniSpace",
   "bookings.eyebrow": "Rezervări",
   "bookings.heading": "Cereri de sală",
-  "bookings.intro": "Rezervă o sală pentru un interval liber. Cererile studenților și ale organizațiilor așteaptă decizia unui administrator. Rezervările administratorilor sunt aprobate imediat.",
-  "bookings.prefilled": "Data, sala și intervalul au fost completate din alegerea ta.",
+  "bookings.intro":
+    "Rezervă o sală pentru un interval liber. Cererile studenților și ale organizațiilor așteaptă decizia unui administrator. Rezervările administratorilor sunt aprobate imediat.",
+  "bookings.prefilled":
+    "Data, sala și intervalul au fost completate din alegerea ta.",
   "bookings.mineTitle": "Cererile tale",
-  "bookings.mineHint": "Cererile în așteptare pot fi anulate. Cele aprobate nu pot fi anulate din aplicație.",
+  "bookings.mineHint":
+    "Cererile în așteptare pot fi anulate. Cele aprobate nu pot fi anulate din aplicație.",
   "bookings.newTitle": "Cerere nouă",
   "bookings.adminNote": "Rezervarea ta este aprobată imediat ce o faci.",
   "bookings.faculty": "Facultate",
@@ -294,20 +337,25 @@ window.UniSpaceI18n.register("ro", {
   "bookings.book": "Rezervă sala",
   "bookings.loading": "Se încarcă…",
   "bookings.loadError": "Nu am putut încărca datele. Încearcă din nou.",
-  "bookings.emptyMine": "Nu ai cereri încă. Trimite prima cerere cu formularul.",
+  "bookings.emptyMine":
+    "Nu ai cereri încă. Trimite prima cerere cu formularul.",
   "bookings.cancel": "Anulează",
   "bookings.cancelAria": "Anulează cererea {title}",
   "bookings.cancelled": "Cererea a fost anulată.",
   "bookings.errorCancelState": "Doar o cerere în așteptare poate fi anulată.",
   "bookings.errorGeneric": "Ceva nu a mers. Încearcă din nou.",
-  "bookings.errorClash": "Sala este ocupată în acest interval. Alege alt interval sau altă sală.",
-  "bookings.errorInvalid": "Verifică data și modulele: o rezervare nu poate începe în trecut și trebuie să fie pe module întregi.",
+  "bookings.errorClash":
+    "Sala este ocupată în acest interval. Alege alt interval sau altă sală.",
+  "bookings.errorInvalid":
+    "Verifică data și modulele: o rezervare nu poate începe în trecut și trebuie să fie pe module întregi.",
   "bookings.errorRoom": "Sala nu a fost găsită. Alege din nou sala.",
   "bookings.errorNoRoom": "Alege o sală.",
   "bookings.errorNoDate": "Alege o dată.",
   "bookings.errorNoTitle": "Scrie un titlu sau un motiv.",
-  "bookings.errorRange": "Modulul de sfârșit trebuie să fie după cel de început.",
-  "bookings.sentPending": "Cererea a fost trimisă. Așteaptă aprobarea unui administrator.",
+  "bookings.errorRange":
+    "Modulul de sfârșit trebuie să fie după cel de început.",
+  "bookings.sentPending":
+    "Cererea a fost trimisă. Așteaptă aprobarea unui administrator.",
   "bookings.sentApproved": "Rezervarea a fost aprobată.",
   "bookings.statusPending": "În așteptare",
   "bookings.statusRejected": "Respinsă",
@@ -330,7 +378,8 @@ window.UniSpaceI18n.register("ro", {
   "rooms.whiteboard": "Tablă",
   "rooms.apply": "Aplică filtrele",
   "rooms.listAria": "Lista sălilor",
-  "rooms.partialNote": "Machetă: sunt afișate șase din cele douăsprezece săli. Restul se încarcă odată cu backend-ul.",
+  "rooms.partialNote":
+    "Machetă: sunt afișate șase din cele douăsprezece săli. Restul se încarcă odată cu backend-ul.",
   "roomDetail.title": "Sala A101 · UniSpace",
   "roomDetail.breadcrumbAria": "Traseu",
   "roomDetail.equipment": "Echipament",
@@ -345,7 +394,8 @@ window.UniSpaceI18n.register("ro", {
   "roomDetail.freeLower": "liberă",
   "roomDetail.request": "Cere această sală",
   "roomDetail.notes": "Note",
-  "roomDetail.notesText": "Machetă: aici apar anunțurile pentru această sală (o schimbare de sală, un proiector defect).",
+  "roomDetail.notesText":
+    "Machetă: aici apar anunțurile pentru această sală (o schimbare de sală, un proiector defect).",
   "notFound.title": "Pagina nu a fost găsită · UniSpace",
   "notFound.heading": "Această sală nu este pe hartă",
   "notFound.text": "Pagina cerută nu există sau a fost mutată.",
@@ -355,9 +405,11 @@ window.UniSpaceI18n.register("ro", {
   "free.title": "Săli libere · UniSpace",
   "free.eyebrow": "Săli libere",
   "free.heading": "Libere acum",
-  "free.afterLast": "Ultimul modul se termină la 21:10: după această oră nu mai pot fi rezervate săli.",
+  "free.afterLast":
+    "Ultimul modul se termină la 21:10: după această oră nu mai pot fi rezervate săli.",
   "free.inModule": "În modulul {start}–{end}",
-  "free.intro": "Săli bookabile libere acum sau într-un interval ales. Alege un filtru ca să restrângi lista.",
+  "free.intro":
+    "Săli bookabile libere acum sau într-un interval ales. Alege un filtru ca să restrângi lista.",
   "free.modeAria": "Mod de căutare",
   "free.modeNow": "Liber acum",
   "free.modeCustom": "Interval personalizat",
@@ -373,7 +425,8 @@ window.UniSpaceI18n.register("ro", {
   "free.count": "{n} săli libere",
   "free.empty": "Nicio sală liberă pentru filtrele alese.",
   "free.error": "Nu am putut încărca sălile. Încearcă din nou.",
-  "free.badRange": "Alege module întregi: de la începutul unui modul până la sfârșitul altuia.",
+  "free.badRange":
+    "Alege module întregi: de la începutul unui modul până la sfârșitul altuia.",
   "free.freeUntil": "Liber până la {time}",
   "free.seats": "{n} locuri",
   "free.seatsUnknown": "Capacitate necunoscută",
@@ -396,7 +449,8 @@ window.UniSpaceI18n.register("ro", {
   "timetable.entityProfessor": "Profesor",
   "timetable.entityRoom": "Sală",
   "timetable.entitySearch": "Caută și alege din listă",
-  "timetable.empty": "Alege o facultate și o grupă, un profesor sau o sală pentru a vedea orarul",
+  "timetable.empty":
+    "Alege o facultate și o grupă, un profesor sau o sală pentru a vedea orarul",
   "timetable.loading": "Se încarcă orarul…",
   "timetable.error": "Nu am putut încărca orarul. Încearcă din nou.",
   "timetable.notFound": "Nu am găsit această intrare. Alege una din listă.",

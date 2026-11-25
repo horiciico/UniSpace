@@ -1,7 +1,6 @@
 import uuid
-from typing import Literal
-
 from datetime import datetime
+from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field, field_validator
@@ -37,7 +36,9 @@ class Decision(BaseModel):
 
 
 @router.get("/pending")
-def pending_requests(admin: User = Depends(require_admin), db: Session = Depends(get_db)) -> list[dict]:
+def pending_requests(
+    admin: User = Depends(require_admin), db: Session = Depends(get_db)
+) -> list[dict]:
     """The requests waiting for a decision, oldest first, with who asked and their role."""
     rows = db.execute(
         select(Booking, Classroom.name, Faculty.name, User)
@@ -50,17 +51,25 @@ def pending_requests(admin: User = Depends(require_admin), db: Session = Depends
     out = []
     for booking, room_name, faculty_name, requester in rows:
         item = booking_out(booking, room_name, faculty_name)
-        item["requester"] = {"name": requester.name, "email": requester.email, "role": requester.role.value}
+        item["requester"] = {
+            "name": requester.name,
+            "email": requester.email,
+            "role": requester.role.value,
+        }
         out.append(item)
     return out
 
 
 @router.post("/{booking_id}/decision")
-def decide(booking_id: uuid.UUID, body: Decision, admin: User = Depends(require_admin),
-           db: Session = Depends(get_db)) -> dict:
+def decide(
+    booking_id: uuid.UUID,
+    body: Decision,
+    admin: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+) -> dict:
     """Accept (approve) or reject a pending request, with an optional message to the requester.
 
-    An approval is checked for clashes again, since a clash may have been approved since the request.
+    An approval is checked for clashes again, since a clash may have appeared since the request.
     """
     booking = db.get(Booking, booking_id)
     if booking is None:
@@ -68,7 +77,9 @@ def decide(booking_id: uuid.UUID, body: Decision, admin: User = Depends(require_
     if booking.status != BookingStatus.PENDING:
         raise HTTPException(409, "Only a pending request can be decided.")
     if body.decision == "approve":
-        reason = clash(db, booking.classroom_id, booking.specific_date, booking.start_time, booking.end_time)
+        reason = clash(
+            db, booking.classroom_id, booking.specific_date, booking.start_time, booking.end_time
+        )
         if reason is not None:
             raise HTTPException(409, reason)
         booking.status = BookingStatus.APPROVED
@@ -79,11 +90,14 @@ def decide(booking_id: uuid.UUID, body: Decision, admin: User = Depends(require_
     booking.decision_message = body.message
     db.commit()
     room = db.get(Classroom, booking.classroom_id)
+    assert room is not None
     faculty = db.get(Faculty, room.faculty_id) if room.faculty_id else None
     return booking_out(booking, room.name, faculty.name if faculty else None)
 
 
-def _history_item(booking: Booking, room: Classroom, faculty_name: str | None, requester: User) -> dict:
+def _history_item(
+    booking: Booking, room: Classroom, faculty_name: str | None, requester: User
+) -> dict:
     return {
         "id": str(booking.id),
         "classroom_id": str(room.id),
@@ -113,7 +127,7 @@ def history(
     db: Session = Depends(get_db),
 ) -> dict:
     """Every booking, past and current, newest first. faculty_id is a faculty, or "campus" for rooms
-    with no faculty (the classrooms rule). Each filter is optional; `total` counts all the matches."""
+    with no faculty (the classrooms rule). Each filter is optional; `total` counts all matches."""
     conditions = []
     if faculty_id is not None:
         conditions.append(faculty_condition(faculty_id))
@@ -134,12 +148,20 @@ def history(
         .outerjoin(Faculty, Faculty.id == Classroom.faculty_id)
         .join(User, User.id == Booking.user_id)
         .where(*conditions)
-        .order_by(Booking.specific_date.desc(), Booking.start_time.desc(), Booking.created_at.desc(), Booking.id)
+        .order_by(
+            Booking.specific_date.desc(),
+            Booking.start_time.desc(),
+            Booking.created_at.desc(),
+            Booking.id,
+        )
         .limit(limit)
         .offset(offset)
     ).all()
     return {
-        "items": [_history_item(booking, room, faculty_name, requester) for booking, room, faculty_name, requester in rows],
+        "items": [
+            _history_item(booking, room, faculty_name, requester)
+            for booking, room, faculty_name, requester in rows
+        ],
         "total": total,
         "limit": limit,
         "offset": offset,
@@ -158,10 +180,14 @@ class AdminCancel(BaseModel):
 
 
 @router.post("/{booking_id}/cancel")
-def admin_cancel(booking_id: uuid.UUID, body: AdminCancel | None = None, admin: User = Depends(require_admin),
-                 db: Session = Depends(get_db)) -> dict:
-    """An admin cancels a future approved booking of anyone. The booking becomes `rejected` (the requester
-    sees that), with an optional message from the admin, kept like any other decision."""
+def admin_cancel(
+    booking_id: uuid.UUID,
+    body: AdminCancel | None = None,
+    admin: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+) -> dict:
+    """An admin cancels a future approved booking of anyone. The booking becomes `rejected`
+    (the requester sees that), with an optional message from the admin."""
     booking = db.get(Booking, booking_id)
     if booking is None:
         raise HTTPException(404, "Booking not found.")
@@ -175,6 +201,6 @@ def admin_cancel(booking_id: uuid.UUID, body: AdminCancel | None = None, admin: 
     booking.decision_message = body.message if body else None
     db.commit()
     room = db.get(Classroom, booking.classroom_id)
+    assert room is not None
     faculty = db.get(Faculty, room.faculty_id) if room.faculty_id else None
     return booking_out(booking, room.name, faculty.name if faculty else None)
-

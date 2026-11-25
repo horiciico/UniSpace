@@ -1,10 +1,9 @@
 from logging.config import fileConfig
 
+import app.models  # noqa: F401  registers every model on Base.metadata
 from alembic import context
-
 from app.config import DATABASE_URL
 from app.db import Base, engine
-import app.models  # noqa: F401  registers every model on Base.metadata
 
 config = context.config
 

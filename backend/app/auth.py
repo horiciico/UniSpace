@@ -1,9 +1,10 @@
-"""Google sign-in and admin sign-in: the "bouncer" that decides who may log in, and the login action itself.
+"""Google sign-in and admin sign-in: the "bouncer" that decides who may log in and handles login.
 
 The role is resolved on every sign-in (D-020): professor list first, then the student association
 hook, then a university address, otherwise the sign-in is refused. The admin signs in with the
 credentials in `.env` (D-021).
 """
+
 import secrets
 import uuid
 
@@ -19,7 +20,9 @@ from app.db import get_db
 from app.models import Professor, Role, User
 
 UNIVERSITY_DOMAIN = "ulbsibiu.ro"
-DENIED = "Access denied. Login is restricted to @ulbsibiu.ro accounts or registered faculty members."
+DENIED = (
+    "Access denied. Login is restricted to @ulbsibiu.ro accounts or registered faculty members."
+)
 # A login never lowers these roles (D-020).
 KEPT_ROLES = (Role.ADMIN, Role.STUDENT_ORG)
 
@@ -42,14 +45,18 @@ def is_student_association(email: str) -> bool:
     return False
 
 
-def decide_role(current: Role | None, is_professor: bool, is_association: bool, is_university: bool) -> Role | None:
+def decide_role(
+    current: Role | None, is_professor: bool, is_association: bool, is_university: bool
+) -> Role | None:
     """The role for a sign-in, or None when the sign-in is refused (D-020)."""
     if is_professor:
         target = Role.PROFESSOR
     elif is_association:
         target = Role.STUDENT_ORG
     elif is_university:
-        target = Role.STUDENT  # a former professor who is no longer listed goes back to STUDENT here
+        target = (
+            Role.STUDENT
+        )  # a former professor who is no longer listed goes back to STUDENT here
     else:
         return None
     return current if current in KEPT_ROLES else target
@@ -113,12 +120,17 @@ def resolve_user(db: Session, claims: dict) -> User:
 
 
 def admin_credentials_match(username: str, password: str) -> bool:
-    """Constant-time comparison with the .env pair (D-021). An empty pair turns the admin sign-in off."""
+    """Constant-time comparison with the .env pair (D-021).
+
+    An empty pair turns the admin sign-in off.
+    """
     expected_user, expected_password = config.ADMIN_USERNAME, config.ADMIN_PASSWORD
     if not expected_user or not expected_password:
         return False
     user_ok = secrets.compare_digest(username.encode("utf-8"), expected_user.encode("utf-8"))
-    password_ok = secrets.compare_digest(password.encode("utf-8"), expected_password.encode("utf-8"))
+    password_ok = secrets.compare_digest(
+        password.encode("utf-8"), expected_password.encode("utf-8")
+    )
     return user_ok and password_ok
 
 
@@ -136,7 +148,7 @@ def ensure_admin_user(db: Session, username: str) -> User:
 
 
 def start_session(request: Request, user: User) -> None:
-    """The login action: a fresh signed, HttpOnly session cookie (see SessionMiddleware in main.py)."""
+    """The login action: a fresh signed, HttpOnly session cookie (see main.py)."""
     request.session.clear()  # drops the OAuth state and any earlier login
     request.session["user_id"] = str(user.id)
 

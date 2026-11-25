@@ -12,6 +12,8 @@ class Faculty(Base):
     __tablename__ = "faculties"
     __table_args__ = (UniqueConstraint("code", name="uq_faculty_code"),)
 
-    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, server_default=text("gen_random_uuid()"))
+    id: Mapped[uuid.UUID] = mapped_column(
+        primary_key=True, server_default=text("gen_random_uuid()")
+    )
     code: Mapped[str] = mapped_column(String(20))
     name: Mapped[str] = mapped_column(String(255))

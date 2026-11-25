@@ -2,17 +2,14 @@
  * Component: the theme button (auto, light, dark). The choice is kept in localStorage
  * under unispace-theme; "auto" follows the operating system.
  */
-(function () {
-  "use strict";
-
-  var UI = (window.UniSpaceUI = window.UniSpaceUI || {});
+(() => {
+  window.UniSpaceUI = window.UniSpaceUI || {};
+  var UI = window.UniSpaceUI;
   var THEMES = ["auto", "light", "dark"];
 
-  UI.currentTheme = function () {
-    return localStorage.getItem("unispace-theme") || "auto";
-  };
+  UI.currentTheme = () => localStorage.getItem("unispace-theme") || "auto";
 
-  UI.applyTheme = function (mode) {
+  UI.applyTheme = (mode) => {
     var root = document.documentElement;
     if (mode === "auto") {
       root.removeAttribute("data-theme");
@@ -25,12 +22,13 @@
     }
   };
 
-  UI.bindTheme = function () {
+  UI.bindTheme = () => {
     UI.applyTheme(UI.currentTheme());
     var button = document.querySelector(".theme-toggle");
     if (!button) return;
-    button.addEventListener("click", function () {
-      var next = THEMES[(THEMES.indexOf(UI.currentTheme()) + 1) % THEMES.length];
+    button.addEventListener("click", () => {
+      var next =
+        THEMES[(THEMES.indexOf(UI.currentTheme()) + 1) % THEMES.length];
       localStorage.setItem("unispace-theme", next);
       UI.applyTheme(next);
     });

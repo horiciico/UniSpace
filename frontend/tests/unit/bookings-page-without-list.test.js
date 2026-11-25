@@ -1,5 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { flush, loadI18n, loadScript, mountPage, response, stubFetch } from "../helpers.js";
+import {
+  flush,
+  loadI18n,
+  loadScript,
+  mountPage,
+  response,
+  stubFetch,
+} from "../helpers.js";
 
 // A page without its request list does nothing: the script stops at once and calls no API.
 describe("bookings page: a page without its request list", () => {

@@ -10,14 +10,14 @@ export default defineConfig({
     setupFiles: ["tests/setup.js"],
     coverage: {
       provider: "v8",
-      include: [
-        "i18n/i18n.js",
-        "components/*.js",
-        "js/*.js",
-        "js/pages/*.js"
-      ],
+      include: ["i18n/i18n.js", "components/*.js", "js/*.js", "js/pages/*.js"],
       reporter: ["text", "html"],
-      thresholds: { lines: 100, functions: 100, branches: 100, statements: 100 }
-    }
-  }
+      thresholds: {
+        lines: 100,
+        functions: 100,
+        branches: 100,
+        statements: 100,
+      },
+    },
+  },
 });

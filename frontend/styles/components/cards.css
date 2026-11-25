@@ -21,7 +21,9 @@
 .card--link {
   text-decoration: none;
   color: inherit;
-  transition: transform var(--duration-base), border-color var(--duration-base);
+  transition:
+    transform var(--duration-base),
+    border-color var(--duration-base);
 }
 
 .card--link:hover {

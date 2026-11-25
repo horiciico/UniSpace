@@ -1,11 +1,15 @@
 import uuid
 from datetime import time
+from typing import TYPE_CHECKING
 
 from sqlalchemy import CheckConstraint, Enum, ForeignKey, SmallInteger, Text, Time, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
 from app.models.enums import RequestStatus
+
+if TYPE_CHECKING:
+    from app.models.activity import Activity
 
 
 class RuleChangeRequest(Base):
@@ -28,12 +32,20 @@ class RuleChangeRequest(Base):
         ),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, server_default=text("gen_random_uuid()"))
+    id: Mapped[uuid.UUID] = mapped_column(
+        primary_key=True, server_default=text("gen_random_uuid()")
+    )
     activity_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("activities.id", ondelete="CASCADE"))
     requested_by_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"))
-    reviewed_by_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
-    new_classroom_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("classrooms.id", ondelete="SET NULL"))
-    new_day_of_week: Mapped[int | None] = mapped_column(SmallInteger)  # 1 = Monday .. 7 = Sunday (D-008)
+    reviewed_by_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL")
+    )
+    new_classroom_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("classrooms.id", ondelete="SET NULL")
+    )
+    new_day_of_week: Mapped[int | None] = mapped_column(
+        SmallInteger
+    )  # 1 = Monday .. 7 = Sunday (D-008)
     new_start_time: Mapped[time | None] = mapped_column(Time)
     new_end_time: Mapped[time | None] = mapped_column(Time)
     reason: Mapped[str] = mapped_column(Text)

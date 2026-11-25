@@ -25,7 +25,8 @@ window.UniSpaceI18n.register("en", {
   "settings.title": "Settings · UniSpace",
   "settings.heading": "Settings",
   "settings.lead": "User preferences and settings will be configurable here.",
-  "footer.note": "UniSpace · placeholder build · all data on screen is sample data",
+  "footer.note":
+    "UniSpace · placeholder build · all data on screen is sample data",
   "footer.home": "Home",
   "footer.subscribe": "Subscribe to your timetable",
   "theme.auto": "Theme: auto",
@@ -37,37 +38,48 @@ window.UniSpaceI18n.register("en", {
   "role.ADMIN": "Admin",
   "toast.copied": "Subscription link copied",
   "toast.copyUnavailable": "Copy is not available in this browser",
-  "placeholder.generic": "Placeholder: nothing was saved. The backend endpoint for this comes later.",
-  "placeholder.nothingSaved": "Placeholder: nothing was saved. The backend endpoint for this comes later.",
-  "placeholder.icsDownload": "Placeholder: .ics download comes with the backend",
-  "placeholder.bookingRequests": "Placeholder: booking requests come with the backend",
+  "placeholder.generic":
+    "Placeholder: nothing was saved. The backend endpoint for this comes later.",
+  "placeholder.nothingSaved":
+    "Placeholder: nothing was saved. The backend endpoint for this comes later.",
+  "placeholder.icsDownload":
+    "Placeholder: .ics download comes with the backend",
+  "placeholder.bookingRequests":
+    "Placeholder: booking requests come with the backend",
   "login.title": "Log in · UniSpace",
   "login.eyebrow": "Faculty rooms, one place",
   "login.heading": "Log in to UniSpace",
-  "login.lead": "The timetable, free rooms and room bookings are for people with an account. Sign in with your university Google account.",
+  "login.lead":
+    "The timetable, free rooms and room bookings are for people with an account. Sign in with your university Google account.",
   "login.button": "Log in with Google",
-  "login.note": "Use your @ulbsibiu.ro account. Registered faculty members can use their own Google account.",
+  "login.note":
+    "Use your @ulbsibiu.ro account. Registered faculty members can use their own Google account.",
   "login.deniedTitle": "You could not be signed in.",
-  "login.deniedText": "Access denied. Login is restricted to @ulbsibiu.ro accounts or registered faculty members.",
+  "login.deniedText":
+    "Access denied. Login is restricted to @ulbsibiu.ro accounts or registered faculty members.",
   "login.failedTitle": "Google sign-in did not finish.",
   "login.failedText": "Nothing was saved. Try again.",
   "admin.open": "Administrator access",
-  "admin.lead": "Enter the administrator details. Your Google account is not used.",
+  "admin.lead":
+    "Enter the administrator details. Your Google account is not used.",
   "admin.username": "Username",
   "admin.password": "Password",
   "admin.submit": "Sign in",
   "admin.cancel": "Cancel",
-  "admin.invalid": "The username or password is wrong. Check them and try again.",
+  "admin.invalid":
+    "The username or password is wrong. Check them and try again.",
   "admin.failed": "Could not reach the server. Try again.",
   "onboarding.title": "Your study details",
-  "onboarding.lead": "Choose your faculty and your study formation. You need both to use UniSpace.",
+  "onboarding.lead":
+    "Choose your faculty and your study formation. You need both to use UniSpace.",
   "onboarding.faculty": "Faculty",
   "onboarding.formation": "Study formation",
   "onboarding.pickFaculty": "Choose a faculty",
   "onboarding.pickFormation": "Choose a study formation",
   "onboarding.chooseFacultyFirst": "Choose a faculty first.",
   "onboarding.loading": "Loading…",
-  "onboarding.noFormations": "No study formations are listed for this faculty yet.",
+  "onboarding.noFormations":
+    "No study formations are listed for this faculty yet.",
   "onboarding.loadFailed": "The list could not be loaded.",
   "onboarding.retry": "Try again",
   "onboarding.save": "Save and continue",
@@ -94,10 +106,12 @@ window.UniSpaceI18n.register("en", {
   "day.thu": "Thu",
   "day.fri": "Fri",
   "home.title": "UniSpace · Faculty rooms and timetable",
-  "home.metaDescription": "UniSpace: the faculty timetable, free rooms and student room bookings in one place.",
+  "home.metaDescription":
+    "UniSpace: the faculty timetable, free rooms and student room bookings in one place.",
   "home.welcome": "Welcome back,",
   "home.heroTitle": "Know where your lecture is. Find a free room in seconds.",
-  "home.heroLead": "UniSpace imports the real timetable, shows it by group, teacher and room, and lets student organizations book rooms with clear priorities.",
+  "home.heroLead":
+    "UniSpace imports the real timetable, shows it by group, teacher and room, and lets student organizations book rooms with clear priorities.",
   "home.openTimetable": "Open the timetable",
   "home.freeRoomsNow": "Free rooms now",
   "home.statsAria": "Sample statistics",
@@ -115,28 +129,35 @@ window.UniSpaceI18n.register("en", {
   "home.allAnnouncements": "All announcements",
   "home.howTitle": "How a booking works",
   "home.step1Title": "Request a room.",
-  "home.step1Text": "Pick a room, a time and your activity. UniSpace checks for conflicts before you send it.",
+  "home.step1Text":
+    "Pick a room, a time and your activity. UniSpace checks for conflicts before you send it.",
   "home.step2Title": "An admin reviews it.",
-  "home.step2Text": "Courses and exams always win. A higher-priority activity can bump a booking, and the bumped booking gets an alternative room.",
+  "home.step2Text":
+    "Courses and exams always win. A higher-priority activity can bump a booking, and the bumped booking gets an alternative room.",
   "home.step3Title": "You get a confirmation.",
-  "home.step3Text": "The room appears in your organization's calendar and in the room's timetable.",
+  "home.step3Text":
+    "The room appears in your organization's calendar and in the room's timetable.",
   "home.soonTitle": "Coming soon",
   "home.soon1Title": "Calendar subscription",
-  "home.soon1Text": "One link per group, that stays in sync in Google or Apple Calendar.",
+  "home.soon1Text":
+    "One link per group, that stays in sync in Google or Apple Calendar.",
   "home.soon2Title": "Change history",
   "home.soon2Text": "Every one-off moved class, with who moved it and when.",
   "home.soon3Title": "Priority bumps",
-  "home.soon3Text": "Bumped bookings, alternative rooms and the response deadline, in one queue.",
+  "home.soon3Text":
+    "Bumped bookings, alternative rooms and the response deadline, in one queue.",
   "announce.title": "Announcements · UniSpace",
   "announce.eyebrow": "Announcements",
   "announce.heading": "What changed",
-  "announce.intro": "Cancellations, room changes and notes from teachers, per discipline or group.",
+  "announce.intro":
+    "Cancellations, room changes and notes from teachers, per discipline or group.",
   "announce.filterAria": "Filter announcements",
   "announce.filterAll": "All",
   "announce.filterMine": "My groups",
   "announce.discipline": "Discipline",
   "announce.postTitle": "Post an announcement",
-  "announce.postIntro": "For teachers. Placeholder form: posting comes with the backend and sends an email to the group.",
+  "announce.postIntro":
+    "For teachers. Placeholder form: posting comes with the backend and sends an email to the group.",
   "announce.type": "Type",
   "announce.message": "Message",
   "announce.messagePlaceholder": "Say what changed and what students should do",
@@ -144,12 +165,14 @@ window.UniSpaceI18n.register("en", {
   "calendar.title": "Calendar · UniSpace",
   "calendar.eyebrow": "Calendar",
   "calendar.heading": "Keep your timetable in your calendar",
-  "calendar.intro": "Subscribe once. Google Calendar and Apple Calendar update on their own when the timetable changes.",
+  "calendar.intro":
+    "Subscribe once. Google Calendar and Apple Calendar update on their own when the timetable changes.",
   "calendar.subTitle": "Your subscription link",
   "calendar.group": "Group",
   "calendar.url": "Subscription URL",
   "calendar.copy": "Copy",
-  "calendar.urlNote": "Placeholder address. The real link is created per group.",
+  "calendar.urlNote":
+    "Placeholder address. The real link is created per group.",
   "calendar.howTitle": "How to add it",
   "calendar.step1Title": "Copy the link",
   "calendar.step1Text": "Use the button on the left.",
@@ -158,12 +181,14 @@ window.UniSpaceI18n.register("en", {
   "calendar.step3Title": "Apple Calendar",
   "calendar.step3Text": "File → New calendar subscription → paste.",
   "calendar.oneTitle": "Single day file",
-  "calendar.oneText": "Placeholder: download one week as an .ics file for a one-off import.",
+  "calendar.oneText":
+    "Placeholder: download one week as an .ics file for a one-off import.",
   "calendar.download": "Download this week (.ics)",
   "changes.title": "Changes · UniSpace",
   "changes.eyebrow": "Change history",
   "changes.heading": "One-off changes",
-  "changes.intro": "Every class moved or cancelled for a single week, kept with its history. Placeholder rows.",
+  "changes.intro":
+    "Every class moved or cancelled for a single week, kept with its history. Placeholder rows.",
   "changes.caption": "Changes for group {name}",
   "changes.colWeek": "Week",
   "changes.colActivity": "Activity",
@@ -171,7 +196,8 @@ window.UniSpaceI18n.register("en", {
   "changes.colNow": "Now",
   "changes.colBy": "Changed by",
   "changes.colStatus": "Status",
-  "changes.footnote": "Placeholder: each row keeps its history. Students who subscribed to the group get an email for each change.",
+  "changes.footnote":
+    "Placeholder: each row keeps its history. Students who subscribed to the group get an email for each change.",
   "admin.title": "Admin · UniSpace",
   "admin.eyebrow": "Admin",
   "admin.heading": "Booking requests",
@@ -179,7 +205,8 @@ window.UniSpaceI18n.register("en", {
   "admin.tabHistory": "Booking history",
   "admin.tabRooms": "Rooms",
   "adminRooms.title": "Rooms",
-  "adminRooms.intro": "Set what each room has and how to get into it. Students see the projector on Free now.",
+  "adminRooms.intro":
+    "Set what each room has and how to get into it. Students see the projector on Free now.",
   "rooms.faculty": "Faculty",
   "rooms.searchLabel": "Search by room name",
   "rooms.colRoom": "Room",
@@ -196,7 +223,8 @@ window.UniSpaceI18n.register("en", {
   "rooms.projector": "Projector",
   "rooms.board": "Board type",
   "rooms.accessNotes": "Access notes",
-  "rooms.accessHint": "Plain words, for example: Key from the porter, ground floor.",
+  "rooms.accessHint":
+    "Plain words, for example: Key from the porter, ground floor.",
   "rooms.equipment": "Equipment and inventory notes",
   "rooms.equipmentHint": "Admins only. Not shown on Free now.",
   "rooms.save": "Save",
@@ -213,7 +241,8 @@ window.UniSpaceI18n.register("en", {
   "rooms.editTitle": "Edit room {name}",
   "rooms.seatsUnknown": "Unknown capacity",
   "rooms.saved": "Room saved.",
-  "rooms.invalid": "Check the values: notes are up to 255 characters for access and 500 for equipment.",
+  "rooms.invalid":
+    "Check the values: notes are up to 255 characters for access and 500 for equipment.",
   "rooms.saveError": "Could not save the room. Try again.",
   "rooms.loadError": "Could not load the rooms. Try again.",
   "adminHistory.title": "Booking history",
@@ -239,7 +268,8 @@ window.UniSpaceI18n.register("en", {
   "adminHistory.cancel": "Cancel",
   "adminHistory.cancelAria": "Cancel the booking {title}",
   "adminHistory.confirmTitle": "Cancel the booking {title}?",
-  "adminHistory.confirmText": "{room} · {when}. The booking is marked rejected, and the requester sees your message.",
+  "adminHistory.confirmText":
+    "{room} · {when}. The booking is marked rejected, and the requester sees your message.",
   "adminHistory.confirmYes": "Cancel booking",
   "adminHistory.keep": "Keep it",
   "adminHistory.messageLabel": "Message to the requester (optional)",
@@ -247,19 +277,25 @@ window.UniSpaceI18n.register("en", {
   "adminHistory.cancelled": "The booking was cancelled and marked rejected.",
   "adminHistory.cancelRefused": "This booking can no longer be cancelled.",
   "adminHistory.loadError": "Could not load the bookings. Try again.",
-  "admin.intro": "Each request waits for a decision. Accept it to book the room, or reject it with an optional message the requester will see.",
-  "admin.queueTitle": "Waiting for approval",
+  "admin.intro":
+    "Each request waits for a decision. Accept it to book the room, or reject it with an optional message the requester will see.",
+  "admin.queueTitle": "Waiting for approval",
+
   "bookings.decisionNote": "Note from the administrator: {message}",
   "admin.loadError": "Could not load the requests. Try again.",
   "admin.errorGeneric": "Something went wrong. Try again.",
-  "admin.errorClash": "The room is taken at that time. Reject this request, or ask the requester to choose another time.",
+  "admin.errorClash":
+    "The room is taken at that time. Reject this request, or ask the requester to choose another time.",
   "admin.rejected": "The request was rejected.",
   "admin.accepted": "The booking is approved.",
   "admin.rejectConfirm": "Reject request",
-  "admin.messageHint": "Up to 100 characters. {name} will see it on the Bookings page.",
-  "admin.messagePlaceholder": "Explain the decision, for example another event has the room",
+  "admin.messageHint":
+    "Up to 100 characters. {name} will see it on the Bookings page.",
+  "admin.messagePlaceholder":
+    "Explain the decision, for example another event has the room",
   "admin.messageLabel": "Message to {name} (optional)",
-  "admin.emptyText": "New booking requests appear here. You will see them as soon as they are sent.",
+  "admin.emptyText":
+    "New booking requests appear here. You will see them as soon as they are sent.",
   "admin.emptyTitle": "No requests are waiting",
   "admin.requested": "Requested {when}",
   "admin.accept": "Accept",
@@ -271,10 +307,13 @@ window.UniSpaceI18n.register("en", {
   "bookings.title": "Bookings · UniSpace",
   "bookings.eyebrow": "Bookings",
   "bookings.heading": "Room requests",
-  "bookings.intro": "Reserve a room for a free time. Requests from students and organizations wait for an admin's decision. An admin's bookings are approved at once.",
-  "bookings.prefilled": "The date, room and window were filled in from your choice.",
+  "bookings.intro":
+    "Reserve a room for a free time. Requests from students and organizations wait for an admin's decision. An admin's bookings are approved at once.",
+  "bookings.prefilled":
+    "The date, room and window were filled in from your choice.",
   "bookings.mineTitle": "Your requests",
-  "bookings.mineHint": "Pending requests can be cancelled. Approved ones cannot be cancelled in the app.",
+  "bookings.mineHint":
+    "Pending requests can be cancelled. Approved ones cannot be cancelled in the app.",
   "bookings.newTitle": "New request",
   "bookings.adminNote": "Your booking is approved as soon as you book it.",
   "bookings.faculty": "Faculty",
@@ -299,14 +338,17 @@ window.UniSpaceI18n.register("en", {
   "bookings.cancelled": "The request was cancelled.",
   "bookings.errorCancelState": "Only a pending request can be cancelled.",
   "bookings.errorGeneric": "Something went wrong. Try again.",
-  "bookings.errorClash": "The room is taken at that time. Choose another time or another room.",
-  "bookings.errorInvalid": "Check the date and modules: a booking cannot start in the past and must use whole modules.",
+  "bookings.errorClash":
+    "The room is taken at that time. Choose another time or another room.",
+  "bookings.errorInvalid":
+    "Check the date and modules: a booking cannot start in the past and must use whole modules.",
   "bookings.errorRoom": "The room was not found. Choose the room again.",
   "bookings.errorNoRoom": "Choose a room.",
   "bookings.errorNoDate": "Choose a date.",
   "bookings.errorNoTitle": "Write a title or a reason.",
   "bookings.errorRange": "The last module must be after the first one.",
-  "bookings.sentPending": "The request was sent. It waits for an admin to approve it.",
+  "bookings.sentPending":
+    "The request was sent. It waits for an admin to approve it.",
   "bookings.sentApproved": "The booking was approved.",
   "bookings.statusPending": "Pending",
   "bookings.statusRejected": "Rejected",
@@ -320,7 +362,8 @@ window.UniSpaceI18n.register("en", {
   "rooms.title": "Rooms · UniSpace",
   "rooms.eyebrow": "Rooms",
   "rooms.heading": "All {n} rooms",
-  "rooms.intro": "Search and filter the rooms. Filters are placeholders for now.",
+  "rooms.intro":
+    "Search and filter the rooms. Filters are placeholders for now.",
   "rooms.filterAria": "Filter rooms",
   "rooms.search": "Search",
   "rooms.searchPlaceholder": "A101, lab, seminar…",
@@ -329,7 +372,8 @@ window.UniSpaceI18n.register("en", {
   "rooms.whiteboard": "Whiteboard",
   "rooms.apply": "Apply filters",
   "rooms.listAria": "Room list",
-  "rooms.partialNote": "Placeholder: six of twelve rooms shown. The rest load with the backend.",
+  "rooms.partialNote":
+    "Placeholder: six of twelve rooms shown. The rest load with the backend.",
   "roomDetail.title": "Room A101 · UniSpace",
   "roomDetail.breadcrumbAria": "Breadcrumb",
   "roomDetail.equipment": "Equipment",
@@ -344,7 +388,8 @@ window.UniSpaceI18n.register("en", {
   "roomDetail.freeLower": "free",
   "roomDetail.request": "Request this room",
   "roomDetail.notes": "Notes",
-  "roomDetail.notesText": "Placeholder: announcements for this room (a changed room, a broken projector) show here.",
+  "roomDetail.notesText":
+    "Placeholder: announcements for this room (a changed room, a broken projector) show here.",
   "notFound.title": "Page not found · UniSpace",
   "notFound.heading": "This room is not on the map",
   "notFound.text": "The page you asked for does not exist, or moved.",
@@ -354,9 +399,11 @@ window.UniSpaceI18n.register("en", {
   "free.title": "Free rooms · UniSpace",
   "free.eyebrow": "Free rooms",
   "free.heading": "Free now",
-  "free.afterLast": "The last module ends at 21:10: no room can be booked after that.",
+  "free.afterLast":
+    "The last module ends at 21:10: no room can be booked after that.",
   "free.inModule": "In module {start}–{end}",
-  "free.intro": "Bookable rooms free now or in a chosen interval. Pick a filter to narrow the list.",
+  "free.intro":
+    "Bookable rooms free now or in a chosen interval. Pick a filter to narrow the list.",
   "free.modeAria": "Search mode",
   "free.modeNow": "Free now",
   "free.modeCustom": "Custom interval",
@@ -372,7 +419,8 @@ window.UniSpaceI18n.register("en", {
   "free.count": "{n} free rooms",
   "free.empty": "No free room matches these filters.",
   "free.error": "Could not load the rooms. Try again.",
-  "free.badRange": "Choose whole modules: from the start of one module to the end of another.",
+  "free.badRange":
+    "Choose whole modules: from the start of one module to the end of another.",
   "free.freeUntil": "Free until {time}",
   "free.seats": "{n} seats",
   "free.seatsUnknown": "Unknown capacity",
@@ -395,7 +443,8 @@ window.UniSpaceI18n.register("en", {
   "timetable.entityProfessor": "Professor",
   "timetable.entityRoom": "Room",
   "timetable.entitySearch": "Search and choose from the list",
-  "timetable.empty": "Choose a faculty and a group, a professor or a room to see the timetable",
+  "timetable.empty":
+    "Choose a faculty and a group, a professor or a room to see the timetable",
   "timetable.loading": "Loading the timetable…",
   "timetable.error": "Could not load the timetable. Try again.",
   "timetable.notFound": "That entry was not found. Choose one from the list.",

@@ -3,7 +3,15 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from app.config import COOKIE_SECURE, SESSION_MAX_AGE_SECONDS, SESSION_SECRET_KEY
 from app.routers import (
-    admin_bookings, auth, bookings, classroom_attributes, classrooms, health, lookups, schedule, study_profile,
+    admin_bookings,
+    auth,
+    bookings,
+    classroom_attributes,
+    classrooms,
+    health,
+    lookups,
+    schedule,
+    study_profile,
 )
 
 # Tables come from Alembic migrations only (D-002). The backend container runs

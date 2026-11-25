@@ -1,4 +1,5 @@
 """Scheduling schema tests. Most need PostgreSQL (compose `db`); see conftest.py."""
+
 import uuid
 from datetime import date, time
 
@@ -10,11 +11,11 @@ from sqlalchemy.orm import Session
 from app.db import Base
 from app.models import (
     Activity,
+    ActivityException,
     ActivityType,
     Booking,
     BookingStatus,
     Classroom,
-    ActivityException,
     Parity,
     Priority,
     Professor,
@@ -27,13 +28,28 @@ from app.models import (
 
 def test_all_tables_and_enums_registered() -> None:
     assert set(Base.metadata.tables) == {
-        "users", "student_groups", "classrooms", "activities", "activity_exceptions", "invitations",
-        "faculties", "planning_time_units", "rule_change_requests", "activity_groups", "professors",
+        "users",
+        "student_groups",
+        "classrooms",
+        "activities",
+        "activity_exceptions",
+        "invitations",
+        "faculties",
+        "planning_time_units",
+        "rule_change_requests",
+        "activity_groups",
+        "professors",
         "bookings",
     }
     assert [s.value for s in BookingStatus] == ["pending", "approved", "rejected", "cancelled"]
     assert [p.value for p in Priority] == [1, 2, 3, 4, 5]
-    assert Priority.COURSE > Priority.EXAM > Priority.OFFICIAL_FACULTY > Priority.STUDENT_ORG > Priority.STUDENT
+    assert (
+        Priority.COURSE
+        > Priority.EXAM
+        > Priority.OFFICIAL_FACULTY
+        > Priority.STUDENT_ORG
+        > Priority.STUDENT
+    )
     assert {r.name for r in Role} == {"STUDENT", "PROFESSOR", "STUDENT_ORG", "ADMIN"}
     assert {t.name for t in ActivityType} == {"COURSE", "LAB", "SEMINAR", "EXAM", "RESERVATION"}
     assert {p.name for p in Parity} == {"ALL", "EVEN", "ODD", "CUSTOM"}
@@ -49,8 +65,13 @@ def make_room(db: Session, name: str = "S02") -> Classroom:
 
 def make_activity(db: Session, room: Classroom, **kw) -> Activity:
     values = dict(
-        name="Algebra", type=ActivityType.COURSE, priority=Priority.COURSE,
-        classroom_id=room.id, day_of_week=1, start_time=time(8, 0), end_time=time(10, 0),
+        name="Algebra",
+        type=ActivityType.COURSE,
+        priority=Priority.COURSE,
+        classroom_id=room.id,
+        day_of_week=1,
+        start_time=time(8, 0),
+        end_time=time(10, 0),
     )
     values.update(kw)
     activity = Activity(**values)
@@ -71,9 +92,8 @@ def test_invalid_values_are_rejected(db: Session) -> None:
         dict(parity=Parity.CUSTOM),
     ]
     for kw in bad:
-        with pytest.raises(IntegrityError):
-            with db.begin_nested():
-                make_activity(db, room, **kw)
+        with pytest.raises(IntegrityError), db.begin_nested():
+            make_activity(db, room, **kw)
 
 
 def test_overlap_query_uses_time_range(db: Session) -> None:
@@ -107,7 +127,9 @@ def test_relationships_round_trip(db: Session) -> None:
     db.add_all([user, group])
     db.flush()
     a = make_activity(db, room, user_id=user.id, group_id=group.id, alt_classroom_id=alt.id)
-    exc = ActivityException(activity_id=a.id, original_date=__import__("datetime").date(2026, 11, 16), is_cancelled=True)
+    exc = ActivityException(
+        activity_id=a.id, original_date=__import__("datetime").date(2026, 11, 16), is_cancelled=True
+    )
     db.add(exc)
     db.flush()
     db.refresh(a)
@@ -124,30 +146,31 @@ def test_relationships_round_trip(db: Session) -> None:
 def test_email_is_unique(db: Session) -> None:
     db.add(User(email="x@uni.ro", name="A", role=Role.STUDENT))
     db.flush()
-    with pytest.raises(IntegrityError):
-        with db.begin_nested():
-            db.add(User(email="x@uni.ro", name="B", role=Role.STUDENT))
-            db.flush()
+    with pytest.raises(IntegrityError), db.begin_nested():
+        db.add(User(email="x@uni.ro", name="B", role=Role.STUDENT))
+        db.flush()
 
 
 def test_professor_list_is_unique_by_email(db: Session) -> None:
     db.add(Professor(id=uuid.uuid4(), name="Popescu Ana", email="ana.popescu@ulbsibiu.ro"))
     db.flush()
-    with pytest.raises(IntegrityError):
-        with db.begin_nested():
-            db.add(Professor(id=uuid.uuid4(), name="Popescu Ana 2", email="ana.popescu@ulbsibiu.ro"))
-            db.flush()
+    with pytest.raises(IntegrityError), db.begin_nested():
+        db.add(Professor(id=uuid.uuid4(), name="Popescu Ana 2", email="ana.popescu@ulbsibiu.ro"))
+        db.flush()
 
 
 def test_professor_links_are_optional_and_not_foreign_keys(db: Session) -> None:
-    """activities.professor_id and users.professor_id are plain nullable UUIDs (decoupled from professors)."""
+    """activities.professor_id and users.professor_id are nullable UUIDs (no FK to professors)."""
     user = User(email="prof@uni.ro", name="Prof", role=Role.PROFESSOR)
     assert user.professor_id is None
     db.add(user)
     db.flush()
     assert user.professor_id is None
 
-    fk_targets = {fk.column.table.name for fk in Base.metadata.tables["activities"].columns["professor_id"].foreign_keys}
+    fk_targets = {
+        fk.column.table.name
+        for fk in Base.metadata.tables["activities"].columns["professor_id"].foreign_keys
+    }
     assert fk_targets == set()
     assert Base.metadata.tables["users"].columns["professor_id"].foreign_keys == set()
 
@@ -161,8 +184,12 @@ def make_booking_user(db: Session) -> User:
 
 def make_booking(db: Session, user: User, room: Classroom, **kw) -> Booking:
     values = dict(
-        user_id=user.id, classroom_id=room.id, specific_date=date(2026, 12, 1),
-        start_time=time(8, 0), end_time=time(9, 30), title="Board game evening",
+        user_id=user.id,
+        classroom_id=room.id,
+        specific_date=date(2026, 12, 1),
+        start_time=time(8, 0),
+        end_time=time(9, 30),
+        title="Board game evening",
     )
     values.update(kw)
     booking = Booking(**values)
@@ -194,9 +221,8 @@ def test_booking_invalid_rows_are_rejected(db: Session) -> None:
         dict(end_time=None),
     ]
     for kw in bad:
-        with pytest.raises(IntegrityError):
-            with db.begin_nested():
-                make_booking(db, user, room, **kw)
+        with pytest.raises(IntegrityError), db.begin_nested():
+            make_booking(db, user, room, **kw)
 
 
 def test_booking_foreign_keys_and_indexes(db: Session) -> None:
@@ -212,7 +238,9 @@ def test_booking_foreign_keys_and_indexes(db: Session) -> None:
     indexed = {col for idx in insp.get_indexes(table) for col in idx["column_names"]}
     assert {"user_id", "classroom_id", "specific_date", "status"} <= indexed
     columns = {col["name"]: col for col in insp.get_columns(table)}
-    assert not columns["status"]["nullable"]  # the ORM default would hide a None, so check the column
+    assert not columns["status"][
+        "nullable"
+    ]  # the ORM default would hide a None, so check the column
 
 
 def test_deleting_a_user_deletes_their_bookings(db: Session) -> None:
@@ -220,7 +248,9 @@ def test_deleting_a_user_deletes_their_bookings(db: Session) -> None:
     make_booking(db, user, make_room(db))
     db.execute(text("DELETE FROM users WHERE id = :id"), {"id": user.id})
 
-    left = db.execute(text("SELECT count(*) FROM bookings WHERE user_id = :id"), {"id": user.id}).scalar_one()
+    left = db.execute(
+        text("SELECT count(*) FROM bookings WHERE user_id = :id"), {"id": user.id}
+    ).scalar_one()
     assert left == 0
 
 
@@ -228,6 +258,5 @@ def test_a_room_with_bookings_cannot_be_deleted(db: Session) -> None:
     room = make_room(db)
     make_booking(db, make_booking_user(db), room)
 
-    with pytest.raises(IntegrityError):
-        with db.begin_nested():
-            db.execute(text("DELETE FROM classrooms WHERE id = :id"), {"id": room.id})
+    with pytest.raises(IntegrityError), db.begin_nested():
+        db.execute(text("DELETE FROM classrooms WHERE id = :id"), {"id": room.id})

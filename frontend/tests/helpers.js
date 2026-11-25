@@ -9,7 +9,10 @@ export const FRONTEND = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 // Puts the <body> of a page file into the document, as the browser does.
 export function mountPage(relativePath) {
   const html = readFileSync(resolve(FRONTEND, relativePath), "utf8");
-  document.body.innerHTML = new DOMParser().parseFromString(html, "text/html").body.innerHTML;
+  document.body.innerHTML = new DOMParser().parseFromString(
+    html,
+    "text/html",
+  ).body.innerHTML;
 }
 
 // Loads the i18n runtime and both dictionaries, in the order the pages load them.
@@ -28,7 +31,11 @@ export async function loadScript(relativePath) {
 export const flush = () => new Promise((done) => setImmediate(done));
 
 export function response(data, status = 200) {
-  return { ok: status >= 200 && status < 300, status, json: () => Promise.resolve(data) };
+  return {
+    ok: status >= 200 && status < 300,
+    status,
+    json: () => Promise.resolve(data),
+  };
 }
 
 // A fetch stub: each route is a path (query ignored) mapped to a function of the full URL.
@@ -56,5 +63,7 @@ export function deferred() {
 
 // The query string of a request, as an object.
 export function queryOf(url) {
-  return Object.fromEntries(new URL(url, "http://localhost").searchParams.entries());
+  return Object.fromEntries(
+    new URL(url, "http://localhost").searchParams.entries(),
+  );
 }

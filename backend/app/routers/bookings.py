@@ -21,6 +21,7 @@ from app.planning import LOCAL_TZ, booking_window, hhmm, local_now, occurrences
 
 router = APIRouter(prefix="/api/bookings", tags=["bookings"])
 
+
 class BookingIn(BaseModel):
     classroom_id: uuid.UUID
     specific_date: date
@@ -61,12 +62,18 @@ def clash(db: Session, room_id: uuid.UUID, day: date, start: time, end: time) ->
     Approved bookings count; pending ones do not.
     """
     for occurrence in occurrences(db, day, day, Activity.classroom_id == room_id):
+        assert occurrence.start_time is not None and occurrence.end_time is not None
         if _overlaps(start, end, occurrence.start_time, occurrence.end_time):
-            return (f"The room is taken from {hhmm(occurrence.start_time)} to {hhmm(occurrence.end_time)} "
-                    f"by {occurrence.activity.name}.")
+            return (
+                f"The room is taken from {hhmm(occurrence.start_time)} "
+                f"to {hhmm(occurrence.end_time)} by {occurrence.activity.name}."
+            )
     for room, busy_start, busy_end in approved_busy(db, day):
         if room == room_id and _overlaps(start, end, busy_start, busy_end):
-            return f"The room is taken from {hhmm(busy_start)} to {hhmm(busy_end)} by an approved booking."
+            return (
+                f"The room is taken from {hhmm(busy_start)} to {hhmm(busy_end)} "
+                "by an approved booking."
+            )
     return None
 
 
@@ -75,7 +82,7 @@ def booking_out(booking: Booking, room_name: str, faculty_name: str | None) -> d
         "id": str(booking.id),
         "classroom_id": str(booking.classroom_id),
         "room_name": room_name,
-        "faculty_name": faculty_name,  # null for a room with no faculty; the frontend shows "Campus" (D-012)
+        "faculty_name": faculty_name,  # null when unowned; the frontend shows "Campus" (D-012)
         "specific_date": booking.specific_date.isoformat(),
         "start_time": hhmm(booking.start_time),
         "end_time": hhmm(booking.end_time),
@@ -93,8 +100,10 @@ def _faculty_name(db: Session, room: Classroom) -> str | None:
 
 
 @router.post("", status_code=201)
-def create_booking(body: BookingIn, user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict:
-    """A booking request. Admins' bookings are approved at once; everyone else's wait for an admin."""
+def create_booking(
+    body: BookingIn, user: User = Depends(get_current_user), db: Session = Depends(get_db)
+) -> dict:
+    """A booking request. Admins' bookings are approved at once; others wait for an admin."""
     room = db.get(Classroom, body.classroom_id)
     if room is None:
         raise HTTPException(404, "Room not found.")
@@ -103,7 +112,7 @@ def create_booking(body: BookingIn, user: User = Depends(get_current_user), db: 
     try:
         start, end = booking_window(body.start_time, body.end_time)
     except ValueError as exc:
-        raise HTTPException(400, str(exc))
+        raise HTTPException(400, str(exc)) from exc
     if datetime.combine(body.specific_date, start, tzinfo=LOCAL_TZ) <= local_now():
         raise HTTPException(400, "That time has already passed.")
     reason = clash(db, room.id, body.specific_date, start, end)
@@ -126,7 +135,9 @@ def create_booking(body: BookingIn, user: User = Depends(get_current_user), db: 
 
 
 @router.get("/my")
-def my_bookings(user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> list[dict]:
+def my_bookings(
+    user: User = Depends(get_current_user), db: Session = Depends(get_db)
+) -> list[dict]:
     """Your bookings: upcoming ones first (earliest date and start, newest created first on a tie),
     then the past ones, most recent first."""
     rows = db.execute(
@@ -141,11 +152,16 @@ def my_bookings(user: User = Depends(get_current_user), db: Session = Depends(ge
     upcoming.sort(key=lambda row: row[0].created_at or datetime.min, reverse=True)
     upcoming.sort(key=lambda row: (row[0].specific_date, row[0].start_time))
     past.sort(key=lambda row: (row[0].specific_date, row[0].start_time), reverse=True)
-    return [booking_out(booking, room_name, faculty_name) for booking, room_name, faculty_name in upcoming + past]
+    return [
+        booking_out(booking, room_name, faculty_name)
+        for booking, room_name, faculty_name in upcoming + past
+    ]
 
 
 @router.delete("/{booking_id}")
-def cancel_booking(booking_id: uuid.UUID, user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict:
+def cancel_booking(
+    booking_id: uuid.UUID, user: User = Depends(get_current_user), db: Session = Depends(get_db)
+) -> dict:
     """Cancel your own pending booking. The row is kept with status cancelled."""
     booking = db.get(Booking, booking_id)
     if booking is None:
@@ -157,4 +173,5 @@ def cancel_booking(booking_id: uuid.UUID, user: User = Depends(get_current_user)
     booking.status = BookingStatus.CANCELLED
     db.commit()
     room = db.get(Classroom, booking.classroom_id)
+    assert room is not None
     return booking_out(booking, room.name, _faculty_name(db, room))

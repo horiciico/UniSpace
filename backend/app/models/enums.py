@@ -1,14 +1,14 @@
 import enum
 
 
-class Role(str, enum.Enum):
+class Role(enum.StrEnum):
     STUDENT = "STUDENT"
     PROFESSOR = "PROFESSOR"
     STUDENT_ORG = "STUDENT_ORG"
     ADMIN = "ADMIN"
 
 
-class ActivityType(str, enum.Enum):
+class ActivityType(enum.StrEnum):
     COURSE = "COURSE"
     LAB = "LAB"
     SEMINAR = "SEMINAR"
@@ -16,32 +16,32 @@ class ActivityType(str, enum.Enum):
     RESERVATION = "RESERVATION"
 
 
-class Parity(str, enum.Enum):
+class Parity(enum.StrEnum):
     ALL = "ALL"
     EVEN = "EVEN"
     ODD = "ODD"
     CUSTOM = "CUSTOM"  # not usable yet: blocked by a CHECK until the customization flow exists
 
 
-class Status(str, enum.Enum):
+class Status(enum.StrEnum):
     APPROVED = "APPROVED"
     BUMPED_PENDING = "BUMPED_PENDING"
     CANCELLED = "CANCELLED"
 
 
-class PlanningUnitType(str, enum.Enum):
+class PlanningUnitType(enum.StrEnum):
     SEMESTER = "SEMESTER"
     MODULE = "MODULE"
 
 
-class RequestStatus(str, enum.Enum):
+class RequestStatus(enum.StrEnum):
     PENDING = "PENDING"
     APPROVED = "APPROVED"
     REJECTED = "REJECTED"
 
 
-class BookingStatus(str, enum.Enum):
-    """Lowercase values, as confirmed for the bookings table. Only `approved` bookings block a slot (later step)."""
+class BookingStatus(enum.StrEnum):
+    """Lowercase values, as confirmed for the bookings table. Only `approved` blocks a slot."""
 
     PENDING = "pending"
     APPROVED = "approved"
@@ -49,8 +49,8 @@ class BookingStatus(str, enum.Enum):
     CANCELLED = "cancelled"
 
 
-class BoardType(str, enum.Enum):
-    """Lowercase values, as in the classrooms.board_type column (admin-managed, never set by the ETL)."""
+class BoardType(enum.StrEnum):
+    """Lowercase values, as in classrooms.board_type (admin-managed, never set by the ETL)."""
 
     WHITEBOARD = "whiteboard"
     BLACKBOARD = "blackboard"

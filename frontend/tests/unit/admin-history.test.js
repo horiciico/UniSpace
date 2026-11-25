@@ -1,5 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { flush, loadI18n, loadScript, mountPage, queryOf, response, stubFetch } from "../helpers.js";
+import {
+  flush,
+  loadI18n,
+  loadScript,
+  mountPage,
+  queryOf,
+  response,
+  stubFetch,
+} from "../helpers.js";
 
 // Booking history for admins (issue: admin booking history). Shown on a second tab; 15 rows a page.
 const NOW = new Date(2026, 10, 24, 12, 0);
@@ -7,16 +15,26 @@ const NOW = new Date(2026, 10, 24, 12, 0);
 const FACULTIES = [{ id: "f1", code: "dre", name: "Facultatea de Drept" }];
 const ROOMS_ALL = [
   { id: "r1", name: "B110", faculty_id: "f1", is_bookable: true },
-  { id: "r2", name: "L2", faculty_id: null, is_bookable: true }
+  { id: "r2", name: "L2", faculty_id: null, is_bookable: true },
 ];
 
 // A list of bookings, `count` long: the first is in the future and approved.
 function bookings(count) {
   return Array.from({ length: count }, (_, i) => ({
-    id: `b${i}`, classroom_id: "r1", classroom_name: "B110", faculty_id: "f1", faculty_name: "Facultatea de Drept",
-    specific_date: i === 0 ? "2026-12-18" : "2026-11-01", start_time: "18:00", end_time: "19:30",
-    title: `Event ${i}`, status: i === 0 ? "approved" : "rejected", created_at: "2026-11-20T10:00:00",
-    user_id: "u1", user_email: `user${i}@ulbsibiu.ro`, user_role: "STUDENT"
+    id: `b${i}`,
+    classroom_id: "r1",
+    classroom_name: "B110",
+    faculty_id: "f1",
+    faculty_name: "Facultatea de Drept",
+    specific_date: i === 0 ? "2026-12-18" : "2026-11-01",
+    start_time: "18:00",
+    end_time: "19:30",
+    title: `Event ${i}`,
+    status: i === 0 ? "approved" : "rejected",
+    created_at: "2026-11-20T10:00:00",
+    user_id: "u1",
+    user_email: `user${i}@ulbsibiu.ro`,
+    user_role: "STUDENT",
   }));
 }
 
@@ -26,7 +44,12 @@ function historyAnswer(all) {
     const q = queryOf(url);
     const limit = Number(q.limit || 50);
     const offset = Number(q.offset || 0);
-    return response({ items: all.slice(offset, offset + limit), total: all.length, limit, offset });
+    return response({
+      items: all.slice(offset, offset + limit),
+      total: all.length,
+      limit,
+      offset,
+    });
   };
 }
 
@@ -43,7 +66,7 @@ async function setup({ total = 40, routes = {}, language = "en" } = {}) {
     "/api/faculties": () => response(FACULTIES),
     "/api/classrooms": () => response(ROOMS_ALL),
     "/api/admin/bookings": historyAnswer(all),
-    ...routes
+    ...routes,
   });
   await loadScript("js/api.js");
   await loadScript("js/bookings.js");
@@ -55,10 +78,16 @@ async function setup({ total = 40, routes = {}, language = "en" } = {}) {
 }
 
 const $ = (id) => document.getElementById(id);
-const tab = (name) => document.querySelector(`[role="tab"][data-tab="${name}"]`);
+const tab = (name) =>
+  document.querySelector(`[role="tab"][data-tab="${name}"]`);
 const rows = () => [...document.querySelectorAll("#hist-body > tr.row")];
-const confirms = () => [...document.querySelectorAll("#hist-body > tr.confirm")];
-const historyCalls = (fetch) => fetch.mock.calls.map((c) => c[0]).filter((u) => u.startsWith("/api/admin/bookings?"));
+const confirms = () => [
+  ...document.querySelectorAll("#hist-body > tr.confirm"),
+];
+const historyCalls = (fetch) =>
+  fetch.mock.calls
+    .map((c) => c[0])
+    .filter((u) => u.startsWith("/api/admin/bookings?"));
 const lastHistoryQuery = (fetch) => queryOf(historyCalls(fetch).at(-1));
 
 function pick(element, value) {
@@ -183,7 +212,11 @@ describe("admin history: the filters", () => {
     pick($("hist-faculty"), "f1");
     await flush();
     await flush();
-    expect(lastHistoryQuery(fetch)).toEqual({ limit: "15", offset: "0", faculty_id: "f1" });
+    expect(lastHistoryQuery(fetch)).toEqual({
+      limit: "15",
+      offset: "0",
+      faculty_id: "f1",
+    });
 
     pick($("hist-faculty"), "campus");
     await flush();
@@ -200,12 +233,18 @@ describe("admin history: the filters", () => {
     const { fetch } = await setup();
     await openHistory();
     expect(fetch.mock.calls.map((c) => c[0])).toContain("/api/classrooms");
-    expect([...$("hist-room").options].map((o) => o.textContent)).toEqual(["All rooms", "B110", "L2"]);
+    expect([...$("hist-room").options].map((o) => o.textContent)).toEqual([
+      "All rooms",
+      "B110",
+      "L2",
+    ]);
 
     pick($("hist-faculty"), "f1");
     await flush();
     await flush();
-    expect(fetch.mock.calls.map((c) => c[0])).toContain("/api/classrooms?faculty_id=f1");
+    expect(fetch.mock.calls.map((c) => c[0])).toContain(
+      "/api/classrooms?faculty_id=f1",
+    );
   });
 
   it("filters by one room, and clears the room when the faculty changes", async () => {
@@ -245,7 +284,9 @@ describe("admin history: the filters", () => {
 
     expect(rows()).toHaveLength(0);
     expect($("hist-empty").hidden).toBe(false);
-    expect($("hist-empty").querySelector("h2").textContent).toBe("No bookings match these filters");
+    expect($("hist-empty").querySelector("h2").textContent).toBe(
+      "No bookings match these filters",
+    );
 
     pick($("hist-status"), "cancelled");
     await flush();
@@ -259,10 +300,14 @@ describe("admin history: the filters", () => {
   });
 
   it("shows an error when the bookings cannot be loaded", async () => {
-    await setup({ routes: { "/api/admin/bookings": () => response({ detail: "x" }, 500) } });
+    await setup({
+      routes: { "/api/admin/bookings": () => response({ detail: "x" }, 500) },
+    });
     await openHistory();
 
-    expect($("hist-status-line").textContent).toBe("Could not load the bookings. Try again.");
+    expect($("hist-status-line").textContent).toBe(
+      "Could not load the bookings. Try again.",
+    );
     expect($("hist-status-line").className).toBe("notice notice--error");
   });
 });
@@ -283,7 +328,10 @@ describe("admin history: cancelling a future approved booking", () => {
   it("asks first, then cancels, and the list is shown again with the outcome", async () => {
     const { fetch } = await setup({
       total: 2,
-      routes: { "/api/admin/bookings/b0/cancel": () => response({ id: "b0", status: "cancelled" }) }
+      routes: {
+        "/api/admin/bookings/b0/cancel": () =>
+          response({ id: "b0", status: "cancelled" }),
+      },
     });
     await openHistory();
 
@@ -295,17 +343,24 @@ describe("admin history: cancelling a future approved booking", () => {
     await flush();
     await flush();
 
-    const post = fetch.mock.calls.find((c) => c[0] === "/api/admin/bookings/b0/cancel");
+    const post = fetch.mock.calls.find(
+      (c) => c[0] === "/api/admin/bookings/b0/cancel",
+    );
     expect(post[1].method).toBe("POST");
     expect(JSON.parse(post[1].body)).toEqual({});
-    expect($("hist-status-line").textContent).toBe("The booking was cancelled and marked rejected.");
+    expect($("hist-status-line").textContent).toBe(
+      "The booking was cancelled and marked rejected.",
+    );
     expect(confirms()).toHaveLength(0);
   });
 
   it("sends the admin's message with the cancellation, trimmed, and only when one is typed", async () => {
     const { fetch } = await setup({
       total: 2,
-      routes: { "/api/admin/bookings/b0/cancel": () => response({ id: "b0", status: "rejected" }) }
+      routes: {
+        "/api/admin/bookings/b0/cancel": () =>
+          response({ id: "b0", status: "rejected" }),
+      },
     });
     await openHistory();
 
@@ -317,8 +372,12 @@ describe("admin history: cancelling a future approved booking", () => {
     await flush();
     await flush();
 
-    const post = fetch.mock.calls.find((c) => c[0] === "/api/admin/bookings/b0/cancel");
-    expect(JSON.parse(post[1].body)).toEqual({ message: "Sala e necesară pentru un examen." });
+    const post = fetch.mock.calls.find(
+      (c) => c[0] === "/api/admin/bookings/b0/cancel",
+    );
+    expect(JSON.parse(post[1].body)).toEqual({
+      message: "Sala e necesară pentru un examen.",
+    });
   });
 
   it("keeps the booking when the admin chooses to keep it", async () => {
@@ -329,13 +388,18 @@ describe("admin history: cancelling a future approved booking", () => {
     confirms()[0].querySelector(".btn:not(.btn-primary)").click();
 
     expect(confirms()).toHaveLength(0);
-    expect(fetch.mock.calls.some((c) => c[0] === "/api/admin/bookings/b0/cancel")).toBe(false);
+    expect(
+      fetch.mock.calls.some((c) => c[0] === "/api/admin/bookings/b0/cancel"),
+    ).toBe(false);
   });
 
   it("explains when the booking can no longer be cancelled", async () => {
     await setup({
       total: 2,
-      routes: { "/api/admin/bookings/b0/cancel": () => response({ detail: "started" }, 409) }
+      routes: {
+        "/api/admin/bookings/b0/cancel": () =>
+          response({ detail: "started" }, 409),
+      },
     });
     await openHistory();
 
@@ -344,14 +408,18 @@ describe("admin history: cancelling a future approved booking", () => {
     await flush();
     await flush();
 
-    expect($("hist-status-line").textContent).toBe("This booking can no longer be cancelled.");
+    expect($("hist-status-line").textContent).toBe(
+      "This booking can no longer be cancelled.",
+    );
     expect($("hist-status-line").className).toBe("notice notice--error");
   });
 
   it("explains any other failure in general words", async () => {
     await setup({
       total: 2,
-      routes: { "/api/admin/bookings/b0/cancel": () => response({ detail: "x" }, 500) }
+      routes: {
+        "/api/admin/bookings/b0/cancel": () => response({ detail: "x" }, 500),
+      },
     });
     await openHistory();
 
@@ -360,7 +428,9 @@ describe("admin history: cancelling a future approved booking", () => {
     await flush();
     await flush();
 
-    expect($("hist-status-line").textContent).toBe("Something went wrong. Try again.");
+    expect($("hist-status-line").textContent).toBe(
+      "Something went wrong. Try again.",
+    );
   });
 });
 

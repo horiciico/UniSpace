@@ -15,7 +15,9 @@
   background: var(--color-surface);
   color: var(--color-text);
   border-color: var(--color-border);
-  transition: transform var(--duration-fast), background var(--duration-fast);
+  transition:
+    transform var(--duration-fast),
+    background var(--duration-fast);
 }
 
 .btn:hover {

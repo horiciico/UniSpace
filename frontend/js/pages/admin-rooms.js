@@ -4,31 +4,47 @@
  * under the table; Save sends only the form values, and a null clears a value to "unspecified".
  * The rooms load when the tab is opened. The backend decides who may change them and answers 400, 403 or 422.
  */
-(function () {
-  "use strict";
-
+(() => {
   var t = window.UniSpaceI18n.t;
   var api = window.UniSpaceApi;
 
   var tab = document.querySelector('[role="tab"][data-tab="rooms"]');
-  var facultySelect = document.getElementById("rooms-faculty");
-  var searchInput = document.getElementById("rooms-search");
+  var facultySelect = /** @type {HTMLSelectElement} */ (
+    document.getElementById("rooms-faculty")
+  );
+  var searchInput = /** @type {HTMLInputElement} */ (
+    document.getElementById("rooms-search")
+  );
   var statusLine = document.getElementById("rooms-status");
   var body = document.getElementById("rooms-body");
   var emptyCard = document.getElementById("rooms-empty");
   var pager = document.getElementById("rooms-pager");
-  var prevButton = document.getElementById("rooms-prev");
-  var nextButton = document.getElementById("rooms-next");
+  var prevButton = /** @type {HTMLButtonElement} */ (
+    document.getElementById("rooms-prev")
+  );
+  var nextButton = /** @type {HTMLButtonElement} */ (
+    document.getElementById("rooms-next")
+  );
   var rangeLabel = document.getElementById("rooms-range");
   var editCard = document.getElementById("rooms-edit");
   var editTitle = document.getElementById("rooms-edit-title");
   var editSub = document.getElementById("rooms-edit-sub");
   var form = document.getElementById("rooms-form");
-  var bookableInput = document.getElementById("rooms-bookable");
-  var projectorSelect = document.getElementById("rooms-projector");
-  var boardSelect = document.getElementById("rooms-board");
-  var accessInput = document.getElementById("rooms-access");
-  var equipmentInput = document.getElementById("rooms-equipment");
+  var bookableInput = /** @type {HTMLInputElement} */ (
+    document.getElementById("rooms-bookable")
+  );
+  var projectorSelect = /** @type {HTMLSelectElement} */ (
+    document.getElementById("rooms-projector")
+  );
+  var boardSelect = /** @type {HTMLSelectElement} */ (
+    document.getElementById("rooms-board")
+  );
+  var accessInput = /** @type {HTMLInputElement} */ (
+    document.getElementById("rooms-access")
+  );
+  var equipmentInput = /** @type {HTMLTextAreaElement} */ (
+    document.getElementById("rooms-equipment")
+  );
   var cancelButton = document.getElementById("rooms-cancel");
 
   // The board labels: literal keys, so the key check reads them.
@@ -36,7 +52,7 @@
     whiteboard: "rooms.boardWhiteboard",
     blackboard: "rooms.boardBlackboard",
     smartboard: "rooms.boardSmartboard",
-    none: "rooms.boardNone"
+    none: "rooms.boardNone",
   };
 
   var PAGE_SIZE = 15;
@@ -46,7 +62,7 @@
     facultyNames: {},
     editing: null,
     request: 0,
-    page: 0
+    page: 0,
   };
 
   function setStatus(key, isError) {
@@ -75,11 +91,15 @@
   }
 
   function seatsLabel(room) {
-    return room.capacity == null ? t("rooms.seatsUnknown") : String(room.capacity);
+    return room.capacity == null
+      ? t("rooms.seatsUnknown")
+      : String(room.capacity);
   }
 
   function facultyLabel(room) {
-    return room.faculty_id ? state.facultyNames[room.faculty_id] : t("common.campus");
+    return room.faculty_id
+      ? state.facultyNames[room.faculty_id]
+      : t("common.campus");
   }
 
   function placeholderOption(text) {
@@ -92,38 +112,46 @@
   // The faculties, then "Campus". Keeps the choice that is on screen.
   function loadFaculties() {
     var chosen = facultySelect.value;
-    return api.faculties().then(function (faculties) {
-      state.facultyNames = {};
-      facultySelect.textContent = "";
-      facultySelect.appendChild(placeholderOption(t("adminHistory.allFaculties")));
-      var campus = document.createElement("option");
-      campus.value = "campus";
-      campus.textContent = t("common.campus");
-      facultySelect.appendChild(campus);
-      faculties.forEach(function (faculty) {
-        state.facultyNames[faculty.id] = faculty.name;
-        var option = document.createElement("option");
-        option.value = faculty.id;
-        option.textContent = faculty.name;
-        facultySelect.appendChild(option);
+    return api
+      .faculties()
+      .then((faculties) => {
+        state.facultyNames = {};
+        facultySelect.textContent = "";
+        facultySelect.appendChild(
+          placeholderOption(t("adminHistory.allFaculties")),
+        );
+        var campus = document.createElement("option");
+        campus.value = "campus";
+        campus.textContent = t("common.campus");
+        facultySelect.appendChild(campus);
+        faculties.forEach((faculty) => {
+          state.facultyNames[faculty.id] = faculty.name;
+          var option = document.createElement("option");
+          option.value = faculty.id;
+          option.textContent = faculty.name;
+          facultySelect.appendChild(option);
+        });
+        facultySelect.value = chosen;
+      })
+      .catch(() => {
+        setStatus("rooms.loadError", true);
       });
-      facultySelect.value = chosen;
-    }).catch(function () {
-      setStatus("rooms.loadError", true);
-    });
   }
 
   // The rooms of the chosen faculty (or campus), or every room when no faculty is chosen.
   // An older answer that arrives after a newer request is ignored.
   function loadRooms() {
     var request = ++state.request;
-    return api.adminClassrooms(facultySelect.value || undefined).then(function (rooms) {
-      if (request !== state.request) return;
-      state.rooms = rooms;
-      render();
-    }).catch(function () {
-      setStatus("rooms.loadError", true);
-    });
+    return api
+      .adminClassrooms(facultySelect.value || undefined)
+      .then((rooms) => {
+        if (request !== state.request) return;
+        state.rooms = rooms;
+        render();
+      })
+      .catch(() => {
+        setStatus("rooms.loadError", true);
+      });
   }
 
   function cell(text) {
@@ -148,7 +176,7 @@
     edit.type = "button";
     edit.textContent = t("rooms.edit");
     edit.setAttribute("aria-label", t("rooms.editAria", { name: room.name }));
-    edit.addEventListener("click", function () {
+    edit.addEventListener("click", () => {
       openEditor(room);
       if (editCard.scrollIntoView) {
         editCard.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -162,23 +190,27 @@
   // Draws the rooms whose name contains the search text (ignoring case), 15 to a page.
   function render() {
     var query = searchInput.value.trim().toLowerCase();
-    var shown = state.rooms.filter(function (room) {
-      return room.name.toLowerCase().indexOf(query) !== -1;
-    });
+    var shown = state.rooms.filter(
+      (room) => room.name.toLowerCase().indexOf(query) !== -1,
+    );
     var total = shown.length;
     var start = state.page * PAGE_SIZE;
     var pageItems = shown.slice(start, start + PAGE_SIZE);
 
     body.textContent = "";
-    pageItems.forEach(function (room) {
+    pageItems.forEach((room) => {
       body.appendChild(row(room));
     });
     emptyCard.hidden = total > 0;
     pager.hidden = total === 0;
     if (total > 0) {
-      var from = start + 1;
-      var to = Math.min(start + PAGE_SIZE, total);
-      rangeLabel.textContent = t("adminHistory.range", { from: from, to: to, total: total });
+      const from = start + 1;
+      const to = Math.min(start + PAGE_SIZE, total);
+      rangeLabel.textContent = t("adminHistory.range", {
+        from: from,
+        to: to,
+        total: total,
+      });
     } else {
       rangeLabel.textContent = "";
     }
@@ -212,59 +244,66 @@
   function save() {
     var payload = {
       is_bookable: bookableInput.checked,
-      has_projector: projectorSelect.value === "" ? null : projectorSelect.value === "yes",
+      has_projector:
+        projectorSelect.value === "" ? null : projectorSelect.value === "yes",
       board_type: boardSelect.value || null,
       access_notes: accessInput.value,
-      equipment_notes: equipmentInput.value
+      equipment_notes: equipmentInput.value,
     };
-    return api.patchAdminClassroom(state.editing, payload).then(function (saved) {
-      state.rooms = state.rooms.map(function (room) {
-        return room.id === saved.id ? saved : room;
+    return api
+      .patchAdminClassroom(state.editing, payload)
+      .then((saved) => {
+        state.rooms = state.rooms.map((room) =>
+          room.id === saved.id ? saved : room,
+        );
+        render();
+        closeEditor();
+        setStatus("rooms.saved");
+      })
+      .catch((error) => {
+        setStatus(
+          error.status === 422 ? "rooms.invalid" : "rooms.saveError",
+          true,
+        );
       });
-      render();
-      closeEditor();
-      setStatus("rooms.saved");
-    }).catch(function (error) {
-      setStatus(error.status === 422 ? "rooms.invalid" : "rooms.saveError", true);
-    });
   }
 
-  tab.addEventListener("click", function () {
+  tab.addEventListener("click", () => {
     state.page = 0;
     hideStatus();
     loadFaculties();
     loadRooms();
   });
-  facultySelect.addEventListener("change", function () {
+  facultySelect.addEventListener("change", () => {
     state.page = 0;
     loadRooms();
   });
-  searchInput.addEventListener("input", function () {
+  searchInput.addEventListener("input", () => {
     state.page = 0;
     render();
   });
-  prevButton.addEventListener("click", function () {
+  prevButton.addEventListener("click", () => {
     state.page -= 1;
     render();
   });
-  nextButton.addEventListener("click", function () {
+  nextButton.addEventListener("click", () => {
     state.page += 1;
     render();
   });
-  form.addEventListener("submit", function (event) {
+  form.addEventListener("submit", (event) => {
     event.preventDefault();
     save();
   });
   cancelButton.addEventListener("click", closeEditor);
 
   // Labels built by the script are built again in the new language, and the open editor too.
-  document.addEventListener("unispace:langchange", function () {
+  document.addEventListener("unispace:langchange", () => {
     loadFaculties();
     render();
     if (state.editing) {
-      var editing = state.rooms.filter(function (room) {
-        return room.id === state.editing;
-      })[0];
+      const editing = state.rooms.filter(
+        (room) => room.id === state.editing,
+      )[0];
       openEditor(editing);
     }
   });

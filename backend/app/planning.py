@@ -7,6 +7,7 @@
 - A one-off activity (specific_date set) happens only on that date (D-008: ISO weekday).
 - Local dates and times are in Europe/Bucharest.
 """
+
 import uuid
 from dataclasses import dataclass, replace
 from datetime import date, datetime, time, timedelta
@@ -57,7 +58,9 @@ def booking_window(start: time | None, end: time | None) -> tuple[time, time]:
     if end <= start:
         raise ValueError("end_time must be after start_time")
     if start not in MODULE_STARTS or end not in MODULE_ENDS:
-        raise ValueError("a booking starts at the start of a module and ends at the end of a module")
+        raise ValueError(
+            "a booking starts at the start of a module and ends at the end of a module"
+        )
     return start, end
 
 
@@ -85,7 +88,7 @@ def parity_for_week(number: int) -> Parity:
 
 @dataclass(frozen=True)
 class Occurrence:
-    """One activity on one date, with the day and times it really has (a moved one has its new ones).
+    """One activity on one date, with the day and times it really has (moved ones have new ones).
 
     unit_start and unit_id are the planning unit's (None for one-offs). start_time and end_time
     default to the activity's.
@@ -106,13 +109,13 @@ class Occurrence:
 
 
 def occurrences(db: Session, first: date, last: date, *conditions) -> list[Occurrence]:
-    """Every occurrence that happens between first and last (both inclusive), with its date and times.
+    """Every occurrence that happens between first and last (both inclusive), with date and times.
 
-    Q-017 (answered 2026-11-24): an activity with status CANCELLED does not happen, and an occurrence
-    cancelled by an exception does not happen. An occurrence moved by an exception happens on its new
-    date and at its new time, and not at the old ones. A move is found from either date: an occurrence
-    moved into the window from another day is included. A move to a day outside the window is left out.
-    A move that is only a new time keeps the day. A move to another room is not handled yet.
+    Q-017 (answered 2026-11-24): an activity with status CANCELLED does not happen, and an
+    occurrence cancelled by an exception does not happen. A moved occurrence happens on its new
+    date and at its new time, not at the old ones. A move is found from either date: an occurrence
+    moved into the window from another day is included. A move to a day outside the window is
+    left out. A move that is only a new time keeps the day. Moving rooms is not handled yet.
 
     `conditions` filter the activities (for example by room or group).
     """
@@ -120,10 +123,12 @@ def occurrences(db: Session, first: date, last: date, *conditions) -> list[Occur
         select(ActivityException)
         .join(Activity, Activity.id == ActivityException.activity_id)
         .where(*conditions)
-        .where(or_(
-            ActivityException.original_date.between(first, last),
-            ActivityException.new_date.between(first, last),
-        ))
+        .where(
+            or_(
+                ActivityException.original_date.between(first, last),
+                ActivityException.new_date.between(first, last),
+            )
+        )
     ).all()
     found = _base_occurrences(db, first, last, *conditions)
     # Occurrences that move into the window come from their original day, outside it.
@@ -144,31 +149,37 @@ def occurrences(db: Session, first: date, last: date, *conditions) -> list[Occur
         day = move.new_date or o.day
         if not (first <= day <= last):
             continue
-        result.append(replace(
-            o,
-            day=day,
-            start_time=move.new_start_time or o.start_time,
-            end_time=move.new_end_time or o.end_time,
-        ))
+        result.append(
+            replace(
+                o,
+                day=day,
+                start_time=move.new_start_time or o.start_time,
+                end_time=move.new_end_time or o.end_time,
+            )
+        )
     return result
 
 
 def _base_occurrences(db: Session, first: date, last: date, *conditions) -> list[Occurrence]:
     """The weekly and one-off occurrences by their own dates, before any exception."""
     stmt = (
-        select(Activity, PlanningTimeUnit.id, PlanningTimeUnit.start_date, PlanningTimeUnit.end_date)
+        select(
+            Activity, PlanningTimeUnit.id, PlanningTimeUnit.start_date, PlanningTimeUnit.end_date
+        )
         .outerjoin(PlanningTimeUnit, PlanningTimeUnit.id == Activity.planning_time_unit_id)
         .options(joinedload(Activity.classroom))
         .where(*conditions)
         .where(Activity.status != Status.CANCELLED)
-        .where(or_(
-            Activity.specific_date.between(first, last),
-            and_(
-                Activity.specific_date.is_(None),
-                PlanningTimeUnit.start_date <= last,
-                PlanningTimeUnit.end_date >= first,
-            ),
-        ))
+        .where(
+            or_(
+                Activity.specific_date.between(first, last),
+                and_(
+                    Activity.specific_date.is_(None),
+                    PlanningTimeUnit.start_date <= last,
+                    PlanningTimeUnit.end_date >= first,
+                ),
+            )
+        )
     )
     found: list[Occurrence] = []
     for activity, unit_id, unit_start, unit_end in db.execute(stmt).all():
@@ -182,7 +193,10 @@ def _base_occurrences(db: Session, first: date, last: date, *conditions) -> list
                 continue
             if not (unit_start <= day <= unit_end):
                 continue
-            if activity.parity != Parity.ALL and parity_for_week(week_number(unit_start, day)) != activity.parity:
+            if (
+                activity.parity != Parity.ALL
+                and parity_for_week(week_number(unit_start, day)) != activity.parity
+            ):
                 continue
             found.append(Occurrence(activity, day, unit_start, unit_id))
     return found

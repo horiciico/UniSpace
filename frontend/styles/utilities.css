@@ -4,15 +4,33 @@
  * so a utility wins over a component's own margin (same as the inline style it replaces).
  */
 
-.my-5 { margin: var(--space-5) 0; }
-.mt-3 { margin-top: var(--space-3); }
-.mt-4 { margin-top: var(--space-4); }
-.mt-5 { margin-top: var(--space-5); }
-.mb-3 { margin-bottom: var(--space-3); }
-.m-0 { margin: 0; }
-.ml-auto { margin-left: auto; }
-.self-center { align-self: center; }
-.justify-center { justify-content: center; }
+.my-5 {
+  margin: var(--space-5) 0;
+}
+.mt-3 {
+  margin-top: var(--space-3);
+}
+.mt-4 {
+  margin-top: var(--space-4);
+}
+.mt-5 {
+  margin-top: var(--space-5);
+}
+.mb-3 {
+  margin-bottom: var(--space-3);
+}
+.m-0 {
+  margin: 0;
+}
+.ml-auto {
+  margin-left: auto;
+}
+.self-center {
+  align-self: center;
+}
+.justify-center {
+  justify-content: center;
+}
 
 /* Text for screen readers only (a table header whose words are shown by the cell itself). */
 .visually-hidden {

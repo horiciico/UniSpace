@@ -3,12 +3,11 @@
  * actions that do not exist yet show a toast instead of sending anything; copy buttons
  * copy the value of the input named by data-copy.
  */
-(function () {
-  "use strict";
+(() => {
+  window.UniSpaceUI = window.UniSpaceUI || {};
+  var UI = window.UniSpaceUI;
 
-  var UI = (window.UniSpaceUI = window.UniSpaceUI || {});
-
-  UI.toast = function (message) {
+  UI.toast = (message) => {
     var el = document.getElementById("toast");
     if (!el) {
       el = document.createElement("div");
@@ -20,22 +19,22 @@
     el.textContent = message;
     el.classList.add("is-visible");
     clearTimeout(el._hide);
-    el._hide = setTimeout(function () {
+    el._hide = setTimeout(() => {
       el.classList.remove("is-visible");
     }, 3200);
   };
 
   // Bound once per page. The listeners look up the text when they run, so they follow
   // the language.
-  UI.bindActions = function () {
+  UI.bindActions = () => {
     var t = window.UniSpaceI18n.t;
-    document.addEventListener("submit", function (event) {
+    document.addEventListener("submit", (event) => {
       if (event.target.matches("form[data-placeholder]")) {
         event.preventDefault();
         UI.toast(t("placeholder.nothingSaved"));
       }
     });
-    document.addEventListener("click", function (event) {
+    document.addEventListener("click", (event) => {
       var action = event.target.closest("[data-placeholder-action]");
       if (action) {
         event.preventDefault();
@@ -44,9 +43,9 @@
       }
       var copy = event.target.closest("[data-copy]");
       if (copy) {
-        var input = document.querySelector(copy.dataset.copy);
+        const input = document.querySelector(copy.dataset.copy);
         if (input && navigator.clipboard) {
-          navigator.clipboard.writeText(input.value).then(function () {
+          navigator.clipboard.writeText(input.value).then(() => {
             UI.toast(t("toast.copied"));
           });
         } else {

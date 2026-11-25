@@ -1,5 +1,6 @@
-"""Sign-in when the database refuses the write: a concurrent callback created the account first (D-020).
+"""Sign-in when the database refuses the write: a concurrent callback created the account first.
 Google is mocked; the database is real (see conftest.py)."""
+
 from collections.abc import Iterator
 
 import pytest
@@ -13,7 +14,9 @@ from app.db import get_db
 from app.main import app
 from app.models import User
 
-DENIED = "Access denied. Login is restricted to @ulbsibiu.ro accounts or registered faculty members."
+DENIED = (
+    "Access denied. Login is restricted to @ulbsibiu.ro accounts or registered faculty members."
+)
 
 
 @pytest.fixture
@@ -25,8 +28,13 @@ def client(db: Session) -> Iterator[TestClient]:
 
 
 def test_a_refused_write_is_a_403_and_the_session_stays_usable(client, db, monkeypatch) -> None:
-    claims = {"sub": "sub-race", "email": "race@ulbsibiu.ro", "email_verified": True,
-              "hd": "ulbsibiu.ro", "name": "Race"}
+    claims = {
+        "sub": "sub-race",
+        "email": "race@ulbsibiu.ro",
+        "email_verified": True,
+        "hd": "ulbsibiu.ro",
+        "name": "Race",
+    }
 
     async def fake(request):
         return {"userinfo": claims}
@@ -43,4 +51,6 @@ def test_a_refused_write_is_a_403_and_the_session_stays_usable(client, db, monke
     assert r.status_code == 403
     assert r.json()["detail"] == DENIED
     monkeypatch.undo()
-    assert db.scalar(select(User).where(User.email == "race@ulbsibiu.ro")) is None  # nothing was saved
+    assert (
+        db.scalar(select(User).where(User.email == "race@ulbsibiu.ro")) is None
+    )  # nothing was saved

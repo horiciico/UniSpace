@@ -5,9 +5,7 @@
  * /timetable?mode=room&faculty_id=...&id=... opens a room (from the free-rooms page).
  * Names and times from the backend are shown as they arrive (D-012).
  */
-(function () {
-  "use strict";
-
+(() => {
   var t = window.UniSpaceI18n.t;
   var api = window.UniSpaceApi;
   var grid = window.UniSpaceGrid;
@@ -17,12 +15,18 @@
   var body = document.getElementById("tt-body");
   var emptyNote = document.getElementById("tt-empty");
   var statusLine = document.getElementById("tt-status");
-  var facultySelect = document.getElementById("tt-faculty");
-  var entityInput = document.getElementById("tt-entity");
+  var facultySelect = /** @type {HTMLSelectElement} */ (
+    document.getElementById("tt-faculty")
+  );
+  var entityInput = /** @type {HTMLInputElement} */ (
+    document.getElementById("tt-entity")
+  );
   var entityLabel = document.getElementById("tt-entity-label");
   var entityList = document.getElementById("entity-list");
   var weekLabel = document.getElementById("tt-week-label");
-  var dialog = document.getElementById("tt-dialog");
+  var dialog = /** @type {HTMLDialogElement} */ (
+    document.getElementById("tt-dialog")
+  );
   var tabs = document.querySelectorAll("[role='tab'][data-mode]");
   var bookHint = document.getElementById("tt-hint");
   var roomBox = document.getElementById("tt-room");
@@ -31,17 +35,29 @@
   var ENTITY_LABEL_KEYS = {
     group: "timetable.entityGroup",
     professor: "timetable.entityProfessor",
-    room: "timetable.entityRoom"
+    room: "timetable.entityRoom",
   };
-  var PARITY_KEYS = { ALL: "timetable.parityAll", ODD: "timetable.parityOdd", EVEN: "timetable.parityEven" };
-  var DAY_KEYS = ["day.mon", "day.tue", "day.wed", "day.thu", "day.fri", "day.sat", "day.sun"];
+  var PARITY_KEYS = {
+    ALL: "timetable.parityAll",
+    ODD: "timetable.parityOdd",
+    EVEN: "timetable.parityEven",
+  };
+  var DAY_KEYS = [
+    "day.mon",
+    "day.tue",
+    "day.wed",
+    "day.thu",
+    "day.fri",
+    "day.sat",
+    "day.sun",
+  ];
   var KIND_KEYS = {
     COURSE: "kind.course",
     SEMINAR: "kind.seminar",
     LAB: "kind.lab",
     EXAM: "kind.exam",
     RESERVATION: "kind.reservation",
-    BOOKING: "kind.booking"
+    BOOKING: "kind.booking",
   };
 
   function pad(value) {
@@ -49,7 +65,13 @@
   }
 
   function isoDate(date) {
-    return date.getFullYear() + "-" + pad(date.getMonth() + 1) + "-" + pad(date.getDate());
+    return (
+      date.getFullYear() +
+      "-" +
+      pad(date.getMonth() + 1) +
+      "-" +
+      pad(date.getDate())
+    );
   }
 
   function parseIso(text) {
@@ -78,15 +100,17 @@
     faculties: [],
     entities: [],
     entity: null,
-    monday: mondayOf(/^\d{4}-\d{2}-\d{2}$/.test(params.get("date") || "")
-      ? parseIso(params.get("date"))
-      : new Date()),
+    monday: mondayOf(
+      /^\d{4}-\d{2}-\d{2}$/.test(params.get("date") || "")
+        ? parseIso(params.get("date"))
+        : new Date(),
+    ),
     week: null,
     items: null,
     statusKey: "",
     statusError: false,
     requestNumber: 0,
-    entityRequestNumber: 0
+    entityRequestNumber: 0,
   };
 
   function setStatus(key, isError) {
@@ -98,11 +122,17 @@
 
   function renderWeek() {
     var sunday = addDays(state.monday, 6);
-    var format = new Intl.DateTimeFormat(locale(), { day: "numeric", month: "short" });
+    var format = new Intl.DateTimeFormat(locale(), {
+      day: "numeric",
+      month: "short",
+    });
     var range = format.format(state.monday) + " – " + format.format(sunday);
     if (state.week && state.week.number) {
-      var parity = t(PARITY_KEYS[state.week.parity] || "timetable.parityAll");
-      weekLabel.textContent = range + " · " + t("timetable.weekLabel", { n: state.week.number, parity: parity });
+      const parity = t(PARITY_KEYS[state.week.parity] || "timetable.parityAll");
+      weekLabel.textContent =
+        range +
+        " · " +
+        t("timetable.weekLabel", { n: state.week.number, parity: parity });
     } else {
       weekLabel.textContent = range;
     }
@@ -113,8 +143,11 @@
   }
 
   function renderTabs() {
-    tabs.forEach(function (tab) {
-      tab.setAttribute("aria-selected", String(tab.getAttribute("data-mode") === state.mode));
+    tabs.forEach((tab) => {
+      tab.setAttribute(
+        "aria-selected",
+        String(tab.getAttribute("data-mode") === state.mode),
+      );
     });
   }
 
@@ -127,12 +160,12 @@
     placeholder.textContent = t("timetable.chooseFaculty");
     facultySelect.appendChild(placeholder);
     if (state.mode === "room") {
-      var campus = document.createElement("option");
+      const campus = document.createElement("option");
       campus.value = "campus";
       campus.textContent = t("common.campus");
       facultySelect.appendChild(campus);
     }
-    state.faculties.forEach(function (faculty) {
+    state.faculties.forEach((faculty) => {
       var option = document.createElement("option");
       option.value = faculty.id;
       option.textContent = faculty.name;
@@ -150,7 +183,9 @@
   // The room's description above the timetable: its access notes (admin-written, C-003). Room view only.
   function renderRoomDescription() {
     roomBox.hidden = state.mode !== "room";
-    if (state.mode === "room") roomAccess.textContent = state.entity.accessNotes || t("rooms.unspecified");
+    if (state.mode === "room")
+      roomAccess.textContent =
+        state.entity.accessNotes || t("rooms.unspecified");
   }
 
   function showBody() {
@@ -160,7 +195,7 @@
 
   function fillEntityList() {
     entityList.textContent = "";
-    state.entities.forEach(function (entity) {
+    state.entities.forEach((entity) => {
       var option = document.createElement("option");
       option.value = entity.name;
       entityList.appendChild(option);
@@ -177,35 +212,40 @@
     if (!state.facultyId) return Promise.resolve();
     var source;
     if (state.mode === "group") {
-      source = api.groups(state.facultyId).then(function (rows) {
-        return rows.map(function (row) { return { id: row.id, name: row.name }; });
-      });
+      source = api
+        .groups(state.facultyId)
+        .then((rows) => rows.map((row) => ({ id: row.id, name: row.name })));
     } else if (state.mode === "professor") {
-      source = api.professors(state.facultyId).then(function (rows) {
-        return rows.map(function (row) { return { id: row.name, name: row.name }; });
-      });
+      source = api
+        .professors(state.facultyId)
+        .then((rows) => rows.map((row) => ({ id: row.name, name: row.name })));
     } else {
       // A room that cannot be booked stays in the list, but its free modules are not clickable.
-      source = api.classrooms(state.facultyId).then(function (rows) {
-        return rows.map(function (row) {
-          return { id: row.id, name: row.name, bookable: row.is_bookable, accessNotes: row.access_notes };
-        });
-      });
+      source = api.classrooms(state.facultyId).then((rows) =>
+        rows.map((row) => ({
+          id: row.id,
+          name: row.name,
+          bookable: row.is_bookable,
+          accessNotes: row.access_notes,
+        })),
+      );
     }
-    return source.then(function (entities) {
-      if (request !== state.entityRequestNumber) return;
-      state.entities = entities;
-      fillEntityList();
-    }).catch(function () {
-      if (request !== state.entityRequestNumber) return;
-      state.entities = [];
-      fillEntityList();
-      setStatus("timetable.error", true);
-    });
+    return source
+      .then((entities) => {
+        if (request !== state.entityRequestNumber) return;
+        state.entities = entities;
+        fillEntityList();
+      })
+      .catch(() => {
+        if (request !== state.entityRequestNumber) return;
+        state.entities = [];
+        fillEntityList();
+        setStatus("timetable.error", true);
+      });
   }
 
   function findEntity(name) {
-    for (var i = 0; i < state.entities.length; i++) {
+    for (let i = 0; i < state.entities.length; i++) {
       if (state.entities[i].name === name) return state.entities[i];
     }
     return null;
@@ -223,7 +263,8 @@
   function scheduleParams() {
     var values = { date: isoDate(state.monday) };
     // The faculty picks the planning unit to draw ("campus" is not a faculty id: none is sent).
-    if (state.facultyId && state.facultyId !== "campus") values.faculty_id = state.facultyId;
+    if (state.facultyId && state.facultyId !== "campus")
+      values.faculty_id = state.facultyId;
     if (state.mode === "group") values.group_id = state.entity.id;
     else if (state.mode === "professor") values.professor = state.entity.name;
     else values.room_id = state.entity.id;
@@ -241,41 +282,55 @@
     }
     var request = ++state.requestNumber;
     setStatus("timetable.loading");
-    api.schedule(scheduleParams()).then(function (data) {
-      if (request !== state.requestNumber) return;
-      state.items = data.items;
-      state.week = { number: data.week_number, parity: data.parity };
-      renderWeek();
-      setStatus(data.items.length ? "" : "timetable.noItems");
-      drawGrid();
-      renderRoomDescription();
-      showBody();
-    }).catch(function (error) {
-      if (request !== state.requestNumber) return;
-      state.items = null;
-      renderWeek();
-      setStatus(error.status === 404 ? "timetable.notFound" : "timetable.error", true);
-      showEmpty();
-    });
+    api
+      .schedule(scheduleParams())
+      .then((data) => {
+        if (request !== state.requestNumber) return;
+        state.items = data.items;
+        state.week = { number: data.week_number, parity: data.parity };
+        renderWeek();
+        setStatus(data.items.length ? "" : "timetable.noItems");
+        drawGrid();
+        renderRoomDescription();
+        showBody();
+      })
+      .catch((error) => {
+        if (request !== state.requestNumber) return;
+        state.items = null;
+        renderWeek();
+        setStatus(
+          error.status === 404 ? "timetable.notFound" : "timetable.error",
+          true,
+        );
+        showEmpty();
+      });
   }
 
   // The free modules of a bookable room, for each day of the week: a module with no activity
   // over it. A module that has started is shown but disabled. Each one opens the Bookings page.
   function freeSlots() {
-    if (state.mode !== "room" || !state.entity || !state.entity.bookable) return [];
+    if (state.mode !== "room" || !state.entity || !state.entity.bookable)
+      return [];
     var now = new Date();
     var slots = [];
-    DAY_KEYS.forEach(function (dayKey, dayIndex) {
+    DAY_KEYS.forEach((dayKey, dayIndex) => {
       var date = addDays(state.monday, dayIndex);
       var iso = isoDate(date);
-      window.UniSpaceModules.list.forEach(function (module) {
-        var taken = state.items.some(function (item) {
-          return Number(item.day_of_week) === dayIndex + 1 &&
-            grid.toMinutes(item.start_time) < module.endMin && grid.toMinutes(item.end_time) > module.startMin;
-        });
+      window.UniSpaceModules.list.forEach((module) => {
+        var taken = state.items.some(
+          (item) =>
+            Number(item.day_of_week) === dayIndex + 1 &&
+            grid.toMinutes(item.start_time) < module.endMin &&
+            grid.toMinutes(item.end_time) > module.startMin,
+        );
         if (taken) return;
-        var opens = new Date(date.getFullYear(), date.getMonth(), date.getDate(),
-          Math.floor(module.startMin / 60), module.startMin % 60);
+        var opens = new Date(
+          date.getFullYear(),
+          date.getMonth(),
+          date.getDate(),
+          Math.floor(module.startMin / 60),
+          module.startMin % 60,
+        );
         var range = module.start + "–" + module.end;
         slots.push({
           day_of_week: dayIndex + 1,
@@ -283,12 +338,21 @@
           endMin: module.endMin,
           disabled: opens <= now,
           label: t("bookings.bookSlotShort"),
-          ariaLabel: opens <= now ? t("bookings.slotPast") : t("bookings.bookSlotAria", { range: range, day: t(dayKey) }),
-          onClick: function () {
-            window.location.assign(window.UniSpaceBookings.link({
-              faculty_id: state.facultyId, room: state.entity.id, date: iso, start: module.start, end: module.end
-            }));
-          }
+          ariaLabel:
+            opens <= now
+              ? t("bookings.slotPast")
+              : t("bookings.bookSlotAria", { range: range, day: t(dayKey) }),
+          onClick: () => {
+            window.location.assign(
+              window.UniSpaceBookings.link({
+                faculty_id: state.facultyId,
+                room: state.entity.id,
+                date: iso,
+                start: module.start,
+                end: module.end,
+              }),
+            );
+          },
         });
       });
     });
@@ -298,27 +362,47 @@
   // Callers draw only when there are items. The helper line shows for a bookable room only.
   function drawGrid() {
     grid.render(gridElement, state.items, openDetails, freeSlots());
-    bookHint.hidden = !(state.mode === "room" && state.entity && state.entity.bookable);
+    bookHint.hidden = !(
+      state.mode === "room" &&
+      state.entity &&
+      state.entity.bookable
+    );
   }
 
   function openDetails(item) {
-    var fill = function (id, text) {
+    var fill = (id, text) => {
       document.getElementById(id).textContent = text;
     };
-    var kind = KIND_KEYS[item.activity_type] ? t(KIND_KEYS[item.activity_type]) : item.activity_type;
-    var day = new Intl.DateTimeFormat(locale(), { weekday: "long", day: "numeric", month: "long" })
-      .format(parseIso(item.date));
+    var kind = KIND_KEYS[item.activity_type]
+      ? t(KIND_KEYS[item.activity_type])
+      : item.activity_type;
+    var day = new Intl.DateTimeFormat(locale(), {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+    }).format(parseIso(item.date));
     fill("tt-d-title", item.title);
     fill("tt-d-kind", kind);
     fill("tt-d-date", day);
     fill("tt-d-time", item.start_time + "–" + item.end_time);
     fill("tt-d-room", item.room_name);
     fill("tt-d-professor", item.professor || t("timetable.unknown"));
-    fill("tt-d-groups", item.groups && item.groups.length ? item.groups.join(", ") : t("timetable.unknown"));
+    fill(
+      "tt-d-groups",
+      item.groups && item.groups.length
+        ? item.groups.join(", ")
+        : t("timetable.unknown"),
+    );
     // An approved room booking has no priority (C-005): it is not a timetable activity.
-    fill("tt-d-priority", item.priority === null ? t("timetable.unknown") : String(item.priority));
+    fill(
+      "tt-d-priority",
+      item.priority === null ? t("timetable.unknown") : String(item.priority),
+    );
     fill("tt-d-parity", t(PARITY_KEYS[item.parity] || "timetable.parityAll"));
-    fill("tt-d-recurring", item.is_recurring ? t("timetable.recurring") : t("timetable.oneOff"));
+    fill(
+      "tt-d-recurring",
+      item.is_recurring ? t("timetable.recurring") : t("timetable.oneOff"),
+    );
     if (typeof dialog.showModal === "function") dialog.showModal();
     else dialog.setAttribute("open", "");
   }
@@ -371,13 +455,13 @@
     renderWeek();
     showEmpty();
 
-    tabs.forEach(function (tab) {
-      tab.addEventListener("click", function () {
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
         setMode(tab.getAttribute("data-mode"));
       });
     });
 
-    facultySelect.addEventListener("change", function () {
+    facultySelect.addEventListener("change", () => {
       state.facultyId = facultySelect.value;
       entityInput.value = "";
       state.entity = null;
@@ -386,52 +470,62 @@
       loadSchedule();
     });
 
-    entityInput.addEventListener("input", function () { onEntityChange(false); });
-    entityInput.addEventListener("change", function () { onEntityChange(true); });
+    entityInput.addEventListener("input", () => {
+      onEntityChange(false);
+    });
+    entityInput.addEventListener("change", () => {
+      onEntityChange(true);
+    });
 
-    document.getElementById("tt-prev").addEventListener("click", function () {
+    document.getElementById("tt-prev").addEventListener("click", () => {
       state.monday = addDays(state.monday, -7);
       updateUrl();
       loadSchedule();
     });
-    document.getElementById("tt-next").addEventListener("click", function () {
+    document.getElementById("tt-next").addEventListener("click", () => {
       state.monday = addDays(state.monday, 7);
       updateUrl();
       loadSchedule();
     });
-    document.getElementById("tt-today").addEventListener("click", function () {
+    document.getElementById("tt-today").addEventListener("click", () => {
       state.monday = mondayOf(new Date());
       updateUrl();
       loadSchedule();
     });
-    document.getElementById("tt-d-close").addEventListener("click", function () { dialog.close(); });
-
-    api.faculties().then(function (faculties) {
-      state.faculties = faculties;
-      populateFaculties();
-      return loadEntities();
-    }).then(function () {
-      // Nothing to look the address up in: no faculty, no entity named, or no list loaded.
-      if (!state.facultyId || !state.urlEntityId || !state.entities.length) {
-        updateUrl();
-        return;
-      }
-      var match = state.entities.filter(function (entity) {
-        return entity.id === state.urlEntityId;
-      })[0];
-      if (match) {
-        entityInput.value = match.name;
-        chooseEntity(match);
-      } else {
-        setStatus("timetable.notFound", true);
-      }
-    }).catch(function () {
-      setStatus("timetable.error", true);
+    document.getElementById("tt-d-close").addEventListener("click", () => {
+      dialog.close();
     });
+
+    api
+      .faculties()
+      .then((faculties) => {
+        state.faculties = faculties;
+        populateFaculties();
+        return loadEntities();
+      })
+      .then(() => {
+        // Nothing to look the address up in: no faculty, no entity named, or no list loaded.
+        if (!state.facultyId || !state.urlEntityId || !state.entities.length) {
+          updateUrl();
+          return;
+        }
+        var match = state.entities.filter(
+          (entity) => entity.id === state.urlEntityId,
+        )[0];
+        if (match) {
+          entityInput.value = match.name;
+          chooseEntity(match);
+        } else {
+          setStatus("timetable.notFound", true);
+        }
+      })
+      .catch(() => {
+        setStatus("timetable.error", true);
+      });
   }
 
   // Everything built by the script is translated again when the language changes.
-  document.addEventListener("unispace:langchange", function () {
+  document.addEventListener("unispace:langchange", () => {
     renderTabs();
     renderEntityLabel();
     renderWeek();

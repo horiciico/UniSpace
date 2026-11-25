@@ -1,7 +1,8 @@
 """Student onboarding (D-022): the faculty and study formation chosen on first sign-in.
 
-Google is mocked at the authlib client; the database is real and rolled back (PATTERN-005, PATTERN-006).
+Google is mocked at the authlib client; the database is real (PATTERN-005, PATTERN-006).
 """
+
 import os
 import uuid
 from collections.abc import Iterator
@@ -41,7 +42,13 @@ def client(db: Session) -> Iterator[TestClient]:
 
 
 def google_returns(monkeypatch: pytest.MonkeyPatch, sub: str, email: str) -> None:
-    claims = {"sub": sub, "email": email, "email_verified": True, "hd": "ulbsibiu.ro", "name": "Test"}
+    claims = {
+        "sub": sub,
+        "email": email,
+        "email_verified": True,
+        "hd": "ulbsibiu.ro",
+        "name": "Test",
+    }
 
     async def fake(request):
         return {"userinfo": claims}
@@ -56,15 +63,20 @@ def sign_in(client: TestClient, monkeypatch: pytest.MonkeyPatch, sub: str, email
 
 @pytest.fixture
 def world(db: Session) -> dict:
-    """Two faculties. The first has one formation (a group with an activity in its planning unit)."""
+    """Two faculties; the first has one formation (group with an activity in its planning unit)."""
     tag = uuid.uuid4().hex[:8]
     first = Faculty(code=f"a{tag}", name="Facultatea A")
     second = Faculty(code=f"b{tag}", name="Facultatea B")
     db.add_all([first, second])
     db.flush()
     unit = PlanningTimeUnit(
-        faculty_id=first.id, external_id=1, year=2026, name="Semestrul 1",
-        type=PlanningUnitType.SEMESTER, start_date=date(2026, 10, 5), end_date=date(2027, 1, 31),
+        faculty_id=first.id,
+        external_id=1,
+        year=2026,
+        name="Semestrul 1",
+        type=PlanningUnitType.SEMESTER,
+        start_date=date(2026, 10, 5),
+        end_date=date(2027, 1, 31),
     )
     db.add(unit)
     db.flush()
@@ -75,8 +87,14 @@ def world(db: Session) -> dict:
     db.add(room)
     db.flush()
     course = Activity(
-        name="Algebra", type=ActivityType.COURSE, priority=Priority.COURSE, classroom_id=room.id,
-        day_of_week=1, start_time=time(10, 0), end_time=time(12, 0), planning_time_unit_id=unit.id,
+        name="Algebra",
+        type=ActivityType.COURSE,
+        priority=Priority.COURSE,
+        classroom_id=room.id,
+        day_of_week=1,
+        start_time=time(10, 0),
+        end_time=time(12, 0),
+        planning_time_unit_id=unit.id,
         external_id=f"c-{tag}",
     )
     db.add(course)
@@ -100,9 +118,13 @@ def test_a_new_student_needs_onboarding(client, db, monkeypatch) -> None:
 def test_saving_the_choice_stores_it_and_ends_onboarding(client, db, world, monkeypatch) -> None:
     sign_in(client, monkeypatch, "sub-save", "save.student@ulbsibiu.ro")
 
-    r = client.put("/api/me/study-profile", json={
-        "faculty_id": str(world["first"].id), "study_formation_id": str(world["formation"].id),
-    })
+    r = client.put(
+        "/api/me/study-profile",
+        json={
+            "faculty_id": str(world["first"].id),
+            "study_formation_id": str(world["formation"].id),
+        },
+    )
 
     assert r.status_code == 200
     assert r.json()["needs_onboarding"] is False
@@ -112,20 +134,30 @@ def test_saving_the_choice_stores_it_and_ends_onboarding(client, db, world, monk
 
 
 def test_saving_needs_a_session(client, world) -> None:
-    r = client.put("/api/me/study-profile", json={
-        "faculty_id": str(world["first"].id), "study_formation_id": str(world["formation"].id),
-    })
+    r = client.put(
+        "/api/me/study-profile",
+        json={
+            "faculty_id": str(world["first"].id),
+            "study_formation_id": str(world["formation"].id),
+        },
+    )
     assert r.status_code == 401
 
 
 def test_only_students_can_save_a_profile(client, db, world, monkeypatch) -> None:
-    db.add(Professor(id=uuid.uuid4(), name="Prof", email="prof@ulbsibiu.ro"))  # the list gives the role (D-020)
+    db.add(
+        Professor(id=uuid.uuid4(), name="Prof", email="prof@ulbsibiu.ro")
+    )  # the list gives the role (D-020)
     db.commit()
     sign_in(client, monkeypatch, "sub-prof", "prof@ulbsibiu.ro")
 
-    r = client.put("/api/me/study-profile", json={
-        "faculty_id": str(world["first"].id), "study_formation_id": str(world["formation"].id),
-    })
+    r = client.put(
+        "/api/me/study-profile",
+        json={
+            "faculty_id": str(world["first"].id),
+            "study_formation_id": str(world["formation"].id),
+        },
+    )
 
     assert r.status_code == 403
     user = db.scalar(select(User).where(User.email == "prof@ulbsibiu.ro"))
@@ -136,9 +168,13 @@ def test_only_students_can_save_a_profile(client, db, world, monkeypatch) -> Non
 def test_formation_must_belong_to_the_chosen_faculty(client, world, monkeypatch) -> None:
     sign_in(client, monkeypatch, "sub-other", "other.student@ulbsibiu.ro")
 
-    r = client.put("/api/me/study-profile", json={
-        "faculty_id": str(world["second"].id), "study_formation_id": str(world["formation"].id),
-    })
+    r = client.put(
+        "/api/me/study-profile",
+        json={
+            "faculty_id": str(world["second"].id),
+            "study_formation_id": str(world["formation"].id),
+        },
+    )
 
     assert r.status_code == 422
 
@@ -146,18 +182,26 @@ def test_formation_must_belong_to_the_chosen_faculty(client, world, monkeypatch)
 def test_unknown_formation_is_422(client, world, monkeypatch) -> None:
     sign_in(client, monkeypatch, "sub-unknown", "unknown.student@ulbsibiu.ro")
 
-    r = client.put("/api/me/study-profile", json={
-        "faculty_id": str(world["first"].id), "study_formation_id": str(uuid.uuid4()),
-    })
+    r = client.put(
+        "/api/me/study-profile",
+        json={
+            "faculty_id": str(world["first"].id),
+            "study_formation_id": str(uuid.uuid4()),
+        },
+    )
 
     assert r.status_code == 422
 
 
 def test_a_later_sign_in_keeps_the_saved_choice(client, world, monkeypatch) -> None:
     sign_in(client, monkeypatch, "sub-again", "again.student@ulbsibiu.ro")
-    client.put("/api/me/study-profile", json={
-        "faculty_id": str(world["first"].id), "study_formation_id": str(world["formation"].id),
-    })
+    client.put(
+        "/api/me/study-profile",
+        json={
+            "faculty_id": str(world["first"].id),
+            "study_formation_id": str(world["formation"].id),
+        },
+    )
 
     sign_in(client, monkeypatch, "sub-again", "again.student@ulbsibiu.ro")
     me = client.get("/auth/me").json()
@@ -168,8 +212,13 @@ def test_a_later_sign_in_keeps_the_saved_choice(client, world, monkeypatch) -> N
 
 
 def test_deleting_a_formation_clears_the_choice(db, world) -> None:
-    user = User(email=f"gone-{world['tag']}@ulbsibiu.ro", name="Gone", role=Role.STUDENT,
-                faculty_id=world["first"].id, study_formation_id=world["formation"].id)
+    user = User(
+        email=f"gone-{world['tag']}@ulbsibiu.ro",
+        name="Gone",
+        role=Role.STUDENT,
+        faculty_id=world["first"].id,
+        study_formation_id=world["formation"].id,
+    )
     db.add(user)
     db.flush()
 
@@ -190,6 +239,10 @@ def test_needs_onboarding_only_for_a_student_without_a_faculty() -> None:
 
 def test_the_shared_head_loads_the_onboarding_dependencies_in_order() -> None:
     """The dialog needs api.js (window.UniSpaceApi) and auth.js before it runs, on every page."""
-    head = (Path(os.environ.get("FRONTEND_DIR", "/frontend")) / "components" / "head.html").read_text(encoding="utf-8")
-    auth, api, onboarding = (head.index(name) for name in ("/js/auth.js", "/js/api.js", "/components/onboarding.js"))
+    head = (
+        Path(os.environ.get("FRONTEND_DIR", "/frontend")) / "components" / "head.html"
+    ).read_text(encoding="utf-8")
+    auth, api, onboarding = (
+        head.index(name) for name in ("/js/auth.js", "/js/api.js", "/components/onboarding.js")
+    )
     assert auth < api < onboarding

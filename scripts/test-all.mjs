@@ -10,8 +10,9 @@
  *   frontend  Vitest in jsdom, with the 100% coverage gate (frontend/tests)
  *
  * Before each suite, a count of its tests is taken, so the progress bar has a total.
- * In a terminal the bars update live, in colour. Otherwise (a log file, CI) one plain line
- * per suite is printed. NO_COLOR turns colours off; TEST_ALL_LIVE=1 forces the live display.
+ * In a terminal every suite is listed at once, and each bar fills in place as its tests finish.
+ * TEST_ALL_PLAIN=1 prints each suite once, when it finishes, instead. TEST_ALL_LIVE=1 forces the
+ * live display where there is no terminal. NO_COLOR turns colours off.
  *
  * Exit code: 0 when every suite passes, 1 otherwise.
  */
@@ -24,12 +25,18 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const OUTPUT_DIR = join(ROOT, "output");
 const REPORT = join(OUTPUT_DIR, "test-report.md");
 const FAILURE_LINES = 40;
-const BAR_WIDTH = 28;
+const BAR_WIDTH = 20;
 const REFRESH_MS = 120;
 
-// TEST_ALL_LIVE=1 forces the live display (for checking it where there is no terminal).
-const TTY = Boolean(process.stdout.isTTY) || process.env.TEST_ALL_LIVE === "1";
-const COLOUR = TTY && !process.env.NO_COLOR;
+// The live display redraws every bar in place as tests finish; it is used in a terminal. Where a
+// terminal or log keeps every redraw, use TEST_ALL_PLAIN=1: each suite then prints its bar once, when
+// it finishes. TEST_ALL_LIVE=1 forces the live display where there is no terminal (for checking it).
+// The Antigravity IDE's terminal sets ANTIGRAVITY_CLI_ALIAS, and its terminal repeats the live block
+// on every update, so there the plain output is used unless TEST_ALL_LIVE=1 asks for the live view.
+const IDE_TERMINAL = Boolean(process.env.ANTIGRAVITY_CLI_ALIAS);
+const LIVE = process.env.TEST_ALL_LIVE === "1"
+  || (process.env.TEST_ALL_PLAIN !== "1" && !IDE_TERMINAL && Boolean(process.stdout.isTTY));
+const COLOUR = LIVE && !process.env.NO_COLOR;
 const paint = (code) => (text) => (COLOUR ? `\x1b[${code}m${text}\x1b[0m` : text);
 const style = {
   green: paint("32"), red: paint("31"), yellow: paint("33"),
@@ -46,9 +53,36 @@ const FRONTEND_INSTALL = "npm install --no-audit --no-fund >/dev/null 2>&1";
 
 const SUITES = [
   {
+    name: "backend-lint",
+    group: "backend",
+    kind: "check",
+    label: "Backend Lint",
+    detail: "ruff check and format check",
+    fixedTotal: 2,
+    run: [
+      "compose", "run", "--rm", "--no-deps", "-e", "PYTHONUNBUFFERED=1", "backend",
+      "sh", "-c", "ruff check . && ruff format --check .",
+    ],
+    parse: parseRuffLine,
+    summary: parseRuff,
+  },
+  {
+    name: "backend-types",
+    group: "backend",
+    kind: "check",
+    label: "Backend Types",
+    detail: "mypy typecheck on app/",
+    fixedTotal: 1,
+    run: ["compose", "run", "--rm", "--no-deps", "-e", "PYTHONUNBUFFERED=1", "backend", "mypy", "app/"],
+    parse: parseMypyLine,
+    summary: parseMypy,
+  },
+  {
     name: "backend",
+    group: "backend",
+    kind: "test",
     label: "Backend",
-    detail: "pytest, 75 tests in the backend container",
+    detail: "pytest in the backend container",
     count: ["compose", "run", "--rm", "backend", "pytest", "--collect-only", "-q"],
     run: ["compose", "run", "--rm", "-e", "PYTHONUNBUFFERED=1", "backend", "pytest", "-q"],
     parse: parsePytestLine,
@@ -56,6 +90,8 @@ const SUITES = [
   },
   {
     name: "etl",
+    group: "etl",
+    kind: "test",
     label: "ETL",
     detail: "pytest, schedule importer tests",
     count: ["compose", "run", "--rm", ...ETL_MOUNTS, "backend", "pytest", "--collect-only", "-q", "etl"],
@@ -64,7 +100,33 @@ const SUITES = [
     summary: parsePytest,
   },
   {
+    name: "frontend-lint",
+    group: "frontend",
+    kind: "check",
+    label: "Frontend Lint",
+    detail: "Biome lint and format check",
+    fixedTotal: 1,
+    run: ["compose", "--profile", "test", "run", "--rm", "frontend-test", "sh", "-c",
+      `${FRONTEND_INSTALL} && npm run lint`],
+    parse: parseBiomeLine,
+    summary: parseBiome,
+  },
+  {
+    name: "frontend-types",
+    group: "frontend",
+    kind: "check",
+    label: "Frontend Types",
+    detail: "TypeScript checkJs",
+    fixedTotal: 1,
+    run: ["compose", "--profile", "test", "run", "--rm", "frontend-test", "sh", "-c",
+      `${FRONTEND_INSTALL} && npm run typecheck`],
+    parse: parseTscLine,
+    summary: parseTsc,
+  },
+  {
     name: "frontend",
+    group: "frontend",
+    kind: "test",
     label: "Frontend",
     detail: "Vitest in jsdom, coverage gate 100%",
     count: ["compose", "--profile", "test", "run", "--rm", "frontend-test", "sh", "-c",
@@ -77,6 +139,78 @@ const SUITES = [
 ];
 
 // ---- Reading the output ---------------------------------------------------------------
+
+function parseRuffLine(line) {
+  const text = strip(line);
+  if (/^All checks passed!/.test(text) || /already formatted/.test(text)) return ["pass"];
+  if (/would be reformatted/.test(text) || /^Found \d+ errors?/.test(text)) return ["fail"];
+  return [];
+}
+
+function parseRuff(output, code) {
+  const plain = strip(output);
+  if (code === 0) return { passed: 2, failed: 0, text: "ruff check & format passed" };
+  const errMatch = /Found (\d+) errors?/.exec(plain);
+  const fmtMatch = /(\d+) files? would be reformatted/.exec(plain);
+  const failed = Number(errMatch?.[1] || fmtMatch?.[1] || 1);
+  return { passed: 0, failed, text: errMatch?.[0] || fmtMatch?.[0] || "ruff failed" };
+}
+
+function parseMypyLine(line) {
+  const text = strip(line);
+  if (/^Success: no issues found/.test(text)) return ["pass"];
+  if (/^Found \d+ errors?/.test(text)) return ["fail"];
+  return [];
+}
+
+function parseMypy(output, code) {
+  const plain = strip(output);
+  const okMatch = /^Success: no issues found in \d+ source files?/m.exec(plain);
+  if (code === 0 && okMatch) return { passed: 1, failed: 0, text: okMatch[0] };
+  const errMatch = /^Found \d+ errors? in \d+ files?/m.exec(plain);
+  const count = /^Found (\d+) errors?/m.exec(plain);
+  return {
+    passed: 0,
+    failed: Number(count?.[1] || 1),
+    text: errMatch?.[0] || "mypy failed",
+  };
+}
+
+function parseBiomeLine(line) {
+  const text = strip(line);
+  if (/^Checked \d+ files?/.test(text)) return [/^Found \d+ errors?/m.test(text) ? "fail" : "pass"];
+  return [];
+}
+
+function parseBiome(output, code) {
+  const plain = strip(output);
+  const checked = /Checked (\d+) files?/.exec(plain);
+  const errors = /Found (\d+) errors?/.exec(plain);
+  if (code === 0) {
+    return {
+      passed: 1,
+      failed: 0,
+      text: checked ? `Checked ${checked[1]} files, 0 errors` : "Biome passed",
+    };
+  }
+  return {
+    passed: 0,
+    failed: Number(errors?.[1] || 1),
+    text: errors ? `${errors[0]} (${checked?.[0] || "Biome"})` : "Biome failed",
+  };
+}
+
+function parseTscLine() {
+  return [];
+}
+
+function parseTsc(output, code) {
+  const plain = strip(output);
+  if (code === 0) return { passed: 1, failed: 0, text: "0 type errors" };
+  const errors = plain.match(/error TS\d+:/g) || [];
+  const count = Math.max(1, errors.length);
+  return { passed: 0, failed: count, text: `${count} type error${count === 1 ? "" : "s"}` };
+}
 
 // pytest -q prints one character per test ("..F.s"), with a percentage at the end of a line.
 function parsePytestLine(line) {
@@ -141,43 +275,76 @@ function capture(args) {
 
 const requestedSuite = process.argv[2];
 const activeSuites = requestedSuite
-  ? SUITES.filter((suite) => suite.name.toLowerCase() === requestedSuite.toLowerCase())
+  ? SUITES.filter(
+      (suite) =>
+        suite.name.toLowerCase() === requestedSuite.toLowerCase() ||
+        suite.group.toLowerCase() === requestedSuite.toLowerCase(),
+    )
   : SUITES;
 
 if (requestedSuite && activeSuites.length === 0) {
-  console.error(`Unknown suite "${requestedSuite}". Expected one of: ${SUITES.map((s) => s.name).join(", ")}`);
+  const valid = [...new Set(SUITES.flatMap((s) => [s.group, s.name]))].join(", ");
+  console.error(`Unknown suite "${requestedSuite}". Expected one of: ${valid}`);
   process.exit(1);
 }
 
 const rows = activeSuites.map((suite) => ({
-  ...suite, status: "waiting", total: 0, done: 0, failed: 0, started: 0, seconds: 0, text: "", output: "",
+  ...suite, status: "waiting", total: suite.fixedTotal || 0, done: 0, failed: 0, started: 0, seconds: 0, text: "", output: "",
 }));
 
+function barWidth() {
+  const cols = process.stdout.columns || 80;
+  // 2 (indent) + 14 (label) + 1 + bar + 1 + 8 (count) + 2 + 10 (failed) + 1 + 8 (status) + 1 + 6 (time) = 54 + bar
+  return Math.max(0, Math.min(BAR_WIDTH, cols - 56));
+}
+
 function bar(row) {
+  const width = barWidth();
   const ratio = row.total ? Math.min(1, row.done / row.total) : 0;
-  const filled = Math.round(ratio * BAR_WIDTH);
+  const filled = Math.round(ratio * width);
   const colour = row.failed ? style.red : style.green;
-  return colour("█".repeat(filled)) + style.dim("░".repeat(BAR_WIDTH - filled));
+  return colour("█".repeat(filled)) + style.dim("░".repeat(width - filled));
 }
 
 // The status word is padded before it is coloured, so the columns line up in the terminal.
 function statusLabel(row) {
   const word = { pass: "PASS", fail: "FAIL", running: "RUNNING" }[row.status] || "waiting";
   const colour = { pass: style.green, fail: style.red, running: style.yellow }[row.status] || style.dim;
-  return colour(word.padEnd(10));
+  return colour(word.padEnd(8));
 }
 
 function rowLine(row) {
   const elapsed = row.status === "running" ? (Date.now() - row.started) / 1000 : row.seconds;
-  const count = `${row.done}/${row.total || "?"}`.padStart(9);
-  const failed = row.failed ? style.red(`${row.failed} failed`.padEnd(12)) : style.dim("0 failed".padEnd(12));
-  return `  ${style.bold(row.label.padEnd(10))} ${bar(row)} ${count}  ${failed} ` +
+  const count = `${row.done}/${row.total || "?"}`.padStart(8);
+  const failed = row.failed ? style.red(`${row.failed} failed`.padEnd(10)) : style.dim("0 failed".padEnd(10));
+  return `  ${style.bold(row.label.padEnd(14))} ${bar(row)} ${count}  ${failed} ` +
     `${statusLabel(row)} ${elapsed ? `${elapsed.toFixed(1)}s` : ""}`;
+}
+
+// A line wider than the terminal wraps onto a second row, and the cursor move up would then miss
+// that row, so every redraw left a copy of the block behind. Visible text is cut to the width
+// (the colour codes are kept), so each line takes exactly one row.
+function fit(line) {
+  const cols = process.stdout.columns || 80;
+  let visible = 0;
+  let out = "";
+  for (const part of line.split(/(\x1b\[[0-9;?]*[A-Za-z])/)) {
+    if (part.startsWith("\x1b[")) {
+      out += part;
+    } else {
+      const room = cols - 1 - visible;
+      if (room <= 0) continue;
+      const kept = part.slice(0, room);
+      out += kept;
+      visible += kept.length;
+    }
+  }
+  return out;
 }
 
 let drawnLines = 0;
 function draw() {
-  const lines = [style.bold("Test run"), ...rows.map(rowLine), ""];
+  const lines = [style.bold("Test run"), ...rows.map(rowLine), ""].map(fit);
   if (drawnLines) process.stdout.write(`\x1b[${drawnLines}A`);
   for (const line of lines) process.stdout.write(`\x1b[2K${line}\n`);
   drawnLines = lines.length;
@@ -186,8 +353,10 @@ function draw() {
 // ---- One suite ------------------------------------------------------------------------
 
 async function runSuite(row) {
-  const counted = await capture(row.count);
-  row.total = countFrom(row, counted.output) ?? 0;
+  if (row.count) {
+    const counted = await capture(row.count);
+    row.total = countFrom(row, counted.output) ?? 0;
+  }
 
   row.status = "running";
   row.started = Date.now();
@@ -205,7 +374,7 @@ async function runSuite(row) {
       }
       row.output += `${line}\n`;
     }
-    if (TTY) draw();
+    if (LIVE) draw();
   };
   child.stdout.on("data", onChunk);
   child.stderr.on("data", onChunk);
@@ -213,14 +382,16 @@ async function runSuite(row) {
   await new Promise((done) => {
     child.on("close", (code) => {
       row.seconds = (Date.now() - row.started) / 1000;
-      const result = row.summary(row.output);
+      const result = row.summary(row.output, code);
       row.text = result.text;
       row.failed = Math.max(row.failed, result.failed);
       row.done = Math.max(row.done, result.passed + result.failed);
+      if (row.fixedTotal && code === 0) row.done = row.total;
       row.ok = code === 0 && result.failed === 0;
       row.status = row.ok ? "pass" : "fail";
-      if (!TTY) {
-        console.log(`${row.ok ? "PASS" : "FAIL"}  ${row.label}: ${row.text} (${row.seconds.toFixed(1)}s)`);
+      if (!LIVE) {
+        console.log(rowLine(row));
+        if (!row.ok) console.log(style.red(`      ${row.text}`));
       }
       done();
     });
@@ -242,14 +413,17 @@ function tail(output) {
 }
 
 function buildReport(allRows) {
-  const total = allRows.reduce((sum, r) => sum + (r.summary(r.output).passed || 0), 0);
+  const totalTests = allRows
+    .filter((r) => r.kind === "test")
+    .reduce((sum, r) => sum + (r.summary(r.output, r.ok ? 0 : 1).passed || 0), 0);
+  const totalChecks = allRows.filter((r) => r.kind === "check" && r.ok).length;
   const allOk = allRows.every((r) => r.ok);
   const lines = [
     "# Test report",
     "",
     `Generated ${new Date().toISOString()}`,
     "",
-    `**${allOk ? "All suites passed" : "Some suites failed"}.** ${total} tests passed in total.`,
+    `**${allOk ? "All suites passed" : "Some suites failed"}.** ${totalTests} tests and ${totalChecks} checks passed in total.`,
     "",
     "| Suite | Result | Time | Status |",
     "| --- | --- | --- | --- |",
@@ -265,19 +439,19 @@ function buildReport(allRows) {
 // ---- Main ------------------------------------------------------------------------------
 
 async function main() {
-  if (TTY) process.stdout.write("\x1b[?25l"); // hide the cursor while the bars move
-  const restore = () => { if (TTY) process.stdout.write("\x1b[?25h"); };
+  if (LIVE) process.stdout.write("\x1b[?25l"); // hide the cursor while the bars move
+  const restore = () => { if (LIVE) process.stdout.write("\x1b[?25h"); };
   process.on("SIGINT", () => { restore(); process.exit(130); });
 
-  if (!TTY) {
+  if (!LIVE) {
     console.log(`Running ${requestedSuite ? requestedSuite + " test suite" : "all test suites"} in Docker.`);
   }
-  const ticker = TTY ? setInterval(draw, REFRESH_MS) : null;
-  if (TTY) draw();
+  const ticker = LIVE ? setInterval(draw, REFRESH_MS) : null;
+  if (LIVE) draw();
 
   for (const row of rows) {
     await runSuite(row);
-    if (TTY) draw();
+    if (LIVE) draw();
   }
   if (ticker) clearInterval(ticker);
   restore();
@@ -285,9 +459,12 @@ async function main() {
   mkdirSync(OUTPUT_DIR, { recursive: true });
   writeFileSync(REPORT, buildReport(rows));
   const allOk = rows.every((r) => r.ok);
-  const totalPassed = rows.reduce((sum, r) => sum + (r.summary(r.output).passed || 0), 0);
+  const totalTests = rows
+    .filter((r) => r.kind === "test")
+    .reduce((sum, r) => sum + (r.summary(r.output, r.ok ? 0 : 1).passed || 0), 0);
+  const totalChecks = rows.filter((r) => r.kind === "check" && r.ok).length;
   const headline = allOk
-    ? style.green(style.bold(`All suites passed: ${totalPassed} tests.`))
+    ? style.green(style.bold(`All suites passed: ${totalTests} tests, ${totalChecks} checks.`))
     : style.red(style.bold("Some suites failed. See the report."));
   console.log(`\n${headline}`);
   console.log(style.dim(`Report: ${REPORT}`));

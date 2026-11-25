@@ -1,7 +1,18 @@
 import uuid
 from datetime import date, datetime, time
 
-from sqlalchemy import CheckConstraint, Date, DateTime, Enum, ForeignKey, String, Text, Time, Uuid, func, text
+from sqlalchemy import (
+    CheckConstraint,
+    Date,
+    DateTime,
+    Enum,
+    ForeignKey,
+    String,
+    Text,
+    Time,
+    func,
+    text,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
@@ -9,19 +20,27 @@ from app.models.enums import BookingStatus
 
 
 class Booking(Base):
-    """A room request made by a student or a student organization, separate from the ULBS schedule."""
+    """A room request made by a student or student organization, separate from the ULBS schedule."""
 
     __tablename__ = "bookings"
     __table_args__ = (
         CheckConstraint("start_time < end_time", name="ck_booking_time_order"),
         # A decision message is at most 100 characters.
-        CheckConstraint("decision_message IS NULL OR char_length(decision_message) <= 100",
-                        name="ck_booking_decision_message_length"),
+        CheckConstraint(
+            "decision_message IS NULL OR char_length(decision_message) <= 100",
+            name="ck_booking_decision_message_length",
+        ),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, server_default=text("gen_random_uuid()"))
-    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
-    classroom_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("classrooms.id", ondelete="RESTRICT"), index=True)
+    id: Mapped[uuid.UUID] = mapped_column(
+        primary_key=True, server_default=text("gen_random_uuid()")
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    classroom_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("classrooms.id", ondelete="RESTRICT"), index=True
+    )
     specific_date: Mapped[date] = mapped_column(Date, index=True)
     start_time: Mapped[time] = mapped_column(Time)
     end_time: Mapped[time] = mapped_column(Time)

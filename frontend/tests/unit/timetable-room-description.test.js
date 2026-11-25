@@ -1,24 +1,55 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { flush, loadI18n, loadScript, mountPage, response, stubFetch } from "../helpers.js";
+import {
+  flush,
+  loadI18n,
+  loadScript,
+  mountPage,
+  response,
+  stubFetch,
+} from "../helpers.js";
 
 // The room description above the timetable (Liber acum opens the room view with a room id in the URL).
 const NOW = new Date(2026, 10, 23, 10, 0);
 
 const FACULTIES = [{ id: "f1", code: "dre", name: "Facultatea de Drept" }];
 const CLASSROOMS = [
-  { id: "r1", name: "Sala 107", faculty_id: "f1", capacity: 30, is_bookable: true, is_field_verified: true,
-    access_notes: "Cheia la portar, parterul" },
-  { id: "r2", name: "Lab 2", faculty_id: "f1", capacity: 20, is_bookable: true, is_field_verified: false,
-    access_notes: null }
+  {
+    id: "r1",
+    name: "Sala 107",
+    faculty_id: "f1",
+    capacity: 30,
+    is_bookable: true,
+    is_field_verified: true,
+    access_notes: "Cheia la portar, parterul",
+  },
+  {
+    id: "r2",
+    name: "Lab 2",
+    faculty_id: "f1",
+    capacity: 20,
+    is_bookable: true,
+    is_field_verified: false,
+    access_notes: null,
+  },
 ];
 const GROUPS = [{ id: "g1", name: "Grupa 1", faculty_id: "f1" }];
 const ROOM_SCHEDULE = {
-  week_start: "2026-11-23", week_end: "2026-11-29", week_number: 9, parity: "ODD",
-  entity_type: "room", entity_label: "Sala 107", items: []
+  week_start: "2026-11-23",
+  week_end: "2026-11-29",
+  week_number: 9,
+  parity: "ODD",
+  entity_type: "room",
+  entity_label: "Sala 107",
+  items: [],
 };
 const GROUP_SCHEDULE = {
-  week_start: "2026-11-23", week_end: "2026-11-29", week_number: 9, parity: "ODD",
-  entity_type: "group", entity_label: "Grupa 1", items: []
+  week_start: "2026-11-23",
+  week_end: "2026-11-29",
+  week_number: 9,
+  parity: "ODD",
+  entity_type: "group",
+  entity_label: "Grupa 1",
+  items: [],
 };
 
 async function setup(search) {
@@ -35,7 +66,12 @@ async function setup(search) {
     "/api/faculties": () => response(FACULTIES),
     "/api/classrooms": () => response(CLASSROOMS),
     "/api/groups": () => response(GROUPS),
-    "/api/schedule": (url) => response(new URL(url, "http://x").searchParams.has("room_id") ? ROOM_SCHEDULE : GROUP_SCHEDULE)
+    "/api/schedule": (url) =>
+      response(
+        new URL(url, "http://x").searchParams.has("room_id")
+          ? ROOM_SCHEDULE
+          : GROUP_SCHEDULE,
+      ),
   });
   await loadScript("js/pages/timetable.js");
   await flush();
@@ -54,7 +90,10 @@ describe("timetable.js: the room description above the timetable", () => {
     expect(room.hidden).toBe(false);
     expect($("tt-room-access").textContent).toBe("Cheia la portar, parterul");
     expect($("tt-body").contains(room)).toBe(true);
-    expect(room.compareDocumentPosition($("tt-grid")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(
+      room.compareDocumentPosition($("tt-grid")) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 
   it("says unspecified when the room has no access notes", async () => {

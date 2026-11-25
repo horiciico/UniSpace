@@ -1,16 +1,27 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { deferred, flush, loadI18n, loadScript, mountPage } from "../helpers.js";
+import {
+  deferred,
+  flush,
+  loadI18n,
+  loadScript,
+  mountPage,
+} from "../helpers.js";
 
 const realLocation = window.location;
 
 // The login page, with the URL it was opened with (for example ?error=denied). The session
 // stand-in answers with `user` (null when signed out).
-async function loadLogin({ search = "", user = null, language = "en", withoutBox = false } = {}) {
+async function loadLogin({
+  search = "",
+  user = null,
+  language = "en",
+  withoutBox = false,
+} = {}) {
   vi.resetModules();
   const replace = vi.fn();
   Object.defineProperty(window, "location", {
     configurable: true,
-    value: { pathname: "/login", search, replace }
+    value: { pathname: "/login", search, replace },
   });
   mountPage("pages/shared/login.html");
   if (withoutBox) document.getElementById("login-error").remove();
@@ -27,7 +38,10 @@ const box = () => document.getElementById("login-error");
 
 describe("login.js: the sign-in page", () => {
   afterEach(() => {
-    Object.defineProperty(window, "location", { configurable: true, value: realLocation });
+    Object.defineProperty(window, "location", {
+      configurable: true,
+      value: realLocation,
+    });
   });
 
   beforeEach(() => {
@@ -42,14 +56,20 @@ describe("login.js: the sign-in page", () => {
   it("explains a denied sign-in", async () => {
     await loadLogin({ search: "?error=denied" });
     expect(box().hidden).toBe(false);
-    expect(document.getElementById("login-error-title").textContent).toBe(window.UniSpaceI18n.t("login.deniedTitle"));
-    expect(document.getElementById("login-error-text").textContent).toBe(window.UniSpaceI18n.t("login.deniedText"));
+    expect(document.getElementById("login-error-title").textContent).toBe(
+      window.UniSpaceI18n.t("login.deniedTitle"),
+    );
+    expect(document.getElementById("login-error-text").textContent).toBe(
+      window.UniSpaceI18n.t("login.deniedText"),
+    );
   });
 
   it("explains a failed sign-in", async () => {
     await loadLogin({ search: "?error=failed" });
     expect(box().hidden).toBe(false);
-    expect(document.getElementById("login-error-title").textContent).toBe(window.UniSpaceI18n.t("login.failedTitle"));
+    expect(document.getElementById("login-error-title").textContent).toBe(
+      window.UniSpaceI18n.t("login.failedTitle"),
+    );
   });
 
   it("ignores any other reason in the address", async () => {
@@ -63,8 +83,12 @@ describe("login.js: the sign-in page", () => {
     const english = document.getElementById("login-error-title").textContent;
     window.UniSpaceI18n.setLanguage("ro");
     await flush();
-    expect(document.getElementById("login-error-title").textContent).toBe(window.UniSpaceI18n.t("login.deniedTitle"));
-    expect(document.getElementById("login-error-title").textContent).not.toBe(english);
+    expect(document.getElementById("login-error-title").textContent).toBe(
+      window.UniSpaceI18n.t("login.deniedTitle"),
+    );
+    expect(document.getElementById("login-error-title").textContent).not.toBe(
+      english,
+    );
   });
 
   it("hides the explanation after a language change when there is no reason", async () => {
@@ -75,7 +99,9 @@ describe("login.js: the sign-in page", () => {
   });
 
   it("sends a visitor who is already signed in to the home page", async () => {
-    const { replace } = await loadLogin({ user: { id: "u1", name: "Ana", role: "STUDENT" } });
+    const { replace } = await loadLogin({
+      user: { id: "u1", name: "Ana", role: "STUDENT" },
+    });
     expect(replace).toHaveBeenCalledWith("/");
   });
 
@@ -85,7 +111,9 @@ describe("login.js: the sign-in page", () => {
   });
 
   it("does nothing with the message box when the page has none", async () => {
-    await expect(loadLogin({ search: "?error=denied", withoutBox: true })).resolves.toBeDefined();
+    await expect(
+      loadLogin({ search: "?error=denied", withoutBox: true }),
+    ).resolves.toBeDefined();
     expect(box()).toBeNull();
   });
 });

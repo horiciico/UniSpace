@@ -1,38 +1,88 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { deferred, flush, loadI18n, loadScript, mountPage, queryOf, response, stubFetch } from "../helpers.js";
+import {
+  deferred,
+  flush,
+  loadI18n,
+  loadScript,
+  mountPage,
+  queryOf,
+  response,
+  stubFetch,
+} from "../helpers.js";
 
 // Monday 23 November 2026: the default week when no date is given.
 const MONDAY = new Date(2026, 10, 23, 10, 0);
 
 const FACULTIES = [
   { id: "f1", code: "dre", name: "Facultatea de Drept" },
-  { id: "f2", code: "ing", name: "Facultatea de Inginerie" }
+  { id: "f2", code: "ing", name: "Facultatea de Inginerie" },
 ];
 const GROUPS = [{ id: "g1", name: "EFS_AN1", faculty_id: "f1" }];
 const PROFESSORS = [{ name: "Ana Pop" }, { name: "Ion Ionescu" }];
-const CLASSROOMS = [{ id: "r1", name: "Sala 107", faculty_id: "f1", capacity: 30, is_bookable: true, is_field_verified: true }];
+const CLASSROOMS = [
+  {
+    id: "r1",
+    name: "Sala 107",
+    faculty_id: "f1",
+    capacity: 30,
+    is_bookable: true,
+    is_field_verified: true,
+  },
+];
 
 const ITEMS = [
   {
-    id: "i1", title: "Algebra", activity_type: "COURSE", priority: 5, day_of_week: 1, date: "2026-11-23",
-    start_time: "09:40", end_time: "11:10", parity: "ODD", room_id: "r1", room_name: "Sala 107",
-    professor: "Ana Pop / Ion Ionescu", groups: ["EFS_AN1"], is_recurring: true
+    id: "i1",
+    title: "Algebra",
+    activity_type: "COURSE",
+    priority: 5,
+    day_of_week: 1,
+    date: "2026-11-23",
+    start_time: "09:40",
+    end_time: "11:10",
+    parity: "ODD",
+    room_id: "r1",
+    room_name: "Sala 107",
+    professor: "Ana Pop / Ion Ionescu",
+    groups: ["EFS_AN1"],
+    is_recurring: true,
   },
   {
-    id: "i2", title: "Seminar X", activity_type: "SEMINAR", priority: 3, day_of_week: 2, date: "2026-11-24",
-    start_time: "08:00", end_time: "09:30", parity: "ALL", room_id: "r1", room_name: "Sala 107",
-    professor: null, groups: [], is_recurring: false
-  }
+    id: "i2",
+    title: "Seminar X",
+    activity_type: "SEMINAR",
+    priority: 3,
+    day_of_week: 2,
+    date: "2026-11-24",
+    start_time: "08:00",
+    end_time: "09:30",
+    parity: "ALL",
+    room_id: "r1",
+    room_name: "Sala 107",
+    professor: null,
+    groups: [],
+    is_recurring: false,
+  },
 ];
 
 const SCHEDULE = {
-  week_start: "2026-11-23", week_end: "2026-11-29", week_number: 9, parity: "ODD",
-  entity_type: "group", entity_label: "EFS_AN1", items: ITEMS
+  week_start: "2026-11-23",
+  week_end: "2026-11-29",
+  week_number: 9,
+  parity: "ODD",
+  entity_type: "group",
+  entity_label: "EFS_AN1",
+  items: ITEMS,
 };
 
 // Mounts the real timetable page at `url`, loads its scripts as the browser does, and waits
 // for the faculty list. `routes` replaces individual answers.
-async function setup({ url = "/timetable", language = "en", routes = {}, withoutGrid = false } = {}) {
+async function setup({
+  url = "/timetable",
+  language = "en",
+  routes = {},
+  withoutGrid = false,
+} = {}) {
   vi.useFakeTimers({ toFake: ["Date"] });
   vi.setSystemTime(MONDAY);
   window.history.replaceState(null, "", url);
@@ -48,7 +98,7 @@ async function setup({ url = "/timetable", language = "en", routes = {}, without
     "/api/professors": () => response(PROFESSORS),
     "/api/classrooms": () => response(CLASSROOMS),
     "/api/schedule": () => response(SCHEDULE),
-    ...routes
+    ...routes,
   });
   await loadScript("js/pages/timetable.js");
   await flush();
@@ -59,7 +109,8 @@ const $ = (id) => document.getElementById(id);
 const text = (id) => $(id).textContent;
 const status = () => text("tt-status");
 const blocks = () => [...document.querySelectorAll(".tt-block")];
-const calls = (fetch, path) => fetch.mock.calls.map((c) => c[0]).filter((u) => u.startsWith(path));
+const calls = (fetch, path) =>
+  fetch.mock.calls.map((c) => c[0]).filter((u) => u.startsWith(path));
 const lastSchedule = (fetch) => queryOf(calls(fetch, "/api/schedule").at(-1));
 const entityNames = () => [...$("entity-list").options].map((o) => o.value);
 
@@ -88,7 +139,10 @@ describe("timetable.js: the timetable page", () => {
   describe("starting point", () => {
     it("opens on the group view with nothing chosen, and no grid", async () => {
       const { fetch } = await setup();
-      expect(document.querySelector('[role="tab"][aria-selected="true"]').dataset.mode).toBe("group");
+      expect(
+        document.querySelector('[role="tab"][aria-selected="true"]').dataset
+          .mode,
+      ).toBe("group");
       expect(text("tt-entity-label")).toBe("Group");
       expect(status()).toBe("");
       expect($("tt-empty").hidden).toBe(false);
@@ -100,20 +154,35 @@ describe("timetable.js: the timetable page", () => {
 
     it("offers only the placeholder in the faculty list for the group view", async () => {
       await setup();
-      expect([...$("tt-faculty").options].map((o) => o.value)).toEqual(["", "f1", "f2"]);
+      expect([...$("tt-faculty").options].map((o) => o.value)).toEqual([
+        "",
+        "f1",
+        "f2",
+      ]);
       expect($("tt-faculty").options[0].textContent).toBe("Choose a faculty");
     });
 
     it("uses the faculty, group and week from the address", async () => {
-      const { fetch } = await setup({ url: "/timetable?mode=group&faculty_id=f1&id=g1&date=2026-11-16" });
+      const { fetch } = await setup({
+        url: "/timetable?mode=group&faculty_id=f1&id=g1&date=2026-11-16",
+      });
       expect($("tt-entity").value).toBe("EFS_AN1");
-      expect(lastSchedule(fetch)).toEqual({ date: "2026-11-16", faculty_id: "f1", group_id: "g1" });
+      expect(lastSchedule(fetch)).toEqual({
+        date: "2026-11-16",
+        faculty_id: "f1",
+        group_id: "g1",
+      });
       expect(blocks()).toHaveLength(2);
     });
 
     it("falls back to the group view and today for an unknown mode and a bad date", async () => {
-      const { fetch } = await setup({ url: "/timetable?mode=planet&date=yesterday" });
-      expect(document.querySelector('[role="tab"][aria-selected="true"]').dataset.mode).toBe("group");
+      const { fetch } = await setup({
+        url: "/timetable?mode=planet&date=yesterday",
+      });
+      expect(
+        document.querySelector('[role="tab"][aria-selected="true"]').dataset
+          .mode,
+      ).toBe("group");
       expect(text("tt-week-label")).toBe("23 Nov – 29 Nov");
       expect(calls(fetch, "/api/schedule")).toHaveLength(0);
     });
@@ -144,13 +213,19 @@ describe("timetable.js: the timetable page", () => {
     it("shows the timetable of the chosen group, and writes the choice to the address", async () => {
       const { fetch } = await setup();
       await chooseGroup();
-      expect(lastSchedule(fetch)).toEqual({ date: "2026-11-23", faculty_id: "f1", group_id: "g1" });
+      expect(lastSchedule(fetch)).toEqual({
+        date: "2026-11-23",
+        faculty_id: "f1",
+        group_id: "g1",
+      });
       expect($("tt-body").hidden).toBe(false);
       expect($("tt-empty").hidden).toBe(true);
       expect(blocks()).toHaveLength(2);
       expect(text("tt-week-label")).toBe("23 Nov – 29 Nov · Week 9 · Odd");
       expect(status()).toBe("");
-      expect(window.location.search).toBe("?mode=group&faculty_id=f1&id=g1&date=2026-11-23");
+      expect(window.location.search).toBe(
+        "?mode=group&faculty_id=f1&id=g1&date=2026-11-23",
+      );
     });
 
     it("does not ask again for the group that is already shown", async () => {
@@ -168,7 +243,9 @@ describe("timetable.js: the timetable page", () => {
       pick($("tt-entity"), "Nobody", "input");
       expect(status()).toBe("");
       pick($("tt-entity"), "Nobody", "change");
-      expect(status()).toBe("That entry was not found. Choose one from the list.");
+      expect(status()).toBe(
+        "That entry was not found. Choose one from the list.",
+      );
       expect($("tt-status").className).toBe("notice notice--error");
       expect($("tt-body").hidden).toBe(true);
     });
@@ -201,7 +278,9 @@ describe("timetable.js: the timetable page", () => {
       await flush();
       expect($("tt-entity").value).toBe("");
       expect($("tt-body").hidden).toBe(true);
-      expect(calls(fetch, "/api/groups").at(-1)).toBe("/api/groups?faculty_id=f2");
+      expect(calls(fetch, "/api/groups").at(-1)).toBe(
+        "/api/groups?faculty_id=f2",
+      );
     });
 
     it("shows an error and no names when the group list cannot be loaded", async () => {
@@ -215,16 +294,24 @@ describe("timetable.js: the timetable page", () => {
     it("ignores a group list that arrives after a newer faculty was chosen", async () => {
       const pending = [];
       await setup({
-        routes: { "/api/groups": (url) => {
-          if (url.includes("f1")) { const d = deferred(); pending.push(d); return d.promise; }
-          return response(GROUPS);
-        } }
+        routes: {
+          "/api/groups": (url) => {
+            if (url.includes("f1")) {
+              const d = deferred();
+              pending.push(d);
+              return d.promise;
+            }
+            return response(GROUPS);
+          },
+        },
       });
       pick($("tt-faculty"), "f1");
       pick($("tt-faculty"), "f2");
       await flush();
       expect(entityNames()).toEqual(["EFS_AN1"]);
-      pending[0].resolve(response([{ id: "old", name: "OLD", faculty_id: "f1" }]));
+      pending[0].resolve(
+        response([{ id: "old", name: "OLD", faculty_id: "f1" }]),
+      );
       await flush();
       expect(entityNames()).toEqual(["EFS_AN1"]);
     });
@@ -232,10 +319,16 @@ describe("timetable.js: the timetable page", () => {
     it("ignores a failed group list that is no longer the latest", async () => {
       const pending = [];
       await setup({
-        routes: { "/api/groups": (url) => {
-          if (url.includes("f1")) { const d = deferred(); pending.push(d); return d.promise; }
-          return response(GROUPS);
-        } }
+        routes: {
+          "/api/groups": (url) => {
+            if (url.includes("f1")) {
+              const d = deferred();
+              pending.push(d);
+              return d.promise;
+            }
+            return response(GROUPS);
+          },
+        },
       });
       pick($("tt-faculty"), "f1");
       pick($("tt-faculty"), "f2");
@@ -258,21 +351,37 @@ describe("timetable.js: the timetable page", () => {
       expect(entityNames()).toEqual(["Ana Pop", "Ion Ionescu"]);
       pick($("tt-entity"), "Ana Pop", "input");
       await flush();
-      expect(lastSchedule(fetch)).toEqual({ date: "2026-11-23", faculty_id: "f1", professor: "Ana Pop" });
-      expect(window.location.search).toBe("?mode=professor&faculty_id=f1&id=Ana+Pop&date=2026-11-23");
+      expect(lastSchedule(fetch)).toEqual({
+        date: "2026-11-23",
+        faculty_id: "f1",
+        professor: "Ana Pop",
+      });
+      expect(window.location.search).toBe(
+        "?mode=professor&faculty_id=f1&id=Ana+Pop&date=2026-11-23",
+      );
     });
 
     it("shows rooms in the room view, with Campus among the faculties", async () => {
       const { fetch } = await setup();
       chooseTab("room");
       expect(text("tt-entity-label")).toBe("Room");
-      expect([...$("tt-faculty").options].map((o) => o.value)).toEqual(["", "campus", "f1", "f2"]);
+      expect([...$("tt-faculty").options].map((o) => o.value)).toEqual([
+        "",
+        "campus",
+        "f1",
+        "f2",
+      ]);
       pick($("tt-faculty"), "campus");
       await flush();
-      expect(calls(fetch, "/api/classrooms").at(-1)).toBe("/api/classrooms?faculty_id=campus");
+      expect(calls(fetch, "/api/classrooms").at(-1)).toBe(
+        "/api/classrooms?faculty_id=campus",
+      );
       pick($("tt-entity"), "Sala 107", "input");
       await flush();
-      expect(lastSchedule(fetch)).toEqual({ date: "2026-11-23", room_id: "r1" });
+      expect(lastSchedule(fetch)).toEqual({
+        date: "2026-11-23",
+        room_id: "r1",
+      });
     });
 
     it("draws a room that was chosen with a faculty, with that faculty's unit", async () => {
@@ -282,7 +391,11 @@ describe("timetable.js: the timetable page", () => {
       await flush();
       pick($("tt-entity"), "Sala 107", "input");
       await flush();
-      expect(lastSchedule(fetch)).toEqual({ date: "2026-11-23", faculty_id: "f1", room_id: "r1" });
+      expect(lastSchedule(fetch)).toEqual({
+        date: "2026-11-23",
+        faculty_id: "f1",
+        room_id: "r1",
+      });
     });
 
     it("drops the Campus choice when the view changes to a group", async () => {
@@ -291,7 +404,11 @@ describe("timetable.js: the timetable page", () => {
       pick($("tt-faculty"), "campus");
       chooseTab("group");
       expect($("tt-faculty").value).toBe("");
-      expect([...$("tt-faculty").options].map((o) => o.value)).toEqual(["", "f1", "f2"]);
+      expect([...$("tt-faculty").options].map((o) => o.value)).toEqual([
+        "",
+        "f1",
+        "f2",
+      ]);
     });
 
     it("keeps the Campus choice when the room view is chosen again", async () => {
@@ -302,7 +419,9 @@ describe("timetable.js: the timetable page", () => {
     });
 
     it("opens the room view on Campus from the address", async () => {
-      const { fetch } = await setup({ url: "/timetable?mode=room&faculty_id=campus&id=r1" });
+      const { fetch } = await setup({
+        url: "/timetable?mode=room&faculty_id=campus&id=r1",
+      });
       expect(calls(fetch, "/api/classrooms")).toHaveLength(1);
       expect($("tt-faculty").value).toBe("campus");
     });
@@ -310,20 +429,35 @@ describe("timetable.js: the timetable page", () => {
 
   describe("choosing from the address", () => {
     it("opens the room named in the address, with the week of the date", async () => {
-      const { fetch } = await setup({ url: "/timetable?mode=room&faculty_id=campus&id=r1&date=2026-11-16" });
+      const { fetch } = await setup({
+        url: "/timetable?mode=room&faculty_id=campus&id=r1&date=2026-11-16",
+      });
       expect($("tt-entity").value).toBe("Sala 107");
-      expect(lastSchedule(fetch)).toEqual({ date: "2026-11-16", room_id: "r1" });
+      expect(lastSchedule(fetch)).toEqual({
+        date: "2026-11-16",
+        room_id: "r1",
+      });
     });
 
     it("opens the professor named in the address", async () => {
-      const { fetch } = await setup({ url: "/timetable?mode=professor&faculty_id=f1&id=Ion%20Ionescu" });
+      const { fetch } = await setup({
+        url: "/timetable?mode=professor&faculty_id=f1&id=Ion%20Ionescu",
+      });
       expect($("tt-entity").value).toBe("Ion Ionescu");
-      expect(lastSchedule(fetch)).toEqual({ date: "2026-11-23", faculty_id: "f1", professor: "Ion Ionescu" });
+      expect(lastSchedule(fetch)).toEqual({
+        date: "2026-11-23",
+        faculty_id: "f1",
+        professor: "Ion Ionescu",
+      });
     });
 
     it("says so when the entity in the address is not in the list", async () => {
-      const { fetch } = await setup({ url: "/timetable?mode=group&faculty_id=f1&id=nope" });
-      expect(status()).toBe("That entry was not found. Choose one from the list.");
+      const { fetch } = await setup({
+        url: "/timetable?mode=group&faculty_id=f1&id=nope",
+      });
+      expect(status()).toBe(
+        "That entry was not found. Choose one from the list.",
+      );
       expect(calls(fetch, "/api/schedule")).toHaveLength(0);
     });
 
@@ -335,24 +469,34 @@ describe("timetable.js: the timetable page", () => {
 
     it("only writes the address when no entity is named", async () => {
       await setup({ url: "/timetable?mode=group&faculty_id=f1" });
-      expect(window.location.search).toBe("?mode=group&faculty_id=f1&date=2026-11-23");
+      expect(window.location.search).toBe(
+        "?mode=group&faculty_id=f1&date=2026-11-23",
+      );
     });
 
     it("says nothing about an address entity when the faculty has no entities", async () => {
-      const { fetch } = await setup({ url: "/timetable?mode=group&faculty_id=f1&id=g1", routes: { "/api/groups": () => response([]) } });
+      const { fetch } = await setup({
+        url: "/timetable?mode=group&faculty_id=f1&id=g1",
+        routes: { "/api/groups": () => response([]) },
+      });
       expect(status()).toBe("");
       expect(calls(fetch, "/api/schedule")).toHaveLength(0);
     });
 
     it("shows an error when the faculty list fails after an address was given", async () => {
-      await setup({ url: "/timetable?mode=group&faculty_id=f1&id=g1", routes: { "/api/groups": () => response({}, 500) } });
+      await setup({
+        url: "/timetable?mode=group&faculty_id=f1&id=g1",
+        routes: { "/api/groups": () => response({}, 500) },
+      });
       expect(status()).toBe("Could not load the timetable. Try again.");
     });
   });
 
   describe("loading the timetable", () => {
     it("says so when the week has no activities, and draws an empty grid", async () => {
-      await setup({ routes: { "/api/schedule": () => response({ ...SCHEDULE, items: [] }) } });
+      await setup({
+        routes: { "/api/schedule": () => response({ ...SCHEDULE, items: [] }) },
+      });
       await chooseGroup();
       expect(status()).toBe("No activities this week.");
       expect(blocks()).toHaveLength(0);
@@ -360,9 +504,13 @@ describe("timetable.js: the timetable page", () => {
     });
 
     it("says the timetable is not found when the server does not know the entity", async () => {
-      await setup({ routes: { "/api/schedule": () => response({ detail: "gone" }, 404) } });
+      await setup({
+        routes: { "/api/schedule": () => response({ detail: "gone" }, 404) },
+      });
       await chooseGroup();
-      expect(status()).toBe("That entry was not found. Choose one from the list.");
+      expect(status()).toBe(
+        "That entry was not found. Choose one from the list.",
+      );
       expect($("tt-body").hidden).toBe(true);
       expect(text("tt-week-label")).toBe("23 Nov – 29 Nov");
     });
@@ -376,9 +524,17 @@ describe("timetable.js: the timetable page", () => {
 
     it("ignores a timetable that arrives after a newer request", async () => {
       const pending = [];
-      await setup({ routes: { "/api/schedule": () => { const d = deferred(); pending.push(d); return d.promise; } } });
-      await chooseGroup();                 // request 1
-      $("tt-next").click();                // request 2, for the next week
+      await setup({
+        routes: {
+          "/api/schedule": () => {
+            const d = deferred();
+            pending.push(d);
+            return d.promise;
+          },
+        },
+      });
+      await chooseGroup(); // request 1
+      $("tt-next").click(); // request 2, for the next week
       await flush();
       pending[1].resolve(response(SCHEDULE));
       await flush();
@@ -392,7 +548,15 @@ describe("timetable.js: the timetable page", () => {
 
     it("ignores a failure that arrives after a newer request", async () => {
       const pending = [];
-      await setup({ routes: { "/api/schedule": () => { const d = deferred(); pending.push(d); return d.promise; } } });
+      await setup({
+        routes: {
+          "/api/schedule": () => {
+            const d = deferred();
+            pending.push(d);
+            return d.promise;
+          },
+        },
+      });
       await chooseGroup();
       $("tt-next").click();
       await flush();
@@ -405,19 +569,35 @@ describe("timetable.js: the timetable page", () => {
     });
 
     it("shows the week's number and parity, or only its dates when the number is unknown", async () => {
-      await setup({ routes: { "/api/schedule": () => response({ ...SCHEDULE, week_number: null, parity: null }) } });
+      await setup({
+        routes: {
+          "/api/schedule": () =>
+            response({ ...SCHEDULE, week_number: null, parity: null }),
+        },
+      });
       await chooseGroup();
       expect(text("tt-week-label")).toBe("23 Nov – 29 Nov");
     });
 
     it("says every week when the parity is not known, but the number is", async () => {
-      await setup({ routes: { "/api/schedule": () => response({ ...SCHEDULE, parity: null }) } });
+      await setup({
+        routes: {
+          "/api/schedule": () => response({ ...SCHEDULE, parity: null }),
+        },
+      });
       await chooseGroup();
-      expect(text("tt-week-label")).toBe("23 Nov – 29 Nov · Week 9 · Every week");
+      expect(text("tt-week-label")).toBe(
+        "23 Nov – 29 Nov · Week 9 · Every week",
+      );
     });
 
     it("shows an even week as Even", async () => {
-      await setup({ routes: { "/api/schedule": () => response({ ...SCHEDULE, week_number: 8, parity: "EVEN" }) } });
+      await setup({
+        routes: {
+          "/api/schedule": () =>
+            response({ ...SCHEDULE, week_number: 8, parity: "EVEN" }),
+        },
+      });
       await chooseGroup();
       expect(text("tt-week-label")).toBe("23 Nov – 29 Nov · Week 8 · Even");
     });
@@ -438,7 +618,9 @@ describe("timetable.js: the timetable page", () => {
     });
 
     it("returns to the current week with Today", async () => {
-      const { fetch } = await setup({ url: "/timetable?mode=group&faculty_id=f1&id=g1&date=2026-12-14" });
+      const { fetch } = await setup({
+        url: "/timetable?mode=group&faculty_id=f1&id=g1&date=2026-12-14",
+      });
       expect(lastSchedule(fetch).date).toBe("2026-12-14");
       $("tt-today").click();
       await flush();
@@ -485,8 +667,17 @@ describe("timetable.js: the timetable page", () => {
     });
 
     it("shows the type itself for a kind it does not know, and every week for an unknown parity", async () => {
-      const odd = { ...ITEMS[0], activity_type: "WORKSHOP", parity: null, groups: ["A", "B"] };
-      await setup({ routes: { "/api/schedule": () => response({ ...SCHEDULE, items: [odd] }) } });
+      const odd = {
+        ...ITEMS[0],
+        activity_type: "WORKSHOP",
+        parity: null,
+        groups: ["A", "B"],
+      };
+      await setup({
+        routes: {
+          "/api/schedule": () => response({ ...SCHEDULE, items: [odd] }),
+        },
+      });
       await chooseGroup();
       blocks()[0].click();
       expect(text("tt-d-kind")).toBe("WORKSHOP");
@@ -521,7 +712,9 @@ describe("timetable.js: the timetable page", () => {
       expect($("tt-dialog").close).toHaveBeenCalled();
       blocks()[0].click();
       expect(text("tt-d-kind")).toBe("Curs");
-      expect(text("tt-d-recurring")).toBe("Se repetă în fiecare săptămână de acest tip");
+      expect(text("tt-d-recurring")).toBe(
+        "Se repetă în fiecare săptămână de acest tip",
+      );
     });
 
     it("closes an open dialog when the language changes, and draws the grid again", async () => {
@@ -560,10 +753,14 @@ describe("timetable.js: the timetable page", () => {
 
     it("keeps the status message, translated again", async () => {
       await setup({ url: "/timetable?mode=group&faculty_id=f1&id=nope" });
-      expect(status()).toBe("That entry was not found. Choose one from the list.");
+      expect(status()).toBe(
+        "That entry was not found. Choose one from the list.",
+      );
       window.UniSpaceI18n.setLanguage("ro");
       await flush();
-      expect(status()).toBe("Nu am găsit această intrare. Alege una din listă.");
+      expect(status()).toBe(
+        "Nu am găsit această intrare. Alege una din listă.",
+      );
     });
 
     it("does not draw a grid after a language change when no timetable is shown", async () => {

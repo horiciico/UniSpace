@@ -239,11 +239,21 @@
 }
 
 /* Legend swatches: one colour per kind, the same as the blocks of that kind. */
-.legend__swatch--course { background: var(--color-primary); }
-.legend__swatch--seminar { background: var(--color-success-text); }
-.legend__swatch--lab { background: var(--color-warning-text); }
-.legend__swatch--other { background: var(--color-danger-text); }
-.legend__swatch--booking { background: var(--color-accent); }
+.legend__swatch--course {
+  background: var(--color-primary);
+}
+.legend__swatch--seminar {
+  background: var(--color-success-text);
+}
+.legend__swatch--lab {
+  background: var(--color-warning-text);
+}
+.legend__swatch--other {
+  background: var(--color-danger-text);
+}
+.legend__swatch--booking {
+  background: var(--color-accent);
+}
 
 /* A free module of a bookable room in the room view. Clean at rest: a faint plus. On hover or focus
    it gets a soft tint and border, and the "+ Book" label. A past module is blank and cannot be clicked. */
@@ -262,7 +272,9 @@
   font-size: var(--text-sm);
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 150ms ease, border-color 150ms ease;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
 }
 
 .tt-free__plus,

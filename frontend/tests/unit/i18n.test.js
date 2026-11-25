@@ -6,11 +6,17 @@ import { flush, mountPage } from "../helpers.js";
 async function loadRuntime({ stored = null, languages, language } = {}) {
   if (stored !== null) localStorage.setItem("unispace-lang", stored);
   if (languages !== undefined) {
-    Object.defineProperty(navigator, "languages", { configurable: true, get: () => languages });
+    Object.defineProperty(navigator, "languages", {
+      configurable: true,
+      get: () => languages,
+    });
   }
   // null means: the browser gives no language at all (the property is missing).
   if (language !== undefined) {
-    Object.defineProperty(navigator, "language", { configurable: true, get: () => language ?? undefined });
+    Object.defineProperty(navigator, "language", {
+      configurable: true,
+      get: () => language ?? undefined,
+    });
   }
   await import("../../i18n/i18n.js");
   return window.UniSpaceI18n;
@@ -38,7 +44,10 @@ describe("i18n.js: the translation runtime", () => {
     });
 
     it("ignores a stored value it does not support, and follows the browser", async () => {
-      const i18n = await loadRuntime({ stored: "fr", languages: ["fr-FR", "en-GB"] });
+      const i18n = await loadRuntime({
+        stored: "fr",
+        languages: ["fr-FR", "en-GB"],
+      });
       expect(i18n.current()).toBe("en");
     });
 
@@ -51,7 +60,9 @@ describe("i18n.js: the translation runtime", () => {
     });
 
     it("takes the first supported language in the browser's list", async () => {
-      const i18n = await loadRuntime({ languages: ["de-DE", "en-GB", "ro-RO"] });
+      const i18n = await loadRuntime({
+        languages: ["de-DE", "en-GB", "ro-RO"],
+      });
       expect(i18n.current()).toBe("en");
     });
 
@@ -66,7 +77,10 @@ describe("i18n.js: the translation runtime", () => {
     });
 
     it("uses the single browser language when the list is missing", async () => {
-      const i18n = await loadRuntime({ languages: undefined, language: "en-GB" });
+      const i18n = await loadRuntime({
+        languages: undefined,
+        language: "en-GB",
+      });
       expect(i18n.current()).toBe("en");
     });
 
@@ -89,8 +103,12 @@ describe("i18n.js: the translation runtime", () => {
   describe("t(): the text of a key", () => {
     async function withDictionaries() {
       const i18n = await loadRuntime({ stored: "ro" });
-      i18n.register("ro", { "hello": "Salut {name}", "only.ro": "Doar în română", "two": "{a} și {b}" });
-      i18n.register("en", { "hello": "Hello {name}", "only.en": "English only" });
+      i18n.register("ro", {
+        hello: "Salut {name}",
+        "only.ro": "Doar în română",
+        two: "{a} și {b}",
+      });
+      i18n.register("en", { hello: "Hello {name}", "only.en": "English only" });
       return i18n;
     }
 
@@ -113,7 +131,7 @@ describe("i18n.js: the translation runtime", () => {
 
     it("falls back to English when the current language has no dictionary at all", async () => {
       const i18n = await loadRuntime({ stored: "ro" });
-      i18n.register("en", { "greeting": "Hi" });
+      i18n.register("en", { greeting: "Hi" });
       expect(i18n.t("greeting")).toBe("Hi");
     });
 
@@ -157,7 +175,10 @@ describe("i18n.js: the translation runtime", () => {
     });
 
     it("applies the text when the page is still loading, at DOMContentLoaded", async () => {
-      Object.defineProperty(document, "readyState", { configurable: true, get: () => "loading" });
+      Object.defineProperty(document, "readyState", {
+        configurable: true,
+        get: () => "loading",
+      });
       document.body.innerHTML = '<h1 data-i18n="a.title">x</h1>';
       const i18n = await loadRuntime({ stored: "en" });
       i18n.register("en", { "a.title": "Ready" });

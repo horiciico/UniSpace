@@ -1,10 +1,22 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { deferred, flush, loadI18n, loadScript, mountPage, queryOf, response, stubFetch } from "../helpers.js";
+import {
+  deferred,
+  flush,
+  loadI18n,
+  loadScript,
+  mountPage,
+  queryOf,
+  response,
+  stubFetch,
+} from "../helpers.js";
 
 // The filter lists of the booking history: the faculties and the rooms, when they fail or answer late.
 const NOW = new Date(2026, 10, 24, 12, 0);
 const FACULTIES = [{ id: "f1", code: "dre", name: "Facultatea de Drept" }];
-const ROOMS_ALL = [{ id: "r1", name: "B110" }, { id: "r2", name: "L2" }];
+const ROOMS_ALL = [
+  { id: "r1", name: "B110" },
+  { id: "r2", name: "L2" },
+];
 const ANSWER = { items: [], total: 0, limit: 15, offset: 0 };
 
 async function setup(routes = {}, { open = true } = {}) {
@@ -20,7 +32,7 @@ async function setup(routes = {}, { open = true } = {}) {
     "/api/faculties": () => response(FACULTIES),
     "/api/classrooms": () => response(ROOMS_ALL),
     "/api/admin/bookings": () => response(ANSWER),
-    ...routes
+    ...routes,
   });
   await loadScript("js/pages/admin-bookings.js");
   await loadScript("js/bookings.js");
@@ -34,7 +46,8 @@ async function setup(routes = {}, { open = true } = {}) {
   return { fetch };
 }
 
-const roomNames = () => [...document.getElementById("hist-room").options].map((o) => o.textContent);
+const roomNames = () =>
+  [...document.getElementById("hist-room").options].map((o) => o.textContent);
 
 function tidy() {
   vi.useRealTimers();
@@ -47,9 +60,13 @@ describe("admin history: the filter lists", () => {
   afterEach(tidy);
 
   it("still lists the bookings when the faculties cannot be loaded", async () => {
-    const { fetch } = await setup({ "/api/faculties": () => response({ detail: "x" }, 500) });
+    const { fetch } = await setup({
+      "/api/faculties": () => response({ detail: "x" }, 500),
+    });
 
-    expect(fetch.mock.calls.some((c) => c[0].startsWith("/api/admin/bookings?"))).toBe(true);
+    expect(
+      fetch.mock.calls.some((c) => c[0].startsWith("/api/admin/bookings?")),
+    ).toBe(true);
     expect(document.getElementById("hist-faculty").options).toHaveLength(0);
   });
 
@@ -62,9 +79,10 @@ describe("admin history: the filter lists", () => {
   it("ignores a room list that arrives after a newer one", async () => {
     const late = deferred();
     await setup({
-      "/api/classrooms": (url) => (queryOf(url).faculty_id === "f1"
-        ? late.promise.then(() => response([{ id: "x", name: "Stale room" }]))
-        : response(ROOMS_ALL))
+      "/api/classrooms": (url) =>
+        queryOf(url).faculty_id === "f1"
+          ? late.promise.then(() => response([{ id: "x", name: "Stale room" }]))
+          : response(ROOMS_ALL),
     });
 
     const faculty = document.getElementById("hist-faculty");
@@ -82,9 +100,8 @@ describe("admin history: the filter lists", () => {
   it("ignores a failure of a room list that is no longer the latest", async () => {
     const late = deferred();
     await setup({
-      "/api/classrooms": (url) => (queryOf(url).faculty_id === "f1"
-        ? late.promise
-        : response(ROOMS_ALL))
+      "/api/classrooms": (url) =>
+        queryOf(url).faculty_id === "f1" ? late.promise : response(ROOMS_ALL),
     });
 
     const faculty = document.getElementById("hist-faculty");
@@ -106,23 +123,46 @@ describe("admin history: an unknown status, a late page, and a language change b
 
   it("shows an unknown status word as it came", async () => {
     await setup({
-      "/api/admin/bookings": () => response({
-        items: [{ id: "m1", classroom_id: "r1", classroom_name: "B110", faculty_id: null, faculty_name: null,
-          specific_date: "2026-12-18", start_time: "18:00", end_time: "19:30", title: "Odd", status: "mystery",
-          created_at: null, user_id: "u", user_email: "a@ulbsibiu.ro", user_role: "STUDENT" }],
-        total: 1, limit: 15, offset: 0
-      })
+      "/api/admin/bookings": () =>
+        response({
+          items: [
+            {
+              id: "m1",
+              classroom_id: "r1",
+              classroom_name: "B110",
+              faculty_id: null,
+              faculty_name: null,
+              specific_date: "2026-12-18",
+              start_time: "18:00",
+              end_time: "19:30",
+              title: "Odd",
+              status: "mystery",
+              created_at: null,
+              user_id: "u",
+              user_email: "a@ulbsibiu.ro",
+              user_role: "STUDENT",
+            },
+          ],
+          total: 1,
+          limit: 15,
+          offset: 0,
+        }),
     });
 
-    expect(document.querySelectorAll("#hist-body > tr.row td")[4].textContent).toBe("mystery");
+    expect(
+      document.querySelectorAll("#hist-body > tr.row td")[4].textContent,
+    ).toBe("mystery");
   });
 
   it("ignores a page that arrives after a newer filter has been chosen", async () => {
     const late = deferred();
     await setup({
-      "/api/admin/bookings": (url) => (queryOf(url).status === "approved"
-        ? response({ items: [], total: 0, limit: 15, offset: 0 })
-        : late.promise.then(() => response({ items: [], total: 99, limit: 15, offset: 0 })))
+      "/api/admin/bookings": (url) =>
+        queryOf(url).status === "approved"
+          ? response({ items: [], total: 0, limit: 15, offset: 0 })
+          : late.promise.then(() =>
+              response({ items: [], total: 99, limit: 15, offset: 0 }),
+            ),
     });
 
     const status = document.getElementById("hist-status");
@@ -153,9 +193,10 @@ describe("admin history: a failed page that is no longer the latest", () => {
   it("does not show its failure once a newer filter is in place", async () => {
     const late = deferred();
     await setup({
-      "/api/admin/bookings": (url) => (queryOf(url).status === "approved"
-        ? response({ items: [], total: 0, limit: 15, offset: 0 })
-        : late.promise)
+      "/api/admin/bookings": (url) =>
+        queryOf(url).status === "approved"
+          ? response({ items: [], total: 0, limit: 15, offset: 0 })
+          : late.promise,
     });
 
     const status = document.getElementById("hist-status");

@@ -19,7 +19,7 @@ def list_faculties(db: Session = Depends(get_db)) -> list[dict]:
 
 
 def faculty_groups(faculty_id: uuid.UUID):
-    """The statement behind the study formations of a faculty: groups with an activity in one of its units."""
+    """Study formations of a faculty: groups with an activity in one of its units."""
     return (
         select(StudentGroup)
         .join(ActivityGroup, ActivityGroup.group_id == StudentGroup.id)
@@ -52,6 +52,7 @@ def list_professors(faculty_id: uuid.UUID, db: Session = Depends(get_db)) -> lis
     names = {
         part.strip()
         for raw in db.scalars(stmt).all()
+        if raw
         for part in raw.split(" / ")
         if part.strip()
     }

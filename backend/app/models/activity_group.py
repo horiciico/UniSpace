@@ -13,8 +13,10 @@ class ActivityGroup(Base):
     __table_args__ = (Index("ix_activity_groups_group_id", "group_id"),)
 
     activity_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("activities.id", ondelete="CASCADE", name="fk_activity_groups_activity"), primary_key=True
+        ForeignKey("activities.id", ondelete="CASCADE", name="fk_activity_groups_activity"),
+        primary_key=True,
     )
     group_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("student_groups.id", ondelete="CASCADE", name="fk_activity_groups_group"), primary_key=True
+        ForeignKey("student_groups.id", ondelete="CASCADE", name="fk_activity_groups_group"),
+        primary_key=True,
     )
