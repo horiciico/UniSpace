@@ -8,6 +8,15 @@ Each entry follows the same shape:
 
 ```
 
+## 2026-11-25 · Admin Users: invitations, role changes and invite sign-in (backend and sign-in; Users tab mock drafted)
+Tool: Claude Code, claude-haiku-5-5
+What I asked: plan and build the approved "Users" tab on branch `feature/admin-users-tab` in three steps (migration; admin APIs and the invite sign-in hook; frontend). The user answered the six plan questions: a new `user_invitations` table with the old `invitations` table untouched; a valid invitation admits new accounts only, after the professor list; the link is `/login?invite=<token>`; admin-set roles persist; the token is stored in plain text; an expired pending invitation is revoked when a new one is made. Not committed or pushed.
+What I got:
+- Step 1: `backend/app/models/user_invitation.py`, `InvitationStatus` in `enums.py`, migration `20261125_b7e2d4a9c013_user_invitations.py` (native `invitation_status`, lower-case CHECK, partial unique index on `lower(email)` where pending, `expires_at` default now + 7 days, `invited_by` ON DELETE SET NULL). Tests in `backend/tests/test_user_invitations.py`; `test_models.py` table list updated.
+- Step 2: `backend/app/routers/admin_users.py` (list with role filter, email search and paging; role change; invitations list, create, revoke), `backend/app/invitations.py` (token, expiry, lookup, announce), `backend/app/auth.py` (`decide_role` and `resolve_user`: invite for new accounts, admin-set roles kept), `backend/app/routers/auth.py` (`/auth/login?invite=` kept in the session, consumed by the callback), `users.role_set_by_admin` (migration `20261125_c4d1e8f2a7b9`). Tests in `backend/tests/test_admin_users.py` and `backend/tests/test_invitation_sign_in.py`. Ledger: D-025 added, D-020 noted as partly superseded, C-008 added, C-002 change line.
+- Step 3, partial: `frontend/pages/shared/login.html` (id on the Google link) and `frontend/js/pages/login.js` pass a valid invite token to `/auth/login`; 4 tests in `frontend/tests/unit/login.test.js`. Mock drawn: `docs/design/mocks/DS-unispace-admin-users.html`, registry entry `DS-unispace-admin-users` status `draft`.
+What I did with it: Backend 215 passed (was 178), ruff, mypy, `alembic check` and `docker compose build backend` pass. Frontend 372 passed with 100% coverage; Biome exit 0. The Users tab itself is not built: the mock is not confirmed yet (DESIGN.md). Nothing committed.
+
 ## 2026-11-25 · Graphical report rows for lint and typecheck in test-all.mjs
 Tool: Antigravity, free prompt
 What I asked: add a graphical report in the `test-all` script for the linter and typecheck, just like the one for the tests.

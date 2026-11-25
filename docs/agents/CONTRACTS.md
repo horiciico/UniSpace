@@ -16,6 +16,7 @@
 - C-005 · Room bookings API (/api/bookings) · provided
 - C-006 · Admin booking review API (/api/admin/bookings) · provided
 - C-007 · Admin room attributes API (/api/admin/classrooms) · provided
+- C-008 · Admin users and invitations API (/api/admin/users, /api/admin/invitations) · provided
 
 ---
 
@@ -39,6 +40,7 @@
 - **Change 2026-11-23:** `/auth/me` and the sign-in responses carry `faculty_id`, `study_formation_id` and `needs_onboarding` (D-022). Consumer: `frontend/components/onboarding.js`; the rest of the frontend reads the user as before.
 - **Change 2026-11-24:** `/auth/me` and the sign-in responses carry `picture` (Google profile picture URL, nullable). Consumer: `frontend/components/header.js`.
 - **Evidence:** backend/app/routers/auth.py, backend/app/auth.py, backend/app/routers/auth.py (admin_login), infra/nginx/default.conf (`location /auth/`)
+- **Change 2026-11-25 (D-025):** `GET /auth/login` takes an optional `invite` query parameter (the token from `/login?invite=`, up to 128 characters); it is kept in the session and consumed by `GET /auth/callback`. A new account with a valid, pending, unexpired invitation whose email matches the Google email gets the invitation's role (after the professor list, before the `@ulbsibiu.ro` rule) and the invitation becomes `accepted`. A role an admin set is kept on every sign-in (`users.role_set_by_admin`). Consumers: `frontend/pages/shared/login.html` and `frontend/js/pages/login.js` (pass `invite` to `/auth/login`).
 - **Source:** user (decisions D-020 and D-021, 2026-11-23) · code · confidence high
 - **Confirmed:** 2026-11-23
 
@@ -115,6 +117,21 @@
 - **Evidence:** backend/app/routers/classroom_attributes.py, backend/tests/test_classroom_attributes.py, backend/alembic/versions/20261124_f3a9c2d71e05_classroom_attributes.py
 - **Source:** user (approved proposal P2, 2026-11-24) · code · confidence high
 - **Confirmed:** 2026-11-24
+
+### C-008 · Admin users and invitations API (/api/admin/users, /api/admin/invitations)
+- **Status:** approved
+- **Interface:** HTTP JSON on the backend, same origin, through nginx at `/api/`. Signed in as ADMIN only (403 for any other role, 401 signed out).
+- **Consumers:** `frontend/js/pages/admin-users.js` (the Users tab on the admin page, to be built), `frontend/js/api.js`, `frontend/pages/admin/index.html`.
+- **Shape:**
+  - `GET /api/admin/users?role=ROLE&search=text&limit=1..200 (default 50)&offset=0` → `{items, total, limit, offset}`, by email (A to Z). `search` is a case-insensitive part of the email; `%` and `_` are plain text. Items: `{id, email, name, role, faculty_name, study_formation_name}`. A bad role or limit → 422.
+  - `PATCH /api/admin/users/{id}/role` with `{role}` (STUDENT, PROFESSOR or STUDENT_ORG) → 200 with the user; the role is kept on later sign-ins. `ADMIN` as the value → 422. An ADMIN user's role → 403. Unknown user → 404.
+  - `GET /api/admin/invitations` → `[{id, email, role, token, invite_url, expires_at, created_at}]`: pending and not expired, newest first.
+  - `POST /api/admin/invitations` with `{email, role}` (role not ADMIN; the email is stored lower-case) → 201 with the invitation and `invite_url` (`/login?invite=<token>`). An existing account → 409 `{"detail": "User already exists", "existing_user": {"email", "role"}}`. A pending, unexpired invitation for the email → 409. An expired pending one is revoked first.
+  - `DELETE /api/admin/invitations/{id}` → 204; marks a pending invitation `revoked`. Not pending → 409; unknown → 404.
+- **Rules:** the token is plain text and is shown to the admin only; it is not logged (AGENTS.md). Invitations are described in D-025 and the sign-in side is C-002. Users have no `created_at`, so the list has no creation date.
+- **Evidence:** backend/app/routers/admin_users.py, backend/app/invitations.py, backend/tests/test_admin_users.py, backend/tests/test_invitation_sign_in.py, backend/alembic/versions/20261125_b7e2d4a9c013_user_invitations.py, backend/alembic/versions/20261125_c4d1e8f2a7b9_user_role_set_by_admin.py
+- **Source:** user (plan approved 2026-11-25, answers 1 to 6) · code · confidence high
+- **Confirmed:** 2026-11-25
 
 ## Consumed
 

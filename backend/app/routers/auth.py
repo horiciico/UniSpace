@@ -1,7 +1,7 @@
 import uuid
 
 from authlib.integrations.starlette_client import OAuthError
-from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, ConfigDict
@@ -36,12 +36,16 @@ class UserOut(BaseModel):
 
 
 @router.get("/auth/login")
-async def login(request: Request):
+async def login(request: Request, invite: str | None = Query(default=None, max_length=128)):
+    """Starts Google sign-in. `invite` (from /login?invite=) is kept for the callback."""
+    if invite:
+        request.session["invite"] = invite
     return await oauth.google.authorize_redirect(request, GOOGLE_REDIRECT_URI)
 
 
 @router.get("/auth/callback")
 async def callback(request: Request, db: Session = Depends(get_db)):
+    invite_token = request.session.pop("invite", None)  # consumed here (D-025)
     try:
         token = await oauth.google.authorize_access_token(request)
     except OAuthError as error:
@@ -50,7 +54,7 @@ async def callback(request: Request, db: Session = Depends(get_db)):
     if not claims:
         raise HTTPException(400, "Google sign-in failed. Please try again.")
 
-    user = await run_in_threadpool(resolve_user, db, dict(claims))
+    user = await run_in_threadpool(resolve_user, db, dict(claims), invite_token)
     start_session(request, user)
     return RedirectResponse(POST_LOGIN_URL, status_code=303)
 

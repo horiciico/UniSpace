@@ -25,6 +25,18 @@
     box.hidden = false;
   }
 
+  // An invitation link (/login?invite=<token>, D-025) carries its token to the Google sign-in
+  // link. Only a token in the backend's format is passed on: URL-safe, at most 128 characters.
+  var INVITE = /^[A-Za-z0-9_-]{1,128}$/;
+  function passInvitation() {
+    var invite = new URLSearchParams(window.location.search).get("invite");
+    if (!invite || !INVITE.test(invite)) return;
+    document
+      .getElementById("google-sign-in")
+      .setAttribute("href", `/auth/login?invite=${encodeURIComponent(invite)}`);
+  }
+
+  passInvitation();
   showError();
   document.addEventListener("unispace:langchange", showError);
 

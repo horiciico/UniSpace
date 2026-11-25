@@ -9,6 +9,7 @@ from app.models.enums import (
     ActivityType,
     BoardType,
     BookingStatus,
+    InvitationStatus,
     Parity,
     PlanningUnitType,
     Priority,
@@ -23,6 +24,7 @@ from app.models.professor import Professor
 from app.models.rule_change_request import RuleChangeRequest
 from app.models.student_group import StudentGroup
 from app.models.user import User
+from app.models.user_invitation import UserInvitation
 
 __all__ = [
     "Activity",
@@ -35,6 +37,7 @@ __all__ = [
     "Classroom",
     "Faculty",
     "Invitation",
+    "InvitationStatus",
     "Parity",
     "PlanningTimeUnit",
     "PlanningUnitType",
@@ -46,4 +49,5 @@ __all__ = [
     "Status",
     "StudentGroup",
     "User",
+    "UserInvitation",
 ]

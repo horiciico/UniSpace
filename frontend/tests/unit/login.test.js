@@ -117,3 +117,40 @@ describe("login.js: the sign-in page", () => {
     expect(box()).toBeNull();
   });
 });
+
+describe("login.js: an invitation link (D-025)", () => {
+  afterEach(() => {
+    Object.defineProperty(window, "location", {
+      configurable: true,
+      value: realLocation,
+    });
+  });
+
+  beforeEach(() => {
+    vi.resetModules();
+  });
+
+  const signInLink = () => document.getElementById("google-sign-in");
+
+  it("sends the invitation token to the Google sign-in link", async () => {
+    await loadLogin({ search: "?invite=AbC-123_x" });
+    expect(signInLink().getAttribute("href")).toBe(
+      "/auth/login?invite=AbC-123_x",
+    );
+  });
+
+  it("keeps the plain sign-in link when there is no invitation", async () => {
+    await loadLogin();
+    expect(signInLink().getAttribute("href")).toBe("/auth/login");
+  });
+
+  it("ignores a token that is not in the backend's format", async () => {
+    await loadLogin({ search: "?invite=%3Cscript%3E%20x" });
+    expect(signInLink().getAttribute("href")).toBe("/auth/login");
+  });
+
+  it("ignores a token longer than 128 characters", async () => {
+    await loadLogin({ search: `?invite=${"a".repeat(129)}` });
+    expect(signInLink().getAttribute("href")).toBe("/auth/login");
+  });
+});

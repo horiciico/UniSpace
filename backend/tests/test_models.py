@@ -34,6 +34,7 @@ def test_all_tables_and_enums_registered() -> None:
         "activities",
         "activity_exceptions",
         "invitations",
+        "user_invitations",
         "faculties",
         "planning_time_units",
         "rule_change_requests",

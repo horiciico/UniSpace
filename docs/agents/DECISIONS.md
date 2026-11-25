@@ -30,6 +30,7 @@
 - D-022 · A student chooses a faculty and a study formation on first sign-in
 - D-023 · Any signed-in user can request a room; an admin's booking is approved at once
 - D-024 · Admin-managed room fields are never written by the classroom ETL
+- D-025 · Admins invite users by email; an invitation admits a new account; admin-set roles persist
 
 ---
 
@@ -222,6 +223,7 @@
   A login never lowers an existing ADMIN or STUDENT_ORG. Invitations are no longer used for sign-in (the `invitations` table is no longer read).
 - **Why:** The user decided this on 2026-11-23. Registered professors may sign in from any address; university addresses are students; everyone else is kept out.
 - **Rejected:** invitations for external accounts (the professor list replaces them); lowercase role names (the enum values are used).
+- **Superseded in part by:** D-025 (a valid invitation admits a new account; a role set by an admin is kept on sign-in).
 - **Evidence:** backend/app/auth.py (resolve_user, decide_role, is_student_association), backend/tests/test_auth.py, docs/agents/CONTRACTS.md (C-002)
 - **Source:** user (answers 1-4 and the proposal, 2026-11-23) · confidence high
 - **Confirmed:** 2026-11-23
@@ -265,3 +267,12 @@
 - **Evidence:** etl/schedule/loader.py (upsert_classroom), etl/schedule/tests/test_loader_db.py (test_a_rerun_keeps_the_admin_room_fields_and_updates_only_the_etl_fields), backend/app/routers/classroom_attributes.py
 - **Source:** user (approved proposal P1, 2026-11-24) · code · confidence high
 - **Confirmed:** 2026-11-24
+
+## D-025 · Admins invite users by email; an invitation admits a new account; admin-set roles persist
+- **Status:** approved
+- **Date:** 2026-11-25
+- **Rule:** An admin invites an email with a non-admin role (STUDENT, PROFESSOR, STUDENT_ORG; never ADMIN) through `user_invitations`. An invitation is pending until used, expires after 7 days, and is revoked if the admin revokes it or creates a new invitation for the same email. At most one pending invitation per email. The invite link is `/login?invite=<token>`. The login page passes the token to `/auth/login`, which keeps it in the session; the Google callback consumes it. On a new account (no user row with that email or Google id), a pending, unexpired invitation whose token and email match the sign-in gives the invitation's role, after the professor list and before the `@ulbsibiu.ro` and 403 rules. The invitation becomes `accepted`. A role an admin sets (on the Users tab or through an invitation) is kept on every later sign-in, from any address, and a sign-in does not overwrite it (`users.role_set_by_admin`). An account whose role was set this way is not refused for its address. The invitation token is stored in plain text, so an admin can copy the link again: an accepted trade-off.
+- **Why:** The user needs a way to add student organization representatives and other users outside the professor list. Admin-set roles must survive the next sign-in (D-020 would otherwise reset them). The user decided this on 2026-11-25, with the answers below the plan.
+- **Rejected:** a new registration page with a password (Q-007: Google only); an invitation admitting an existing account (only new accounts); overwriting an admin-set role on sign-in.
+- **Evidence:** backend/app/auth.py (resolve_user, decide_role), backend/app/invitations.py, backend/app/models/user_invitation.py, backend/alembic/versions/20261125_b7e2d4a9c013_user_invitations.py, backend/alembic/versions/20261125_c4d1e8f2a7b9_user_role_set_by_admin.py, backend/tests/test_user_invitations.py, backend/tests/test_invitation_sign_in.py, backend/tests/test_admin_users.py
+- **Source:** user (plan answers 1 to 6, 2026-11-25) · confidence high
