@@ -147,6 +147,7 @@ describe("admin-users.js: the Users tab", () => {
       "STUDENT_ORG",
     ]);
     expect(select.value).toBe("STUDENT");
+    expect(select.className).toBe("role-select");
   });
 
   it("names the faculty and study group, or says Not set", async () => {

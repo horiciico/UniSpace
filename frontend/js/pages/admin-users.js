@@ -134,6 +134,7 @@
   // The role dropdown of a non-admin. A refused change puts back the role it had.
   function roleSelect(user) {
     var select = document.createElement("select");
+    select.className = "role-select";
     select.setAttribute(
       "aria-label",
       t("usersPage.roleAria", { email: user.email }),
