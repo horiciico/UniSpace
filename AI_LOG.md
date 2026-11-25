@@ -8,6 +8,16 @@ Each entry follows the same shape:
 
 ```
 
+## 2026-11-25 · Admin Users: mock confirmed, 48-hour invitations, created date, Users tab built
+Tool: Claude Code, claude-haiku-5-5
+What I asked: the user confirmed the Users tab mock, and asked for three changes: a new invitation revokes only an expired pending invitation for the same email (an unexpired one still gives 409); invitations expire after 48 hours; the users list shows the account's created date (the "use the column" answer).
+What I got:
+- Backend: migration `20261125_d5a9f0c3b8e1` (invitation default expiry now + 2 days) and `20261125_e6b0a1d4c9f2` (users.created_at, existing accounts get the migration time). Model defaults updated. `GET /api/admin/users` items carry `created_at`. The 7-day test is now the 2-day test (`test_expiry_defaults_to_two_days_after_creation`); the list-fields test gained `created_at`.
+- Frontend: the Users tab (`frontend/js/pages/admin-users.js`, markup and i18n keys in `ro.js` and `en.js`, tab switching in `admin-history.js`), API wrappers in `api.js` (a 204 resolves with null; a refused request keeps its body for the 409 message), types in `types.d.ts`. Tests: `admin-users.test.js` (23), `api.test.js` (+6), `login.test.js` (+4), and one behaviour test in `admin-history.test.js` (a load that works again clears the error; it also covers a branch my API change had moved).
+- Ledger: D-025 wording (48 hours; only an expired pending invitation is revoked), C-008 (created_at, 48 hours); registry `DS-unispace-admin-users` set to implemented.
+- `backend/tests/test_i18n.py`: `usersPage` added to the list of key namespaces the scan recognises (the list is not an assertion; without it the new keys were reported unused).
+What I did with it: backend 215 passed, ruff, mypy, `alembic check` clean. Frontend 402 passed, coverage 100%, Biome 0 errors, tsc clean. Screenshots were not taken (Q-003: the tool is not chosen). Nothing committed or pushed by this session.
+
 ## 2026-11-25 · Admin Users: invitations, role changes and invite sign-in (backend and sign-in; Users tab mock drafted)
 Tool: Claude Code, claude-haiku-5-5
 What I asked: plan and build the approved "Users" tab on branch `feature/admin-users-tab` in three steps (migration; admin APIs and the invite sign-in hook; frontend). The user answered the six plan questions: a new `user_invitations` table with the old `invitations` table untouched; a valid invitation admits new accounts only, after the professor list; the link is `/login?invite=<token>`; admin-set roles persist; the token is stored in plain text; an expired pending invitation is revoked when a new one is made. Not committed or pushed.

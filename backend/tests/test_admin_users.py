@@ -156,7 +156,16 @@ def test_list_item_carries_name_and_group_fields(
     add_user(db, f"ana.{tag}@ulbsibiu.ro", Role.STUDENT)
 
     [item] = admin_client.get("/api/admin/users", params={"search": tag}).json()["items"]
-    assert set(item) == {"id", "email", "name", "role", "faculty_name", "study_formation_name"}
+    assert set(item) == {
+        "id",
+        "email",
+        "name",
+        "role",
+        "faculty_name",
+        "study_formation_name",
+        "created_at",
+    }
+    assert item["created_at"] is not None
     assert item["faculty_name"] is None
     assert item["study_formation_name"] is None
 

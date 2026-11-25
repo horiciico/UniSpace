@@ -463,3 +463,31 @@ describe("admin history: the language and a page without the list", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 });
+
+describe("admin history: a load that works again clears the error", () => {
+  beforeEach(() => vi.resetModules());
+  afterEach(tidy);
+
+  it("clears the error once the bookings load again", async () => {
+    let calls = 0;
+    const answer = historyAnswer(bookings(2));
+    await setup({
+      routes: {
+        "/api/admin/bookings": (url) => {
+          calls += 1;
+          return calls === 1 ? response({ detail: "x" }, 500) : answer(url);
+        },
+      },
+    });
+    await openHistory();
+    expect($("hist-status-line").className).toBe("notice notice--error");
+
+    $("hist-status").value = "approved";
+    $("hist-status").dispatchEvent(new Event("change"));
+    await flush();
+    await flush();
+
+    expect($("hist-status-line").textContent).toBe("");
+    expect(rows()).toHaveLength(2);
+  });
+});

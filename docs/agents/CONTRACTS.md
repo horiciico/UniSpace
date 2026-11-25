@@ -123,14 +123,14 @@
 - **Interface:** HTTP JSON on the backend, same origin, through nginx at `/api/`. Signed in as ADMIN only (403 for any other role, 401 signed out).
 - **Consumers:** `frontend/js/pages/admin-users.js` (the Users tab on the admin page, to be built), `frontend/js/api.js`, `frontend/pages/admin/index.html`.
 - **Shape:**
-  - `GET /api/admin/users?role=ROLE&search=text&limit=1..200 (default 50)&offset=0` → `{items, total, limit, offset}`, by email (A to Z). `search` is a case-insensitive part of the email; `%` and `_` are plain text. Items: `{id, email, name, role, faculty_name, study_formation_name}`. A bad role or limit → 422.
+  - `GET /api/admin/users?role=ROLE&search=text&limit=1..200 (default 50)&offset=0` → `{items, total, limit, offset}`. `search` is a case-insensitive part of the email; `%` and `_` are plain text. Items: `{id, email, name, role, faculty_name, study_formation_name, created_at}`, by email. A bad role or limit → 422.
   - `PATCH /api/admin/users/{id}/role` with `{role}` (STUDENT, PROFESSOR or STUDENT_ORG) → 200 with the user; the role is kept on later sign-ins. `ADMIN` as the value → 422. An ADMIN user's role → 403. Unknown user → 404.
   - `GET /api/admin/invitations` → `[{id, email, role, token, invite_url, expires_at, created_at}]`: pending and not expired, newest first.
   - `POST /api/admin/invitations` with `{email, role}` (role not ADMIN; the email is stored lower-case) → 201 with the invitation and `invite_url` (`/login?invite=<token>`). An existing account → 409 `{"detail": "User already exists", "existing_user": {"email", "role"}}`. A pending, unexpired invitation for the email → 409. An expired pending one is revoked first.
   - `DELETE /api/admin/invitations/{id}` → 204; marks a pending invitation `revoked`. Not pending → 409; unknown → 404.
-- **Rules:** the token is plain text and is shown to the admin only; it is not logged (AGENTS.md). Invitations are described in D-025 and the sign-in side is C-002. Users have no `created_at`, so the list has no creation date.
+- **Rules:** the token is plain text and is shown to the admin only; it is not logged (AGENTS.md). Invitations are described in D-025 and the sign-in side is C-002. Invitations expire 48 hours after creation.
 - **Evidence:** backend/app/routers/admin_users.py, backend/app/invitations.py, backend/tests/test_admin_users.py, backend/tests/test_invitation_sign_in.py, backend/alembic/versions/20261125_b7e2d4a9c013_user_invitations.py, backend/alembic/versions/20261125_c4d1e8f2a7b9_user_role_set_by_admin.py
-- **Source:** user (plan approved 2026-11-25, answers 1 to 6) · code · confidence high
+- **Source:** user (plan approved 2026-11-25, answers 1 to 6; created_at and 48-hour expiry 2026-11-25) · code · confidence high
 - **Confirmed:** 2026-11-25
 
 ## Consumed

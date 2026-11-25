@@ -47,7 +47,7 @@ class UserInvitation(Base):
         server_default=text("'pending'"),
     )
     expires_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=text("now() + interval '7 days'")
+        DateTime(timezone=True), server_default=text("now() + interval '2 days'")
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=text("now()")

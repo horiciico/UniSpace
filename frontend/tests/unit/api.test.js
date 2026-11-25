@@ -206,3 +206,112 @@ describe("api.js: fetch wrappers for /api/*", () => {
     });
   });
 });
+
+describe("api.js: the admin Users tab (C-008)", () => {
+  let api;
+
+  beforeEach(async () => {
+    vi.resetModules();
+    await loadScript("js/api.js");
+    api = window.UniSpaceApi;
+  });
+
+  it("lists users with their filters and paging, leaving out empty ones", async () => {
+    const fetch = stubFetch({
+      "/api/admin/users": () => response({ items: [], total: 0 }),
+    });
+    await api.adminUsers({ role: "", search: "ion", limit: 15, offset: 30 });
+    expect(queryOf(fetch.mock.calls[0][0])).toEqual({
+      search: "ion",
+      limit: "15",
+      offset: "30",
+    });
+  });
+
+  it("changes a role with a PATCH carrying only the role", async () => {
+    const fetch = stubFetch({
+      "/api/admin/users/u1/role": () =>
+        response({ id: "u1", role: "PROFESSOR" }),
+    });
+    await expect(api.changeUserRole("u1", "PROFESSOR")).resolves.toEqual({
+      id: "u1",
+      role: "PROFESSOR",
+    });
+    expect(fetch.mock.calls[0][1].method).toBe("PATCH");
+    expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual({
+      role: "PROFESSOR",
+    });
+  });
+
+  it("lists, creates and revokes invitations", async () => {
+    const fetch = vi.fn((url, options) =>
+      Promise.resolve(
+        options && options.method === "POST"
+          ? response({ id: "i1", invite_url: "/login?invite=t" }, 201)
+          : response([{ id: "i1" }]),
+      ),
+    );
+    vi.stubGlobal("fetch", fetch);
+    await expect(api.adminInvitations()).resolves.toEqual([{ id: "i1" }]);
+    await expect(
+      api.createInvitation({ email: "a@b.ro", role: "STUDENT_ORG" }),
+    ).resolves.toEqual({ id: "i1", invite_url: "/login?invite=t" });
+    expect(fetch.mock.calls[1][1].method).toBe("POST");
+    expect(JSON.parse(fetch.mock.calls[1][1].body)).toEqual({
+      email: "a@b.ro",
+      role: "STUDENT_ORG",
+    });
+  });
+
+  it("resolves a revoke with nothing, since the backend answers 204 with no body", async () => {
+    stubFetch({});
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          status: 204,
+          json: () => Promise.reject(new SyntaxError("no body")),
+        }),
+      ),
+    );
+    await expect(api.revokeInvitation("i 1")).resolves.toBeNull();
+  });
+
+  it("gives a refused request its JSON body, for the 409 message", async () => {
+    stubFetch({
+      "/api/admin/invitations": () =>
+        response(
+          {
+            detail: "User already exists",
+            existing_user: { email: "ion@ulbsibiu.ro", role: "PROFESSOR" },
+          },
+          409,
+        ),
+    });
+    const error = await api
+      .createInvitation({ email: "ion@ulbsibiu.ro", role: "STUDENT" })
+      .catch((e) => e);
+    expect(error.status).toBe(409);
+    expect(error.body.existing_user).toEqual({
+      email: "ion@ulbsibiu.ro",
+      role: "PROFESSOR",
+    });
+  });
+
+  it("still refuses with the status when the refused body is not JSON", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() =>
+        Promise.resolve({
+          ok: false,
+          status: 500,
+          json: () => Promise.reject(new SyntaxError("html")),
+        }),
+      ),
+    );
+    const error = await api.adminUsers({}).catch((e) => e);
+    expect(error.status).toBe(500);
+    expect(error.body).toBeNull();
+  });
+});

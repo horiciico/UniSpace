@@ -85,7 +85,7 @@ def test_an_accepted_or_revoked_invitation_does_not_block_a_new_one(db: Session)
         add_invitation(db, "ion@ulbsibiu.ro", status=InvitationStatus.PENDING)
 
 
-def test_expiry_defaults_to_seven_days_after_creation(db: Session) -> None:
+def test_expiry_defaults_to_two_days_after_creation(db: Session) -> None:
     invitation = UserInvitation(
         email="ion@ulbsibiu.ro", role=Role.PROFESSOR, token="default-expiry-token"
     )
@@ -95,7 +95,7 @@ def test_expiry_defaults_to_seven_days_after_creation(db: Session) -> None:
 
     assert invitation.status == InvitationStatus.PENDING
     assert invitation.created_at is not None
-    assert invitation.expires_at - invitation.created_at == timedelta(days=7)
+    assert invitation.expires_at - invitation.created_at == timedelta(days=2)
 
 
 def test_deleting_the_inviting_admin_keeps_the_invitation(db: Session) -> None:

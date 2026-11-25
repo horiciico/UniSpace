@@ -79,6 +79,7 @@ def _user_out(user: User, faculty_name: str | None, group_name: str | None) -> d
         "role": user.role.value,
         "faculty_name": faculty_name,
         "study_formation_name": group_name,
+        "created_at": user.created_at.isoformat(),
     }
 
 

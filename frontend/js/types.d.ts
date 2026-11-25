@@ -29,6 +29,16 @@ interface Window {
     adminCancelBooking(id: string, body?: Record<string, any>): Promise<any>;
     adminClassrooms(facultyId?: string): Promise<any[]>;
     patchAdminClassroom(id: string, body: Record<string, any>): Promise<any>;
+    adminUsers(params?: Record<string, any>): Promise<{
+      items: any[];
+      total: number;
+      limit: number;
+      offset: number;
+    }>;
+    changeUserRole(id: string, role: string): Promise<any>;
+    adminInvitations(): Promise<any[]>;
+    createInvitation(body: Record<string, any>): Promise<any>;
+    revokeInvitation(id: string): Promise<null>;
   };
   UniSpaceAuth: {
     ready: Promise<any>;
