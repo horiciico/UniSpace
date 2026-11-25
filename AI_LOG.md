@@ -8,6 +8,14 @@ Each entry follows the same shape:
 
 ```
 
+## 2026-11-25 · Admin rooms: scroll to edit section on Edit click
+Tool: Antigravity, free prompt
+What I asked: in the admin page, on rooms, when clicking edit, automatically go to the page end where the edit section appears.
+What I got:
+- In `frontend/js/pages/admin-rooms.js`: called `editCard.scrollIntoView({ behavior: "smooth", block: "start" })` after `openEditor(room)` in the Edit button click handler.
+- In `frontend/tests/unit/admin-rooms.test.js`: added a unit test verifying `scrollIntoView` is called when clicking Edit.
+What I did with it: Kept as implemented; verified with `docker compose --profile test run --rm frontend-test` and `node scripts/test-all.mjs`.
+
 ## 2026-11-24 · Room description (access notes) in the timetable; ledger P1 and P2 approved
 Tool: Claude Code (Haiku 5.5), build
 What I asked: the user approved proposals P1 and P2. Access notes are not shown on the Free now card, but in the timetable: a room description list between the filters and the timetable, when a room is selected or when the timetable opens from a Free now card.

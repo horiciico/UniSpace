@@ -143,6 +143,9 @@
     edit.setAttribute("aria-label", t("rooms.editAria", { name: room.name }));
     edit.addEventListener("click", function () {
       openEditor(room);
+      if (editCard.scrollIntoView) {
+        editCard.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
     });
     actions.appendChild(edit);
     tr.appendChild(actions);

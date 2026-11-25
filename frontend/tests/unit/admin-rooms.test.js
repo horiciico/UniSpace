@@ -147,6 +147,15 @@ describe("admin Rooms tab", () => {
     expect($("rooms-board").value).toBe("whiteboard");
   });
 
+  it("scrolls to the edit section when clicking edit", async () => {
+    await setup();
+    await openRooms();
+    const scrollIntoView = vi.fn();
+    $("rooms-edit").scrollIntoView = scrollIntoView;
+    editButton("B110").click();
+    expect(scrollIntoView).toHaveBeenCalledWith({ behavior: "smooth", block: "start" });
+  });
+
   it("an older answer does not replace a newer one", async () => {
     const pending = [];
     await setup({
