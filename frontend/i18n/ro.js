@@ -178,6 +178,44 @@ window.UniSpaceI18n.register("ro", {
   "admin.heading": "Cereri de rezervare",
   "admin.tabPending": "Cereri în așteptare",
   "admin.tabHistory": "Istoric rezervări",
+  "admin.tabRooms": "Săli",
+  "adminRooms.title": "Săli",
+  "adminRooms.intro": "Notează ce are fiecare sală și cum se intră în ea. Studenții văd proiectorul pe pagina Liber acum.",
+  "rooms.faculty": "Facultate",
+  "rooms.searchLabel": "Caută după numele sălii",
+  "rooms.colRoom": "Sală",
+  "rooms.colFaculty": "Facultate",
+  "rooms.colSeats": "Locuri",
+  "rooms.colBookable": "Rezervabilă",
+  "rooms.colProjector": "Proiector",
+  "rooms.colBoard": "Tablă",
+  "rooms.colAccess": "Acces",
+  "rooms.colEdit": "Editează",
+  "rooms.empty": "Nicio sală nu corespunde filtrelor.",
+  "rooms.bookable": "Studenții pot cere această sală",
+  "rooms.projector": "Proiector",
+  "rooms.board": "Tip de tablă",
+  "rooms.accessNotes": "Note de acces",
+  "rooms.accessHint": "Pe scurt, de exemplu: Cheia de la portar, parterul.",
+  "rooms.equipment": "Dotări și inventar",
+  "rooms.equipmentHint": "Doar pentru administratori. Nu apare pe Liber acum.",
+  "rooms.save": "Salvează",
+  "rooms.cancel": "Renunță",
+  "rooms.yes": "Da",
+  "rooms.no": "Nu",
+  "rooms.unspecified": "Nespecificat",
+  "rooms.boardWhiteboard": "Tablă albă",
+  "rooms.boardBlackboard": "Tablă neagră",
+  "rooms.boardSmartboard": "Tablă interactivă",
+  "rooms.boardNone": "Fără tablă",
+  "rooms.edit": "Editează",
+  "rooms.editAria": "Editează sala {name}",
+  "rooms.editTitle": "Editează sala {name}",
+  "rooms.seatsUnknown": "Capacitate necunoscută",
+  "rooms.saved": "Sala a fost salvată.",
+  "rooms.invalid": "Verifică valorile: notele de acces au cel mult 255 de caractere, iar cele despre dotări 500.",
+  "rooms.saveError": "Sala nu a putut fi salvată. Încearcă din nou.",
+  "rooms.loadError": "Sălile nu au putut fi încărcate. Încearcă din nou.",
   "adminHistory.title": "Istoric rezervări",
   "adminHistory.faculty": "Facultate",
   "adminHistory.room": "Sală",
@@ -210,7 +248,7 @@ window.UniSpaceI18n.register("ro", {
   "adminHistory.cancelRefused": "Rezervarea nu mai poate fi anulată.",
   "adminHistory.loadError": "Nu am putut încărca rezervările. Încearcă din nou.",
   "admin.intro": "Fiecare cerere așteaptă o decizie. Acceptă-o ca să rezervi sala sau respinge-o cu un mesaj opțional pe care solicitantul îl va vedea.",
-  "admin.queueTitle": "În așteptarea aprobării",
+  "admin.queueTitle": "În așteptarea aprobării",
   "bookings.decisionNote": "Mesaj de la administrator: {message}",
   "admin.loadError": "Nu am putut încărca cererile. Încearcă din nou.",
   "admin.errorGeneric": "Ceva nu a mers. Încearcă din nou.",
@@ -330,7 +368,6 @@ window.UniSpaceI18n.register("ro", {
   "free.pickFaculty": "Alege o facultate ca să vezi sălile libere.",
   "free.minCapacity": "Capacitate minimă",
   "free.projector": "Proiector",
-  "free.verifiedOnly": "Doar verificate pe teren",
   "free.loading": "Se caută sălile…",
   "free.count": "{n} săli libere",
   "free.empty": "Nicio sală liberă pentru filtrele alese.",
@@ -375,6 +412,7 @@ window.UniSpaceI18n.register("ro", {
   "timetable.time": "Ora",
   "timetable.legendAria": "Legendă",
   "timetable.bookHint": "Apasă pe un interval liber ca să rezervi sala.",
+  "timetable.roomAccess": "Acces",
   "timetable.close": "Închide",
   "timetable.room": "Sală",
   "timetable.professor": "Profesor",

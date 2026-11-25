@@ -20,7 +20,6 @@
   var facultySelect = document.getElementById("free-faculty");
   var capacityInput = document.getElementById("free-capacity");
   var projectorInput = document.getElementById("free-projector");
-  var verifiedInput = document.getElementById("free-verified");
   var statusLine = document.getElementById("free-status");
   var list = document.getElementById("free-list");
   if (!list) return;
@@ -76,8 +75,7 @@
     var values = {
       faculty_id: facultySelect.value,
       min_capacity: capacityInput.value ? capacityInput.value : null,
-      has_projector: projectorInput.checked ? true : null,
-      only_verified: verifiedInput.checked ? true : null
+      has_projector: projectorInput.checked ? true : null
     };
     if (mode === "custom") {
       var from = modules.list[Number(fromSelect.value)];
@@ -270,7 +268,7 @@
       setMode(button.getAttribute("data-free-mode"));
     });
   });
-  [facultySelect, dateInput, fromSelect, toSelect, capacityInput, projectorInput, verifiedInput]
+  [facultySelect, dateInput, fromSelect, toSelect, capacityInput, projectorInput]
     .forEach(function (control) {
       control.addEventListener("change", load);
     });

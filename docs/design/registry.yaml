@@ -38,9 +38,12 @@ designs:
   - id: DS-unispace-timetable
     kind: screen
     source: frontend/pages/student/timetable.html
-    screenshots: []
-    design_ref: none
-    status: implemented
+    screenshots:
+      - docs/design/screens/DS-unispace-timetable.room.light.png
+      - docs/design/screens/DS-unispace-timetable.room.dark.png
+      - docs/design/screens/DS-unispace-timetable.room.small.png
+    design_ref: docs/design/mocks/DS-unispace-timetable-room.html
+    status: implemented  # room description (access notes) added 2026-11-24; layout as the user described it; tests in frontend/tests/unit/timetable-room-description.test.js
 
   - id: DS-unispace-timetable-grid
     kind: component
@@ -79,7 +82,7 @@ designs:
       - docs/design/screens/DS-unispace-free-rooms.light.png
       - docs/design/screens/DS-unispace-free-rooms.dark.png
     design_ref: docs/design/mocks/DS-unispace-free-rooms.html
-    status: implemented  # built in steps 3-4; mock confirmed 2026-11-24; screenshots light and dark
+    status: implemented  # built in steps 3-4; mock confirmed 2026-11-24; change 2026-11-24 (verified-only filter removed; projector tag kept), built on the user's instruction to implement; screenshots light and dark refreshed
 
   - id: DS-unispace-bookings
     kind: screen
@@ -128,6 +131,17 @@ designs:
       - docs/design/screens/DS-unispace-admin-history.dark.png
     design_ref: docs/design/mocks/DS-unispace-admin-history.html
     status: implemented  # pending requests and booking history tabs; mock confirmed 2026-11-24; placeholders removed
+
+  - id: DS-unispace-admin-rooms
+    kind: screen
+    source: frontend/pages/admin/index.html  # the Rooms tab; script frontend/js/pages/admin-rooms.js
+    screenshots:
+      - docs/design/screens/DS-unispace-admin-rooms.light.png
+      - docs/design/screens/DS-unispace-admin-rooms.dark.png
+      - docs/design/screens/DS-unispace-admin-rooms.small.png
+      - docs/design/screens/DS-unispace-admin-rooms.editor.light.png
+    design_ref: docs/design/mocks/DS-unispace-admin-rooms.html
+    status: implemented  # mock drawn 2026-11-24; built on the user's instruction to implement (2026-11-24); tests in frontend/tests/unit/admin-rooms.test.js
 
   - id: DS-unispace-not-found
     kind: screen

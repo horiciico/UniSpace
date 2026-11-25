@@ -8,6 +8,51 @@ Each entry follows the same shape:
 
 ```
 
+## 2026-11-25 · Admin rooms: scroll to edit section on Edit click
+Tool: Antigravity, free prompt
+What I asked: in the admin page, on rooms, when clicking edit, automatically go to the page end where the edit section appears.
+What I got:
+- In `frontend/js/pages/admin-rooms.js`: called `editCard.scrollIntoView({ behavior: "smooth", block: "start" })` after `openEditor(room)` in the Edit button click handler.
+- In `frontend/tests/unit/admin-rooms.test.js`: added a unit test verifying `scrollIntoView` is called when clicking Edit.
+What I did with it: Kept as implemented; verified with `docker compose --profile test run --rm frontend-test` and `node scripts/test-all.mjs`.
+
+## 2026-11-24 · Room description (access notes) in the timetable; ledger P1 and P2 approved
+Tool: Claude Code (Haiku 5.5), build
+What I asked: the user approved proposals P1 and P2. Access notes are not shown on the Free now card, but in the timetable: a room description list between the filters and the timetable, when a room is selected or when the timetable opens from a Free now card.
+What I got:
+- Ledger: D-024 (the classroom ETL never writes admin-managed room fields) approved and confirmed 2026-11-24. C-007 (admin room attributes API) added and confirmed. C-003 change 2026-11-24 (6) for `/api/classrooms` and `/api/classrooms/free`, confirmed. `ledger-lint.py --fix` passes; it warns that DECISIONS.md and OPEN-QUESTIONS.md are long and should be split (not done).
+- Backend: `GET /api/classrooms` rows carry `has_projector`, `board_type`, `access_notes`, `equipment_notes` (`backend/app/routers/classrooms.py`). Test: `test_the_room_list_carries_the_room_attributes`.
+- Frontend: `tt-room` description list in `frontend/pages/student/timetable.html`, shown only in room view; `frontend/js/pages/timetable.js` fills it from the room list (access notes, or "Unspecified"); CSS `.tt-room` in `frontend/styles/components/timetable.css`; key `timetable.roomAccess` (ro, en).
+- Tests first: `frontend/tests/unit/timetable-room-description.test.js` (3 tests, failed for the right reason before the code).
+- Mock `docs/design/mocks/DS-unispace-timetable-room.html`; registry entry for DS-unispace-timetable updated with the screenshots.
+- Screenshots: `docs/design/screens/DS-unispace-timetable.room.{light,dark,small}.png`. A sample access note was set on one room for the screenshot and cleared back to unspecified afterwards.
+What I did with it: on branch `feature/classroom-attributes-equipment`. Suites: backend 178, ETL 114, frontend 366 (658); coverage gate passed. Not committed or pushed at the time of this entry.
+
+## 2026-11-24 · Classroom attributes: admin Rooms tab and Free Now (frontend)
+Tool: Claude Code (Haiku 5.5), build
+What I asked: "do not merge, but implement what you said": build the admin Rooms tab and the Free Now changes from the drawn mocks.
+What I got:
+- Admin page: a third tab, Rooms (`frontend/pages/admin/index.html`, script `frontend/js/pages/admin-rooms.js`). Filter by faculty (all, campus, faculties) and by name. Edit panel: bookable, projector (unspecified, yes, no), board type, access notes (255), equipment notes (500). Save sends the form; unspecified clears to null.
+- Client: `api.js` gains `adminClassrooms` and `patchAdminClassroom`. `admin-history.js` hides the Rooms panel when another tab is chosen.
+- Free Now: the "verified only" checkbox is removed (the spec says only Faculty, Min seats and Projector). The projector tag stays as it was. Access and board are not shown on the card.
+- Dictionaries: new `adminRooms.*` and `rooms.*` labels in ro and en; `free.verifiedOnly` removed. Two new keys first clashed with existing `rooms.title` and `rooms.intro` (the student Rooms page); renamed to `adminRooms.*` before the commit.
+- Tests first: `frontend/tests/unit/admin-rooms.test.js` (new, 15 tests), `api.test.js` (1 new), `free.test.js` (the verified-filter assertion changed to assert the checkbox is gone; named here).
+- Mocks: `DS-unispace-admin-rooms.html` and `DS-unispace-free-rooms.html` brought in line with the build.
+- Screenshots (headless Chrome, admin and student sessions): `docs/design/screens/DS-unispace-admin-rooms.{light,dark,small,editor.light}.png`, `DS-unispace-free-rooms.{light,dark}.png` (refreshed).
+What I did with it: on branch `feature/classroom-attributes-equipment`. Suites: backend 177, ETL 114, frontend 363 (654). Coverage gate passed. Not committed or pushed yet at the time of this entry.
+
+## 2026-11-24 · Classroom attributes: schema, ETL protection, admin and Free Now API (backend), mocks for the UI
+Tool: Claude Code (Haiku 5.5), /plan then build
+What I asked: a simplified spec. Keep has_projector nullable (backfill NULL), add board_type (enum), access_notes (VARCHAR 255), equipment_notes (free text, VARCHAR 500). No access_type column, no equipment tables. Admin list and PATCH of room attributes; Free Now returns the attributes and filters by min capacity and projector. ETL must not overwrite the admin fields. Then the UI, after confirmation.
+What I got:
+- Migration `f3a9c2d71e05` (head after `a7c3e91f0d52`): has_projector nullable, backfilled to NULL; access_status renamed to access_notes VARCHAR(255); board_type enum; equipment_notes VARCHAR(500). Round trip (downgrade, upgrade) checked on the local database.
+- Models: `classroom.py`, `enums.py` (BoardType, lowercase values), `models/__init__.py`.
+- Routers: `backend/app/routers/classroom_attributes.py` (GET and PATCH under `/api/admin/classrooms`, ADMIN only; reuses `require_admin` and `faculty_condition`); `classrooms.py` (Free Now adds board_type, access_notes, equipment_notes); `main.py` registers the router.
+- Tests: `backend/tests/test_classroom_attributes.py` (5 new), `etl/schedule/tests/test_loader_db.py` (1 new: a rerun keeps the admin fields).
+- Mocks drawn, not built: `docs/design/mocks/DS-unispace-admin-rooms.html` (status draft in `registry.yaml`), and a Projector badge added to `docs/design/mocks/DS-unispace-free-rooms.html` (the registry entry stays `implemented`; the change is marked as a draft).
+- Ledger: not changed. Proposals P1 (ETL protection) and P2 (C-003 change) are in the report for approval.
+What I did with it: on branch `feature/classroom-attributes-equipment`. Backend 177 passed (baseline 172), ETL 114, frontend 347; `node scripts/test-all.mjs` passed (638). `docker compose config` and `docker compose build backend` pass. The admin Rooms tab and the Free Now UI are not built, waiting for mock confirmation. Not pushed.
+
 ## 2026-11-24 · Student room booking, step 2: booking endpoints and conflict check
 Tool: Claude Code (Haiku 5.5), /plan then build
 What I asked: after the defaults were confirmed, build POST /api/bookings (conflict check against recurring activities and approved bookings, 409 on a clash), GET /api/bookings/my, DELETE /api/bookings/{id} (owner only, pending only, soft cancel), and Free Now fields. Decisions from the user: any signed-in role books; admin bookings are approved at once; professors wait for approval.

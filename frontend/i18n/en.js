@@ -177,6 +177,44 @@ window.UniSpaceI18n.register("en", {
   "admin.heading": "Booking requests",
   "admin.tabPending": "Pending requests",
   "admin.tabHistory": "Booking history",
+  "admin.tabRooms": "Rooms",
+  "adminRooms.title": "Rooms",
+  "adminRooms.intro": "Set what each room has and how to get into it. Students see the projector on Free now.",
+  "rooms.faculty": "Faculty",
+  "rooms.searchLabel": "Search by room name",
+  "rooms.colRoom": "Room",
+  "rooms.colFaculty": "Faculty",
+  "rooms.colSeats": "Seats",
+  "rooms.colBookable": "Bookable",
+  "rooms.colProjector": "Projector",
+  "rooms.colBoard": "Board",
+  "rooms.colAccess": "Access",
+  "rooms.colEdit": "Edit",
+  "rooms.empty": "No room matches these filters.",
+  "rooms.bookable": "Students can request this room",
+  "rooms.projector": "Projector",
+  "rooms.board": "Board type",
+  "rooms.accessNotes": "Access notes",
+  "rooms.accessHint": "Plain words, for example: Key from the porter, ground floor.",
+  "rooms.equipment": "Equipment and inventory notes",
+  "rooms.equipmentHint": "Admins only. Not shown on Free now.",
+  "rooms.save": "Save",
+  "rooms.cancel": "Cancel",
+  "rooms.yes": "Yes",
+  "rooms.no": "No",
+  "rooms.unspecified": "Unspecified",
+  "rooms.boardWhiteboard": "Whiteboard",
+  "rooms.boardBlackboard": "Blackboard",
+  "rooms.boardSmartboard": "Smartboard",
+  "rooms.boardNone": "None",
+  "rooms.edit": "Edit",
+  "rooms.editAria": "Edit room {name}",
+  "rooms.editTitle": "Edit room {name}",
+  "rooms.seatsUnknown": "Unknown capacity",
+  "rooms.saved": "Room saved.",
+  "rooms.invalid": "Check the values: notes are up to 255 characters for access and 500 for equipment.",
+  "rooms.saveError": "Could not save the room. Try again.",
+  "rooms.loadError": "Could not load the rooms. Try again.",
   "adminHistory.title": "Booking history",
   "adminHistory.faculty": "Faculty",
   "adminHistory.room": "Room",
@@ -209,7 +247,7 @@ window.UniSpaceI18n.register("en", {
   "adminHistory.cancelRefused": "This booking can no longer be cancelled.",
   "adminHistory.loadError": "Could not load the bookings. Try again.",
   "admin.intro": "Each request waits for a decision. Accept it to book the room, or reject it with an optional message the requester will see.",
-  "admin.queueTitle": "Waiting for approval",
+  "admin.queueTitle": "Waiting for approval",
   "bookings.decisionNote": "Note from the administrator: {message}",
   "admin.loadError": "Could not load the requests. Try again.",
   "admin.errorGeneric": "Something went wrong. Try again.",
@@ -329,7 +367,6 @@ window.UniSpaceI18n.register("en", {
   "free.pickFaculty": "Choose a faculty to see the free rooms.",
   "free.minCapacity": "Minimum capacity",
   "free.projector": "Projector",
-  "free.verifiedOnly": "Field-verified only",
   "free.loading": "Searching rooms…",
   "free.count": "{n} free rooms",
   "free.empty": "No free room matches these filters.",
@@ -374,6 +411,7 @@ window.UniSpaceI18n.register("en", {
   "timetable.time": "Time",
   "timetable.legendAria": "Legend",
   "timetable.bookHint": "Click any free slot to book this room",
+  "timetable.roomAccess": "Access",
   "timetable.close": "Close",
   "timetable.room": "Room",
   "timetable.professor": "Professor",

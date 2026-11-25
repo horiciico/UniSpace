@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MOCK · DS-unispace-timetable-room · built</title>
+    <!-- Mock only: the real page is frontend/pages/student/timetable.html (room view). -->
+    <link rel="stylesheet" href="../../../frontend/styles/tokens.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/base.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/buttons.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/forms.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/tabs-and-chips.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/timetable.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/utilities.css" />
+    <style>
+      /* Mock scaffolding only. */
+      .mock-bar { display: flex; gap: var(--space-2); padding: var(--space-3) var(--space-4); background: var(--color-warning-bg); color: var(--color-warning-text); flex-wrap: wrap; }
+      .mock-label { margin: var(--space-7) 0 var(--space-2); font-size: var(--text-sm); font-weight: 700; color: var(--color-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+    </style>
+  </head>
+  <body>
+    <div class="mock-bar">
+      <strong>Mock of the built room view.</strong>
+      <span>Room description (access notes) between the filters and the timetable. Layout as the user described it on 2026-11-24.</span>
+      <button class="btn btn-small" type="button" onclick="var d=document.documentElement;d.dataset.theme=d.dataset.theme==='dark'?'light':'dark'">Toggle light / dark</button>
+    </div>
+
+    <main id="main" class="container">
+      <p class="eyebrow">Timetable</p>
+      <h1>Weekly timetable</h1>
+
+      <p class="mock-label">1 · Room selected: the access notes show above the timetable</p>
+      <div class="tt-filters">
+        <label class="field">
+          <span class="field__label">Faculty</span>
+          <select><option>Facultatea de Drept</option></select>
+        </label>
+        <label class="field">
+          <span class="field__label">Room</span>
+          <input value="B110" />
+        </label>
+      </div>
+      <dl class="tt-room mb-3">
+        <dt>Access</dt>
+        <dd>Key from the porter, ground floor, door on the right.</dd>
+      </dl>
+      <div class="legend mb-3">
+        <span><span class="legend__swatch legend__swatch--course"></span>Course</span>
+        <span><span class="legend__swatch legend__swatch--booking"></span>Booking</span>
+      </div>
+      <p class="muted">The timetable grid follows, as now.</p>
+
+      <p class="mock-label">2 · No access notes: the line reads "Unspecified"</p>
+      <dl class="tt-room mb-3">
+        <dt>Access</dt>
+        <dd>Unspecified</dd>
+      </dl>
+
+      <p class="mock-label">3 · Group or professor view: no room description</p>
+      <p class="muted">The line is not shown. Only the room view has it.</p>
+
+      <p class="mock-label">Notes</p>
+      <ul class="muted">
+        <li>Shown only in the room view, both when a room is picked and when the page is opened from a Free now card.</li>
+        <li>Access notes only. Board type, projector and equipment notes are not in this block.</li>
+        <li>The label is translated (Access / Acces). The value is the admin's text, shown as it is.</li>
+      </ul>
+    </main>
+  </body>
+</html>

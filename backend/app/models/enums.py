@@ -49,6 +49,15 @@ class BookingStatus(str, enum.Enum):
     CANCELLED = "cancelled"
 
 
+class BoardType(str, enum.Enum):
+    """Lowercase values, as in the classrooms.board_type column (admin-managed, never set by the ETL)."""
+
+    WHITEBOARD = "whiteboard"
+    BLACKBOARD = "blackboard"
+    SMARTBOARD = "smartboard"
+    NONE = "none"
+
+
 class Priority(enum.IntEnum):
     """Higher number wins a bump: course > exam > official faculty > student org > student."""
 

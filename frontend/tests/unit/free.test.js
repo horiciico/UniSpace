@@ -269,18 +269,13 @@ describe("free.js: the free-rooms page", () => {
       pick($("free-capacity"), "20");
       $("free-projector").checked = true;
       $("free-projector").dispatchEvent(new Event("change"));
-      $("free-verified").checked = true;
-      $("free-verified").dispatchEvent(new Event("change"));
-      expect(queryOf(freeCalls(fetch).at(-1))).toMatchObject({
-        min_capacity: "20", has_projector: "true", only_verified: "true"
-      });
+      expect(queryOf(freeCalls(fetch).at(-1))).toMatchObject({ min_capacity: "20", has_projector: "true" });
       $("free-projector").checked = false;
       $("free-projector").dispatchEvent(new Event("change"));
-      $("free-verified").checked = false;
-      $("free-verified").dispatchEvent(new Event("change"));
       const last = queryOf(freeCalls(fetch).at(-1));
       expect(last.has_projector).toBeUndefined();
       expect(last.only_verified).toBeUndefined();
+      expect($("free-verified")).toBeNull();
     });
 
     it("leaves out the capacity when the field is empty", async () => {

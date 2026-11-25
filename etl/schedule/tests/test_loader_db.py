@@ -236,3 +236,29 @@ def test_a_merged_slot_links_every_study_group_and_a_rerun_keeps_them(db: Sessio
     assert linked_groups() == {7, 8}
     run(db, env, ctx)
     assert linked_groups() == {7, 8}
+
+
+def test_a_rerun_keeps_the_admin_room_fields_and_updates_only_the_etl_fields(db: Session) -> None:
+    faculty, unit = setup_faculty_and_unit(db, "tst11")
+    room = str(uuid.uuid4())
+    ctx = LoadContext(rooms={room: RoomInfo("Sala A", 30, "tst11")}, faculty_ids={"tst11": faculty.id})
+    run(db, envelope("tst11", unit.id, {"Monday": [entry(1, room)]}), ctx)
+
+    classroom = db.scalar(select(Classroom).where(Classroom.external_id == room))
+    classroom.is_bookable = False
+    classroom.has_projector = True
+    classroom.board_type = "smartboard"
+    classroom.access_notes = "Cheia la portar"
+    classroom.equipment_notes = "24 PC-uri, 10 osciloscoape"
+    db.flush()
+
+    rerun = LoadContext(rooms={room: RoomInfo("Sala A bis", 40, "tst11")}, faculty_ids={"tst11": faculty.id})
+    run(db, envelope("tst11", unit.id, {"Monday": [entry(1, room)]}), rerun)
+
+    db.refresh(classroom)
+    assert (classroom.name, classroom.capacity) == ("Sala A bis", 40)
+    assert classroom.is_bookable is False
+    assert classroom.has_projector is True
+    assert classroom.board_type == "smartboard"
+    assert classroom.access_notes == "Cheia la portar"
+    assert classroom.equipment_notes == "24 PC-uri, 10 osciloscoape"
