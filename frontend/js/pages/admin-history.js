@@ -364,6 +364,7 @@
     });
     document.getElementById("panel-pending").hidden = name !== "pending";
     document.getElementById("panel-rooms").hidden = name !== "rooms";
+    document.getElementById("panel-users").hidden = name !== "users";
     panel.hidden = name !== "history";
     if (name === "history" && !state.loaded) {
       state.loaded = true;

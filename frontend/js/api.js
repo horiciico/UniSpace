@@ -22,19 +22,29 @@
     return parts.length ? "?" + parts.join("&") : "";
   }
 
-  // One request to /api. A 401 sends the visitor to sign in again; any other failure rejects.
+  // One request to /api. A 401 sends the visitor to sign in again; any other failure rejects
+  // with the HTTP status and, when the answer is JSON, its body (`error.body`, for example
+  // the 409 that names an existing user). A 204 answer resolves with null.
   function call(path, options) {
     return fetch("/api" + path, options).then((response) => {
       if (response.status === 401) {
         // Signed out (the session ended): send the visitor to sign in again.
         window.location.assign("/login");
       }
+      if (response.status === 204) return null;
       if (!response.ok) {
-        const error = /** @type {Error & { status?: number }} */ (
-          new Error("HTTP " + response.status)
-        );
-        error.status = response.status;
-        throw error;
+        return response
+          .json()
+          .catch(() => null)
+          .then((body) => {
+            const error =
+              /** @type {Error & { status?: number, body?: any }} */ (
+                new Error("HTTP " + response.status)
+              );
+            error.status = response.status;
+            error.body = body;
+            throw error;
+          });
       }
       return response.json();
     });
@@ -102,5 +112,19 @@
       ),
     cancelBooking: (id) =>
       send("DELETE", "/bookings/" + encodeURIComponent(id)),
+    // Users for the admin Users tab (C-008). params: role, search, limit, offset. Resolves with {items, total, limit, offset}.
+    adminUsers: (params) => get("/admin/users", params),
+    // Sets a non-admin role. Resolves with the user.
+    changeUserRole: (id, role) =>
+      send("PATCH", "/admin/users/" + encodeURIComponent(id) + "/role", {
+        role: role,
+      }),
+    // Pending invitations, newest first. Each carries its invite_url.
+    adminInvitations: () => get("/admin/invitations"),
+    // Invites an email with a role: { email, role }. Resolves with the invitation (201).
+    createInvitation: (body) => send("POST", "/admin/invitations", body),
+    // Revokes a pending invitation. Resolves with null (204).
+    revokeInvitation: (id) =>
+      send("DELETE", "/admin/invitations/" + encodeURIComponent(id)),
   };
 })();

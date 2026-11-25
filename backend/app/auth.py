@@ -17,7 +17,8 @@ from sqlalchemy.orm import Session
 from app import config
 from app.config import GOOGLE_WEB_CLIENT_ID, GOOGLE_WEB_CLIENT_SECRET
 from app.db import get_db
-from app.models import Professor, Role, User
+from app.invitations import usable_for_sign_in
+from app.models import InvitationStatus, Professor, Role, User
 
 UNIVERSITY_DOMAIN = "ulbsibiu.ro"
 DENIED = (
@@ -46,11 +47,20 @@ def is_student_association(email: str) -> bool:
 
 
 def decide_role(
-    current: Role | None, is_professor: bool, is_association: bool, is_university: bool
+    current: Role | None,
+    is_professor: bool,
+    is_association: bool,
+    is_university: bool,
+    invited: Role | None = None,
+    admin_set: bool = False,
 ) -> Role | None:
-    """The role for a sign-in, or None when the sign-in is refused (D-020)."""
+    """The role for a sign-in, or None when the sign-in is refused (D-020, D-025)."""
+    if admin_set and current is not None:
+        return current  # a role an admin set holds from any address (D-025)
     if is_professor:
         target = Role.PROFESSOR
+    elif invited is not None:
+        target = invited  # a valid invitation for a new account (D-025)
     elif is_association:
         target = Role.STUDENT_ORG
     elif is_university:
@@ -62,7 +72,7 @@ def decide_role(
     return current if current in KEPT_ROLES else target
 
 
-def resolve_user(db: Session, claims: dict) -> User:
+def resolve_user(db: Session, claims: dict, invite_token: str | None = None) -> User:
     """Apply the sign-in rules to Google's ID-token claims; return the user or raise 403."""
     sub = claims.get("sub")
     email = normalize_email(claims.get("email") or "")
@@ -82,11 +92,18 @@ def resolve_user(db: Session, claims: dict) -> User:
         if user is not None and user.google_sub is not None:
             raise HTTPException(403, DENIED)  # the address belongs to another Google account
 
+    # An invitation admits a new account only, and only with its own token and email (D-025).
+    invitation = None
+    if user is None and professor is None and invite_token:
+        invitation = usable_for_sign_in(db, invite_token, email)
+
     role = decide_role(
         user.role if user is not None else None,
         is_professor=professor is not None,
         is_association=not professor and is_student_association(email),
         is_university=is_university,
+        invited=invitation.role if invitation is not None else None,
+        admin_set=user is not None and user.role_set_by_admin,
     )
     if role is None:
         raise HTTPException(403, DENIED)
@@ -103,6 +120,7 @@ def resolve_user(db: Session, claims: dict) -> User:
                 google_sub=sub,
                 professor_id=professor_id,
                 picture=picture,
+                role_set_by_admin=invitation is not None,
             )
             db.add(user)
         else:
@@ -111,6 +129,8 @@ def resolve_user(db: Session, claims: dict) -> User:
             user.role = role
             user.professor_id = professor_id
             user.picture = picture
+        if invitation is not None:
+            invitation.status = InvitationStatus.ACCEPTED
         db.commit()
     except IntegrityError:
         # A concurrent callback created the same account first.

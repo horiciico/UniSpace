@@ -1,7 +1,8 @@
 import uuid
+from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Enum, ForeignKey, String, Uuid, text
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, String, Uuid, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
@@ -34,6 +35,13 @@ class User(Base):
         ForeignKey("student_groups.id", ondelete="SET NULL", name="fk_users_study_formation")
     )
     picture: Mapped[str | None] = mapped_column(String(1024), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=text("now()")
+    )
+    # An admin set this role (Users tab or an accepted invitation); sign-in keeps it (D-025).
+    role_set_by_admin: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default=text("false")
+    )
 
     activities: Mapped[list["Activity"]] = relationship(back_populates="user")  # noqa: F821
 

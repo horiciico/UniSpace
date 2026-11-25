@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MOCK · DS-unispace-admin-users · approved</title>
+    <!-- Mock only: the real page will be frontend/pages/admin/index.html, with a fourth tab. -->
+    <link rel="stylesheet" href="../../../frontend/styles/tokens.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/base.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/header.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/buttons.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/pills.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/cards.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/tables-and-lists.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/forms.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/notice.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/tabs-and-chips.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/utilities.css" />
+    <style>
+      /* Mock scaffolding only. */
+      .mock-bar { display: flex; gap: var(--space-2); padding: var(--space-3) var(--space-4); background: var(--color-warning-bg); color: var(--color-warning-text); flex-wrap: wrap; }
+      .mock-label { margin: var(--space-7) 0 var(--space-2); font-size: var(--text-sm); font-weight: 700; color: var(--color-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+      .mock-state { border-top: 1px dashed var(--color-border); padding-top: var(--space-4); }
+      /* New in the real page (tokens only). */
+      .users-panel { display: grid; gap: var(--space-3); margin-top: var(--space-4); }
+      .invite-row { display: flex; gap: var(--space-3); align-items: flex-end; flex-wrap: wrap; }
+      .pager { display: flex; gap: var(--space-3); align-items: center; justify-content: flex-end; margin-top: var(--space-3); }
+    </style>
+  </head>
+  <body>
+    <div class="mock-bar">
+      <strong>Confirmed mock, built.</strong>
+      <span>Admin Users tab. Confirmed by the user 2026-11-25; the page is frontend/pages/admin/index.html.</span>
+      <button class="btn btn-small" type="button" onclick="var d=document.documentElement;d.dataset.theme=d.dataset.theme==='dark'?'light':'dark'">Toggle light / dark</button>
+    </div>
+
+    <main id="main" class="container">
+      <p class="eyebrow">Admin</p>
+      <h1>Users</h1>
+      <p class="muted">Invite people by email and set their role. Admin accounts are not changed here.</p>
+
+      <div class="tabs my-5" role="tablist" aria-label="Views">
+        <button class="tab" role="tab" type="button" aria-selected="false">Pending requests</button>
+        <button class="tab" role="tab" type="button" aria-selected="false">Booking history</button>
+        <button class="tab" role="tab" type="button" aria-selected="false">Rooms</button>
+        <button class="tab" role="tab" type="button" aria-selected="true">Users</button>
+      </div>
+
+      <p class="mock-label">1 · Default: invite card, pending invitations, then the users</p>
+      <div class="mock-state users-panel">
+        <section class="card" aria-labelledby="invite-title">
+          <h2 id="invite-title">Invite a user</h2>
+          <div class="invite-row">
+            <div class="field">
+              <label for="inv-email">Email</label>
+              <input id="inv-email" type="email" placeholder="name@organisation.ro" />
+            </div>
+            <div class="field">
+              <label for="inv-role">Role</label>
+              <select id="inv-role">
+                <option>Student organization</option>
+                <option>Professor</option>
+                <option>Student</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" type="button">Send invitation</button>
+          </div>
+        </section>
+
+        <section aria-labelledby="pending-title">
+          <h2 id="pending-title">Pending invitations</h2>
+          <div class="table-wrap mt-3">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Email</th>
+                  <th scope="col">Role</th>
+                  <th scope="col">Expires</th>
+                  <th scope="col"><span class="visually-hidden">Actions</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>reps@club.example</td>
+                  <td>Student organization</td>
+                  <td>2 Dec 2026</td>
+                  <td>
+                    <button class="btn btn-small" type="button">Copy link</button>
+                    <button class="btn btn-small" type="button">Revoke</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <p class="mock-label">2 · Users: filter bar, table, pagination</p>
+      <div class="mock-state users-panel">
+        <div class="filter-bar">
+          <div class="field">
+            <label for="usr-search">Search by email</label>
+            <input id="usr-search" type="search" placeholder="ion@" />
+          </div>
+          <div class="field">
+            <label for="usr-role">Role</label>
+            <select id="usr-role">
+              <option>All</option>
+              <option>Student</option>
+              <option>Professor</option>
+              <option>Student organization</option>
+              <option>Admin</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-wrap mt-3">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Email</th>
+                <th scope="col">Name</th>
+                <th scope="col">Faculty and group</th>
+                <th scope="col">Role</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>ana@ulbsibiu.ro</td>
+                <td>Ana Pop</td>
+                <td>Facultatea de Inginerie · 332CA</td>
+                <td>
+                  <label class="visually-hidden" for="role-ana">Role of ana@ulbsibiu.ro</label>
+                  <select id="role-ana">
+                    <option>Student</option>
+                    <option>Professor</option>
+                    <option>Student organization</option>
+                  </select>
+                </td>
+              </tr>
+              <tr>
+                <td>root@ulbsibiu.ro</td>
+                <td>Root</td>
+                <td>—</td>
+                <td><span class="pill">Admin</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pager">
+          <span class="muted">1–50 of 120</span>
+          <button class="btn btn-small" type="button" disabled>Previous</button>
+          <button class="btn btn-small" type="button">Next</button>
+        </div>
+      </div>
+
+      <p class="mock-label">3 · Invite refused: the email already has an account</p>
+      <div class="mock-state users-panel">
+        <div class="notice notice-error" role="alert">ion@ulbsibiu.ro is already a registered user (Role: Student).</div>
+      </div>
+
+      <p class="mock-label">4 · Invite sent: the link can be copied</p>
+      <div class="mock-state users-panel">
+        <div class="notice notice-success" role="status">
+          Invitation sent to reps@club.example. <button class="btn btn-small" type="button">Copy invite link</button>
+        </div>
+      </div>
+
+      <p class="mock-label">5 · Empty: no users match the filter</p>
+      <div class="mock-state users-panel">
+        <p class="muted">No users match this search.</p>
+      </div>
+    </main>
+  </body>
+</html>

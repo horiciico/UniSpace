@@ -143,6 +143,13 @@ designs:
     design_ref: docs/design/mocks/DS-unispace-admin-rooms.html
     status: implemented  # mock drawn 2026-11-24; built on the user's instruction to implement (2026-11-24); tests in frontend/tests/unit/admin-rooms.test.js
 
+  - id: DS-unispace-admin-users
+    kind: screen
+    source: frontend/pages/admin/index.html  # the Users tab; script frontend/js/pages/admin-users.js
+    screenshots: []
+    design_ref: docs/design/mocks/DS-unispace-admin-users.html
+    status: implemented  # mock drawn 2026-11-25, confirmed by the user 2026-11-25; tests in frontend/tests/unit/admin-users.test.js; screenshots not taken (Q-003: tool not chosen)
+
   - id: DS-unispace-not-found
     kind: screen
     source: frontend/pages/shared/404.html

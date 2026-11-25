@@ -29,6 +29,14 @@ class Status(enum.StrEnum):
     CANCELLED = "CANCELLED"
 
 
+class InvitationStatus(enum.StrEnum):
+    """Lowercase, as the user_invitations.status values (step 1 of the admin Users tab)."""
+
+    PENDING = "pending"
+    ACCEPTED = "accepted"
+    REVOKED = "revoked"
+
+
 class PlanningUnitType(enum.StrEnum):
     SEMESTER = "SEMESTER"
     MODULE = "MODULE"
