@@ -31,6 +31,7 @@
 .field input,
 .field select,
 .field textarea,
+.role-select,
 .copy-row input {
   font: inherit;
   padding: var(--space-2) var(--space-3);
