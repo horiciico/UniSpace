@@ -8,6 +8,17 @@ Each entry follows the same shape:
 
 ```
 
+## 2026-11-26 · Email service, step 1: settings and EmailService (console and SMTP)
+Tool: Claude Code, claude-haiku-5-5
+What I asked: step 1 of the email objective, on branch `feature/email-service` (from `main`): the email settings in `backend/app/config.py` and `.env.example`, and an `EmailService` with a `console` and an `smtp` backend, queued on BackgroundTasks. Answers given: the console hides the invite link as `[link hidden]`; emails are bilingual (Romanian and English); STARTTLS only on port 587; `APP_BASE_URL` defaults to `http://localhost:8080`; a failed send is logged without the body and does not fail the response; the variables go in `config.py`.
+What I got:
+- `backend/app/config.py`: EMAIL_BACKEND (console by default; any other value fails at start), SMTP_HOST, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD, SMTP_FROM_EMAIL, SMTP_FROM_NAME, SMTP_USE_TLS, APP_BASE_URL, with the defaults from the objective.
+- `backend/app/email_service.py`: `EmailMessage`, `queue()` (adds the send to BackgroundTasks), `send()` (never raises; logs the subject and the error type only), and the two backends. The console backend replaces the `hidden` part of the body with `[link hidden]` and logs no address.
+- `.env.example`: placeholders for every new variable; no value is set for a password.
+- `backend/tests/test_email_service.py`: 10 tests (defaults, environment values, unknown backend, console masking and no connection, SMTP with STARTTLS, login, Romanian text, skipped TLS and login, failed send logged without secrets, queueing). The SMTP class is faked; no real connection is opened.
+- Not wired into the invitation or booking endpoints yet (steps 2 and 3).
+What I did with it: tests written first; the first run failed on the missing module. One of my own assertions was wrong (fixed). Log capture failed in the full suite: alembic's `fileConfig` disables loggers created before it; the test now re-enables the service logger for each test. Backend: 225 passed (3 warnings from third-party libraries). ETL: 114 passed. Frontend: 402 passed. Backend lint and types pass. Frontend lint fails with 12 errors in files this change does not touch (`components/`, `js/api.js`, `js/auth.js`, `js/bookings.js`, `i18n/i18n.js`); the frontend is unchanged from `main`. Not committed.
+
 ## 2026-11-25 · Admin Users: mock confirmed, 48-hour invitations, created date, Users tab built
 Tool: Claude Code, claude-haiku-5-5
 What I asked: the user confirmed the Users tab mock, and asked for three changes: a new invitation revokes only an expired pending invitation for the same email (an unexpired one still gives 409); invitations expire after 48 hours; the users list shows the account's created date (the "use the column" answer).

@@ -18,3 +18,19 @@ POST_LOGIN_URL: str = os.environ.get("POST_LOGIN_URL", "/")
 # Admin sign-in (D-021): one credential pair, plain text for now. Empty values turn it off.
 ADMIN_USERNAME: str = os.environ.get("ADMIN_USERNAME", "")
 ADMIN_PASSWORD: str = os.environ.get("ADMIN_PASSWORD", "")
+
+# Email. "console" logs each message (an invite link is hidden in the log); "smtp" sends it.
+EMAIL_BACKEND: str = os.environ.get("EMAIL_BACKEND", "console")
+if EMAIL_BACKEND not in ("console", "smtp"):
+    raise RuntimeError("EMAIL_BACKEND must be 'console' or 'smtp'.")
+SMTP_HOST: str = os.environ.get("SMTP_HOST", "smtp.gmail.com")
+SMTP_PORT: int = int(os.environ.get("SMTP_PORT", "587"))
+# Optional. Leave empty when the server needs no sign-in.
+SMTP_USERNAME: str = os.environ.get("SMTP_USERNAME", "")
+SMTP_PASSWORD: str = os.environ.get("SMTP_PASSWORD", "")
+SMTP_FROM_EMAIL: str = os.environ.get("SMTP_FROM_EMAIL", "noreply@unispace.local")
+SMTP_FROM_NAME: str = os.environ.get("SMTP_FROM_NAME", "UniSpace")
+# STARTTLS on the SMTP port (587). Turn it off only for a server on a trusted local network.
+SMTP_USE_TLS: bool = os.environ.get("SMTP_USE_TLS", "true").lower() == "true"
+# The site's address, used to build the links in emails (the frontend runs on port 8080 locally).
+APP_BASE_URL: str = os.environ.get("APP_BASE_URL", "http://localhost:8080")
