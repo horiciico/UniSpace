@@ -124,6 +124,48 @@ describe("admin Rooms tab", () => {
     expect($("rooms-empty").hidden).toBe(true);
   });
 
+  it("paginates rooms at 15 per page with next and previous buttons", async () => {
+    const manyRooms = Array.from({ length: 20 }, (_, i) => ({
+      id: `r${i + 1}`,
+      name: `Room ${String(i + 1).padStart(2, "0")}`,
+      faculty_id: "f1",
+      capacity: 30,
+      is_bookable: true,
+      has_projector: null,
+      board_type: null,
+      access_notes: null,
+      equipment_notes: null
+    }));
+    await setup({ rooms: manyRooms });
+    await openRooms();
+
+    expect(rows()).toHaveLength(15);
+    expect($("rooms-pager").hidden).toBe(false);
+    expect($("rooms-range").textContent).toBe("1–15 of 20");
+    expect($("rooms-prev").disabled).toBe(true);
+    expect($("rooms-next").disabled).toBe(false);
+
+    $("rooms-next").click();
+    expect(rows()).toHaveLength(5);
+    expect(cellsOf(rows()[0])[0]).toBe("Room 16");
+    expect($("rooms-range").textContent).toBe("16–20 of 20");
+    expect($("rooms-prev").disabled).toBe(false);
+    expect($("rooms-next").disabled).toBe(true);
+
+    $("rooms-prev").click();
+    expect(rows()).toHaveLength(15);
+    expect(cellsOf(rows()[0])[0]).toBe("Room 01");
+    expect($("rooms-range").textContent).toBe("1–15 of 20");
+    expect($("rooms-prev").disabled).toBe(true);
+    expect($("rooms-next").disabled).toBe(false);
+
+    $("rooms-next").click();
+    $("rooms-search").value = "zzz";
+    $("rooms-search").dispatchEvent(new Event("input"));
+    expect($("rooms-pager").hidden).toBe(true);
+    expect($("rooms-range").textContent).toBe("");
+  });
+
   it("opens the editor with the room's current values", async () => {
     await setup();
     await openRooms();

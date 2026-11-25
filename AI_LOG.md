@@ -8,6 +8,15 @@ Each entry follows the same shape:
 
 ```
 
+## 2026-11-25 · Admin rooms: paginate room list (15 per page)
+Tool: Antigravity, free prompt
+What I asked: in the admin page, under rooms section, paginate the result keeping a list of 15 entries and adding next/previous buttons to navigate through the pages, ensuring test coverage and i18n integration.
+What I got:
+- In `frontend/pages/admin/index.html`: added `#rooms-pager` (`#rooms-prev`, `#rooms-range`, `#rooms-next`) reusing `adminHistory.previous` / `adminHistory.next` and new `rooms.pagerAria` (`Pages` / `Pagini`) in `en.js` and `ro.js`.
+- In `frontend/js/pages/admin-rooms.js`: added `PAGE_SIZE = 15`, `state.page`, slicing in `render()`, pager state/range label (`adminHistory.range`), and page resets on tab open, faculty change, and search input.
+- In `frontend/tests/unit/admin-rooms.test.js`: added pagination unit test covering 15-per-page slicing, next/previous navigation, button disabled states, range label, and empty-search reset.
+What I did with it: Kept as implemented; verified with `node scripts/test-all.mjs`.
+
 ## 2026-11-25 · Admin rooms: scroll to edit section on Edit click
 Tool: Antigravity, free prompt
 What I asked: in the admin page, on rooms, when clicking edit, automatically go to the page end where the edit section appears.

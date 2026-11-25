@@ -191,6 +191,7 @@ window.UniSpaceI18n.register("en", {
   "rooms.colAccess": "Access",
   "rooms.colEdit": "Edit",
   "rooms.empty": "No room matches these filters.",
+  "rooms.pagerAria": "Pages",
   "rooms.bookable": "Students can request this room",
   "rooms.projector": "Projector",
   "rooms.board": "Board type",
@@ -247,7 +248,7 @@ window.UniSpaceI18n.register("en", {
   "adminHistory.cancelRefused": "This booking can no longer be cancelled.",
   "adminHistory.loadError": "Could not load the bookings. Try again.",
   "admin.intro": "Each request waits for a decision. Accept it to book the room, or reject it with an optional message the requester will see.",
-  "admin.queueTitle": "Waiting for approval",
+  "admin.queueTitle": "Waiting for approval",
   "bookings.decisionNote": "Note from the administrator: {message}",
   "admin.loadError": "Could not load the requests. Try again.",
   "admin.errorGeneric": "Something went wrong. Try again.",

@@ -16,6 +16,10 @@
   var statusLine = document.getElementById("rooms-status");
   var body = document.getElementById("rooms-body");
   var emptyCard = document.getElementById("rooms-empty");
+  var pager = document.getElementById("rooms-pager");
+  var prevButton = document.getElementById("rooms-prev");
+  var nextButton = document.getElementById("rooms-next");
+  var rangeLabel = document.getElementById("rooms-range");
   var editCard = document.getElementById("rooms-edit");
   var editTitle = document.getElementById("rooms-edit-title");
   var editSub = document.getElementById("rooms-edit-sub");
@@ -35,11 +39,14 @@
     none: "rooms.boardNone"
   };
 
+  var PAGE_SIZE = 15;
+
   var state = {
     rooms: [],
     facultyNames: {},
     editing: null,
-    request: 0
+    request: 0,
+    page: 0
   };
 
   function setStatus(key, isError) {
@@ -152,17 +159,31 @@
     return tr;
   }
 
-  // Draws the rooms whose name contains the search text (ignoring case).
+  // Draws the rooms whose name contains the search text (ignoring case), 15 to a page.
   function render() {
     var query = searchInput.value.trim().toLowerCase();
     var shown = state.rooms.filter(function (room) {
       return room.name.toLowerCase().indexOf(query) !== -1;
     });
+    var total = shown.length;
+    var start = state.page * PAGE_SIZE;
+    var pageItems = shown.slice(start, start + PAGE_SIZE);
+
     body.textContent = "";
-    shown.forEach(function (room) {
+    pageItems.forEach(function (room) {
       body.appendChild(row(room));
     });
-    emptyCard.hidden = shown.length > 0;
+    emptyCard.hidden = total > 0;
+    pager.hidden = total === 0;
+    if (total > 0) {
+      var from = start + 1;
+      var to = Math.min(start + PAGE_SIZE, total);
+      rangeLabel.textContent = t("adminHistory.range", { from: from, to: to, total: total });
+    } else {
+      rangeLabel.textContent = "";
+    }
+    prevButton.disabled = state.page === 0;
+    nextButton.disabled = start + PAGE_SIZE >= total;
   }
 
   function openEditor(room) {
@@ -209,12 +230,27 @@
   }
 
   tab.addEventListener("click", function () {
+    state.page = 0;
     hideStatus();
     loadFaculties();
     loadRooms();
   });
-  facultySelect.addEventListener("change", loadRooms);
-  searchInput.addEventListener("input", render);
+  facultySelect.addEventListener("change", function () {
+    state.page = 0;
+    loadRooms();
+  });
+  searchInput.addEventListener("input", function () {
+    state.page = 0;
+    render();
+  });
+  prevButton.addEventListener("click", function () {
+    state.page -= 1;
+    render();
+  });
+  nextButton.addEventListener("click", function () {
+    state.page += 1;
+    render();
+  });
   form.addEventListener("submit", function (event) {
     event.preventDefault();
     save();

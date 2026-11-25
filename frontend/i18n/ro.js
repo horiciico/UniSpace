@@ -192,6 +192,7 @@ window.UniSpaceI18n.register("ro", {
   "rooms.colAccess": "Acces",
   "rooms.colEdit": "Editează",
   "rooms.empty": "Nicio sală nu corespunde filtrelor.",
+  "rooms.pagerAria": "Pagini",
   "rooms.bookable": "Studenții pot cere această sală",
   "rooms.projector": "Proiector",
   "rooms.board": "Tip de tablă",
@@ -248,7 +249,7 @@ window.UniSpaceI18n.register("ro", {
   "adminHistory.cancelRefused": "Rezervarea nu mai poate fi anulată.",
   "adminHistory.loadError": "Nu am putut încărca rezervările. Încearcă din nou.",
   "admin.intro": "Fiecare cerere așteaptă o decizie. Acceptă-o ca să rezervi sala sau respinge-o cu un mesaj opțional pe care solicitantul îl va vedea.",
-  "admin.queueTitle": "În așteptarea aprobării",
+  "admin.queueTitle": "În așteptarea aprobării",
   "bookings.decisionNote": "Mesaj de la administrator: {message}",
   "admin.loadError": "Nu am putut încărca cererile. Încearcă din nou.",
   "admin.errorGeneric": "Ceva nu a mers. Încearcă din nou.",
