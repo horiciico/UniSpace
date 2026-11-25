@@ -8,6 +8,16 @@ Each entry follows the same shape:
 
 ```
 
+## 2026-11-26 · Email service, step 1b: multipart HTML and the three bilingual messages
+Tool: Claude Code, claude-haiku-5-5
+What I asked: the email helpers (invitation, booking approved, booking rejected) with a plain-text and an HTML part, bilingual, with user text escaped. Answers given to the proposals: keep the link masking in the console; `logger.error` with the subject and error type only; `EMAIL_BACKEND` is the only switch; extend `backend/app/email_service.py`, not a new `services/` module.
+What I got:
+- `email_service.py`: `EmailMessage` gains `html`; SMTP sends a `multipart/alternative` when there is an HTML part; the console logs the text part only. `send_email(to_email, subject, text_body, html_body, hidden)` is the public send. `send_invitation_email`, `send_booking_approved_email`, `send_booking_rejected_email` (the reason is given only when present, in both languages). Each message is written in Romanian and English; the HTML escapes every user-supplied value (room, title, reason, link).
+- Tests: 7 added to `backend/tests/test_email_service.py` (multipart, console text only, invitation bilingual with the link hidden in the console and the real link over SMTP, approved content, escaping, reason shown only when given). 17 in the file.
+- Invitation expiry is shown in Romanian local time (Europe/Bucharest, from the Python zone database in the container; no new dependency). The user asked for local time instead of UTC.
+- Not wired to the endpoints yet (steps 2 and 3).
+What I did with it: tests first (the import failed as expected). Two of my own test mistakes fixed: each send opens its own SMTP connection, and the first ruff run had long docstring lines. Full run: backend lint and types pass; backend 232 passed; ETL 114 passed; frontend 402 passed. Frontend lint still fails with 12 errors that exist on `main` (see the previous entry). Not committed.
+
 ## 2026-11-26 · Email service, step 1: settings and EmailService (console and SMTP)
 Tool: Claude Code, claude-haiku-5-5
 What I asked: step 1 of the email objective, on branch `feature/email-service` (from `main`): the email settings in `backend/app/config.py` and `.env.example`, and an `EmailService` with a `console` and an `smtp` backend, queued on BackgroundTasks. Answers given: the console hides the invite link as `[link hidden]`; emails are bilingual (Romanian and English); STARTTLS only on port 587; `APP_BASE_URL` defaults to `http://localhost:8080`; a failed send is logged without the body and does not fail the response; the variables go in `config.py`.

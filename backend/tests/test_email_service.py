@@ -10,13 +10,22 @@ import asyncio
 import importlib
 import logging
 import smtplib
+from datetime import UTC, date, datetime, time
 from email.message import EmailMessage as MailMessage
 
 import pytest
 from fastapi import BackgroundTasks
 
 from app import config, email_service
-from app.email_service import EmailMessage, queue, send
+from app.email_service import (
+    EmailMessage,
+    queue,
+    send,
+    send_booking_approved_email,
+    send_booking_rejected_email,
+    send_email,
+    send_invitation_email,
+)
 
 EMAIL_SETTINGS = [
     "EMAIL_BACKEND",
@@ -257,3 +266,131 @@ def test_queue_sends_later_on_the_background_tasks(
     assert fake_smtp.instances == []
     asyncio.run(tasks())
     assert len(fake_smtp.instances[0].sent) == 1
+
+
+# ---- Multipart and the bilingual templates (step 1b) ------------------------
+
+
+def test_an_html_body_is_sent_as_multipart_alternative(
+    monkeypatch: pytest.MonkeyPatch, fake_smtp: type[FakeSMTP]
+) -> None:
+    _smtp_settings(monkeypatch)
+
+    send_email("guest@example.test", "Subject", "plain text", "<p>html text</p>")
+
+    mail = fake_smtp.instances[0].sent[0]
+    assert mail.get_content_type() == "multipart/alternative"
+    assert mail.get_body(("plain",)).get_content().strip() == "plain text"
+    assert "<p>html text</p>" in mail.get_body(("html",)).get_content()
+
+
+def test_the_console_logs_the_text_part_only(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    monkeypatch.setattr(config, "EMAIL_BACKEND", "console")
+    caplog.set_level(logging.INFO, logger="app.email_service")
+
+    send_email("guest@example.test", "Subject", "plain words", "<p>markup-only</p>")
+
+    assert "plain words" in caplog.text
+    assert "markup-only" not in caplog.text
+
+
+def test_the_invitation_is_bilingual_and_its_link_is_hidden_in_the_console(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    monkeypatch.setattr(config, "EMAIL_BACKEND", "console")
+    caplog.set_level(logging.INFO, logger="app.email_service")
+
+    send_invitation_email(
+        "guest@example.test", "STUDENT_ORG", LINK, datetime(2026, 12, 3, 10, 30, tzinfo=UTC)
+    )
+
+    assert "Organizație studențească" in caplog.text
+    assert "Student organization" in caplog.text
+    assert "03.12.2026 12:30 (ora României / Romanian time)" in caplog.text
+    assert "[link hidden]" in caplog.text
+    assert "SECRET-TOKEN-123" not in caplog.text
+    assert "guest@example.test" not in caplog.text
+
+
+def test_the_invitation_sent_over_smtp_contains_the_real_link(
+    monkeypatch: pytest.MonkeyPatch, fake_smtp: type[FakeSMTP]
+) -> None:
+    _smtp_settings(monkeypatch)
+
+    send_invitation_email(
+        "guest@example.test", "PROFESSOR", LINK, datetime(2026, 12, 3, 10, 30, tzinfo=UTC)
+    )
+
+    mail = fake_smtp.instances[0].sent[0]
+    assert mail["Subject"] == "Invitație în UniSpace · Invitation to UniSpace"
+    assert LINK in mail.get_body(("plain",)).get_content()
+    assert f'href="{LINK}"' in mail.get_body(("html",)).get_content()
+
+
+def test_the_approved_email_names_the_room_date_time_and_title(
+    monkeypatch: pytest.MonkeyPatch, fake_smtp: type[FakeSMTP]
+) -> None:
+    _smtp_settings(monkeypatch)
+
+    send_booking_approved_email(
+        "guest@example.test", "Aula Ș", date(2026, 12, 5), time(10, 0), time(12, 0), "Seminar"
+    )
+
+    mail = fake_smtp.instances[0].sent[0]
+    text = mail.get_body(("plain",)).get_content()
+    assert "Aula Ș" in text
+    assert "05.12.2026" in text
+    assert "10:00–12:00" in text
+    assert "Seminar" in text
+    assert "aprobată" in text and "approved" in text
+
+
+def test_user_text_is_escaped_in_the_html_part(
+    monkeypatch: pytest.MonkeyPatch, fake_smtp: type[FakeSMTP]
+) -> None:
+    _smtp_settings(monkeypatch)
+
+    send_booking_rejected_email(
+        "guest@example.test",
+        "<i>Room</i>",
+        date(2026, 12, 5),
+        time(10, 0),
+        time(12, 0),
+        "<b>Seminar</b>",
+        '<img src="x" onerror="alert(1)">',
+    )
+
+    mail = fake_smtp.instances[0].sent[0]
+    html_part = mail.get_body(("html",)).get_content()
+    assert "&lt;b&gt;Seminar&lt;/b&gt;" in html_part
+    assert "&lt;i&gt;Room&lt;/i&gt;" in html_part
+    assert "&lt;img" in html_part
+    assert "<b>Seminar</b>" not in html_part
+    assert "<img" not in html_part
+
+
+def test_the_rejection_gives_the_reason_only_when_there_is_one(
+    monkeypatch: pytest.MonkeyPatch, fake_smtp: type[FakeSMTP]
+) -> None:
+    _smtp_settings(monkeypatch)
+
+    send_booking_rejected_email(
+        "guest@example.test",
+        "Aula Ș",
+        date(2026, 12, 5),
+        time(10, 0),
+        time(12, 0),
+        "Seminar",
+        "Sală ocupată",
+    )
+    send_booking_rejected_email(
+        "guest@example.test", "Aula Ș", date(2026, 12, 5), time(10, 0), time(12, 0), "Seminar", None
+    )
+
+    with_reason, without_reason = (server.sent[0] for server in fake_smtp.instances)
+    assert "Motiv: Sală ocupată" in with_reason.get_body(("plain",)).get_content()
+    assert "Reason: Sală ocupată" in with_reason.get_body(("plain",)).get_content()
+    assert "Motiv" not in without_reason.get_body(("plain",)).get_content()
+    assert "Reason" not in without_reason.get_body(("plain",)).get_content()
