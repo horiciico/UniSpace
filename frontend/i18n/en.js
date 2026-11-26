@@ -551,9 +551,10 @@ window.UniSpaceI18n.register("en", {
   "admin.tabCalendar": "Academic calendar",
   "acal.title": "Academic calendar",
   "acal.intro":
-    "Set the semesters, exam sessions and holidays. They decide which weekly courses run and which time grid bookings use.",
+    "Set the semesters, exam sessions and holidays, for all faculties or for one. They decide which weekly courses run and which time grid bookings use.",
   "acal.add": "Add period",
   "acal.colName": "Name",
+  "acal.colFaculty": "Faculty",
   "acal.colType": "Type",
   "acal.colStart": "Start",
   "acal.colEnd": "End",
@@ -564,12 +565,15 @@ window.UniSpaceI18n.register("en", {
   "acal.editAria": "Edit {name}",
   "acal.delete": "Delete",
   "acal.deleteAria": "Delete {name}",
-  "acal.defaultNote": "Dates with no period are teaching weeks.",
+  "acal.defaultNote":
+    "A faculty's own period wins over one for all faculties. Dates with no period are teaching weeks.",
   "acal.emptyTitle": "No periods yet",
   "acal.emptyText": "Every date is a teaching week until you add a period.",
   "acal.addTitle": "New period",
   "acal.editTitle": "Edit period",
   "acal.name": "Name",
+  "acal.faculty": "Faculty",
+  "acal.allFaculties": "All faculties",
   "acal.type": "Type",
   "acal.typeHint":
     "Exam session: weekly courses are hidden and rooms are booked by whole hours, 08:00 to 22:00. Holiday: weekly courses are hidden and bookings are closed.",
@@ -582,14 +586,17 @@ window.UniSpaceI18n.register("en", {
   "acal.errorDates":
     "Check the dates. The end date must be on or after the start date.",
   "acal.errorOverlap":
-    "These dates overlap another period. Change the dates or edit that period.",
+    "These dates overlap another period of the same faculty. Change the dates or edit that period.",
   "acal.errorInvalid":
     "The period is not valid. Check the name (at most 150 characters), the type and the dates.",
+  "acal.facultiesError": "Could not load the faculties. Try again.",
   "acal.saveError": "The period could not be saved. Try again.",
   "acal.loadError": "Could not load the periods. Try again.",
   "acal.deleteTitle": "Delete “{name}”?",
   "acal.deleteText":
-    "After this, {start} – {end} count as teaching weeks again.",
+    "After this, {start} – {end} count as teaching weeks for faculties without their own period.",
+  "acal.deleteTextFaculty":
+    "After this, {faculty} follows the calendar for all faculties from {start} to {end}.",
   "acal.deleteConfirm": "Delete",
   "acal.deleteKeep": "Keep",
   "acal.deleteError": "The period could not be deleted. Try again.",
@@ -601,6 +608,10 @@ window.UniSpaceI18n.register("en", {
     "Exam session: weekly courses are not held. Rooms are booked by the hour, 08:00 to 22:00.",
   "timetable.periodExamPartText":
     "Exam session on {days}: weekly courses are not held then, and rooms are booked by the hour, 08:00 to 22:00.",
+  "timetable.periodExamFaculty":
+    "{faculty}: exam session on {days}. Its weekly courses are not held then.",
+  "timetable.periodHolidayFaculty":
+    "{faculty}: holiday on {days}. Its weekly courses are not held then.",
   "timetable.periodHolidayPill": "Holiday",
   "timetable.periodHolidayText":
     "Holiday: there are no weekly courses and new bookings are closed.",

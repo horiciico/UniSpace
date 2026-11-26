@@ -81,7 +81,7 @@
 - **Who answers:** the user (the user will answer later; the rest is still open)
 - **Answer (user, 2026-11-19, partly):** The active period (start and end) comes from the ULBS API, per planning unit (`planning_time_units`). Parity works by week, and the mapping is in Q-013. Still open: holidays, breaks, and inverted-parity weeks; and whether the CUSTOM parity and a weeks list are needed.
 - **Note (user, 2026-11-22):** will be configured later. Stays open until then.
-- **Proposed answer (agent, 2026-11-26, not confirmed):** holidays and breaks are `academic_periods` rows set by an admin (types TEACHING, EXAM_SESSION, HOLIDAY; global; no overlaps). Inverted-parity weeks, CUSTOM parity and a weeks list stay open. Depends on the pending academic-calendar decision PROPOSAL; the question stays `investigating`-open until you confirm.
+- **Proposed answer (agent, 2026-11-26, not confirmed):** holidays and breaks are `academic_periods` rows set by an admin (types TEACHING, EXAM_SESSION, HOLIDAY; per faculty or for all faculties, D-028). Inverted-parity weeks, CUSTOM parity and a weeks list stay open. D-028 is approved; the question stays `investigating`-open until you confirm.
 
 ## Q-009 · How does a university (@ulbsibiu.ro) user get a role above STUDENT?
 - **Status:** answered

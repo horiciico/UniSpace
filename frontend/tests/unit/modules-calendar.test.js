@@ -138,6 +138,27 @@ describe("modules.js: the academic calendar helpers", () => {
     ).toBe("2027-03-08");
   });
 
+  it("takes the earliest of the sessions, whatever their order", () => {
+    const periods = [
+      own("EXAM_SESSION", "2027-06-01", "2027-06-30", null),
+      own("TEACHING", "2027-06-01", "2027-06-20", "f1"),
+      own("EXAM_SESSION", "2027-06-07", "2027-06-10", "f2"),
+      own("EXAM_SESSION", "2027-07-01", "2027-07-05", null),
+    ];
+
+    expect(
+      modules.nextExamSession(periods, "2027-01-01", ["f1", "f2"]).start_date,
+    ).toBe("2027-06-01");
+    expect(
+      modules.nextExamSession(periods.slice(0, 2), "2027-01-01", ["f1"])
+        .start_date,
+    ).toBe("2027-06-21");
+    expect(
+      modules.nextExamSession([periods[3], periods[2]], "2027-01-01", ["f2"])
+        .start_date,
+    ).toBe("2027-06-07");
+  });
+
   it("skips the days of a shared session that the faculty overrides", () => {
     const periods = [
       own("EXAM_SESSION", "2027-06-07", "2027-06-20", null),

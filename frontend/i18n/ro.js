@@ -563,9 +563,10 @@ window.UniSpaceI18n.register("ro", {
   "admin.tabCalendar": "An universitar",
   "acal.title": "An universitar",
   "acal.intro":
-    "Stabilește semestrele, sesiunile și vacanțele. Ele hotărăsc ce cursuri săptămânale se țin și ce grilă de timp folosesc rezervările.",
+    "Stabilește semestrele, sesiunile și vacanțele, pentru toate facultățile sau pentru una. Ele hotărăsc ce cursuri săptămânale se țin și ce grilă de timp folosesc rezervările.",
   "acal.add": "Adaugă o perioadă",
   "acal.colName": "Nume",
+  "acal.colFaculty": "Facultate",
   "acal.colType": "Tip",
   "acal.colStart": "Început",
   "acal.colEnd": "Sfârșit",
@@ -576,13 +577,16 @@ window.UniSpaceI18n.register("ro", {
   "acal.editAria": "Editează {name}",
   "acal.delete": "Șterge",
   "acal.deleteAria": "Șterge {name}",
-  "acal.defaultNote": "Datele fără nicio perioadă sunt săptămâni de predare.",
+  "acal.defaultNote":
+    "Perioada proprie a unei facultăți are prioritate față de cea pentru toate facultățile. Datele fără nicio perioadă sunt săptămâni de predare.",
   "acal.emptyTitle": "Nicio perioadă încă",
   "acal.emptyText":
     "Orice dată este săptămână de predare până adaugi o perioadă.",
   "acal.addTitle": "Perioadă nouă",
   "acal.editTitle": "Editează perioada",
   "acal.name": "Nume",
+  "acal.faculty": "Facultate",
+  "acal.allFaculties": "Toate facultățile",
   "acal.type": "Tip",
   "acal.typeHint":
     "Sesiune: cursurile săptămânale sunt ascunse, iar sălile se rezervă pe ore întregi, între 08:00 și 22:00. Vacanță: cursurile săptămânale sunt ascunse și rezervările sunt închise.",
@@ -595,14 +599,17 @@ window.UniSpaceI18n.register("ro", {
   "acal.errorDates":
     "Verifică datele. Data de sfârșit trebuie să fie în aceeași zi cu data de început sau după ea.",
   "acal.errorOverlap":
-    "Datele se suprapun cu o altă perioadă. Schimbă datele sau editează acea perioadă.",
+    "Datele se suprapun cu o altă perioadă a aceleiași facultăți. Schimbă datele sau editează acea perioadă.",
   "acal.errorInvalid":
     "Perioada nu este validă. Verifică numele (cel mult 150 de caractere), tipul și datele.",
+  "acal.facultiesError": "Nu am putut încărca facultățile. Încearcă din nou.",
   "acal.saveError": "Perioada nu a putut fi salvată. Încearcă din nou.",
   "acal.loadError": "Perioadele nu au putut fi încărcate. Încearcă din nou.",
   "acal.deleteTitle": "Ștergi „{name}”?",
   "acal.deleteText":
-    "După aceasta, {start} – {end} sunt din nou săptămâni de predare.",
+    "După aceasta, {start} – {end} sunt săptămâni de predare pentru facultățile fără perioadă proprie.",
+  "acal.deleteTextFaculty":
+    "După aceasta, {faculty} urmează calendarul tuturor facultăților între {start} și {end}.",
   "acal.deleteConfirm": "Șterge",
   "acal.deleteKeep": "Păstrează",
   "acal.deleteError": "Perioada nu a putut fi ștearsă. Încearcă din nou.",
@@ -614,6 +621,10 @@ window.UniSpaceI18n.register("ro", {
     "Sesiune de examene: cursurile săptămânale nu se țin. Sălile se rezervă pe ore, între 08:00 și 22:00.",
   "timetable.periodExamPartText":
     "Sesiune de examene ({days}): în aceste zile nu se țin cursurile săptămânale, iar sălile se rezervă pe ore, între 08:00 și 22:00.",
+  "timetable.periodExamFaculty":
+    "{faculty}: sesiune de examene ({days}). Cursurile săptămânale ale facultății nu se țin atunci.",
+  "timetable.periodHolidayFaculty":
+    "{faculty}: vacanță ({days}). Cursurile săptămânale ale facultății nu se țin atunci.",
   "timetable.periodHolidayPill": "Vacanță",
   "timetable.periodHolidayText":
     "Vacanță: nu sunt cursuri săptămânale, iar rezervările noi sunt închise.",

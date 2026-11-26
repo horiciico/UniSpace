@@ -306,6 +306,17 @@ describe("timetable.js: a calendar per faculty", () => {
     expect($("tt-exam").hidden).toBe(true);
   });
 
+  it("draws a campus room by the all-faculties periods only", async () => {
+    CLASSROOMS[0].faculty_id = null;
+    try {
+      await setup({ periods: () => response([session("f1")]) });
+    } finally {
+      CLASSROOMS[0].faculty_id = "f1";
+    }
+
+    expect(hourLabels()).toHaveLength(8);
+  });
+
   it("follows the selected faculty before anything is chosen", async () => {
     await setup({ entity: false, periods: () => response([session("f1")]) });
     expect($("tt-period").hidden).toBe(false);
@@ -325,7 +336,11 @@ describe("timetable.js: a calendar per faculty", () => {
   async function mine(periods, faculties = FACS) {
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(NOW);
-    window.history.replaceState(null, "", "/timetable?mode=mine&date=2026-12-07");
+    window.history.replaceState(
+      null,
+      "",
+      "/timetable?mode=mine&date=2026-12-07",
+    );
     mountPage("pages/student/timetable.html");
     await loadI18n("en");
     window.UniSpaceI18n.setLanguage("en");
@@ -386,6 +401,12 @@ describe("timetable.js: a calendar per faculty", () => {
     expect(lines()).toEqual([
       "Exam session Exam session on Thu, Fri, Sat, Sun: weekly courses are not held then, and rooms are booked by the hour, 08:00 to 22:00.",
     ]);
+  });
+
+  it("follows the all-faculties periods when the professor has no courses", async () => {
+    await mine([session(null)], []);
+
+    expect(hourLabels()).toHaveLength(14);
   });
 
   it("translates the faculty lines when the language changes", async () => {

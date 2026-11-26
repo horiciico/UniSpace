@@ -8,6 +8,13 @@ Each entry follows the same shape:
 
 ```
 
+## 2026-11-26 · Academic calendar per faculty: screens (D-028)
+Tool: Claude Code, claude-sonnet-5-5
+What I asked: approved the updated mocks ("go for it"): build the per-faculty screens.
+What I got: a faculty field and column on the admin calendar tab; `modules.js` picks periods by faculty; the timetable follows the room's, the selected or the professor's faculties, with one banner line per affected faculty in "Orarul meu"; the Bookings pickers follow the room's faculty; the banner's bottom spacing fixed after the browser check; RO and EN keys.
+Tests changed (named as required), all in `admin-calendar.test.js`: "lists the periods with a type badge, the dates and the actions" (a Faculty column); "adds a period, shows a toast and loads the list again" (the body has `faculty_id`); "explains a %i answer and keeps the form open" for 409, and "asks before it deletes, and keeps the period on Keep" (the wording of the confirmed mock). New tests in the four calendar test files.
+Result: `node scripts/test-all.mjs`: all suites pass. Browser check: headless Chrome with a stubbed API, admin tab and "Orarul meu", English light wide and Romanian dark narrow. The signed-in stack was not checked.
+
 ## 2026-11-26 · Academic calendar per faculty: backend (D-028)
 Tool: Claude Code, claude-sonnet-5-5
 What I asked: make the academic calendar configurable for each faculty, since the year structures differ. Answers given: all-faculties periods as the default with faculty overrides; a room booking follows the room's faculty; "Orarul meu" is per faculty; it goes into PR #37. Plan approved; D-027 superseded by D-028, C-009 and C-010 updated.

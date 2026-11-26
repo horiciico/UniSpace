@@ -92,12 +92,17 @@ interface Window {
       end: string;
     }>;
     hoursEndMin: number;
-    typeOnDate(periods: any[], iso: string): string;
+    typeOnDate(periods: any[], iso: string, facultyId?: string): string;
     weekInfo(
       periods: any[],
       mondayIso: string,
+      facultyId?: string,
     ): { type: string; hourly: boolean; days: string[] };
-    nextExamSession(periods: any[], todayIso: string): any | null;
+    nextExamSession(
+      periods: any[],
+      todayIso: string,
+      facultyIds?: string[],
+    ): any | null;
     slotsFor(type: string): any[];
     clock(min: number): string;
     endMin: number;

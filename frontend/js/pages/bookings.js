@@ -6,7 +6,7 @@
  * fills the form in (see js/bookings.js for the link). Names and times from the backend are shown
  * as they arrive (D-012); the words around them come from the dictionaries.
  *
- * The academic calendar (D-027, C-010) shapes the time pickers by the chosen date: modules on a
+ * The academic calendar of the room's faculty (D-028, C-010) shapes the time pickers by the date: modules on a
  * teaching day (also when no period covers it), whole hours from 08:00 to 22:00 in an exam
  * session, and no booking on a holiday. The backend checks the same rules when the form is sent.
  * A time from the link that the date does not offer is never replaced: the picker stays unchosen
@@ -173,12 +173,22 @@
     label.textContent = t(key);
   }
 
-  // The pickers, their labels and the note follow the type of the chosen date. On a holiday the
-  // form cannot be sent. Called when the date changes and when the periods arrive.
+  // The faculty whose calendar counts: the one whose rooms are listed ("campus" has none of its
+  // own). Until the faculties are listed, the one from the link.
+  function calendarFaculty() {
+    return facultySelect.options.length > 1
+      ? facultySelect.value
+      : prefill.faculty_id;
+  }
+
+  // The pickers, their labels and the note follow the type of the chosen date for that faculty. On
+  // a holiday the form cannot be sent. Called when the date or the faculty changes and when the
+  // periods or the faculties arrive.
   function refreshDay() {
     var type = window.UniSpaceModules.typeOnDate(
       state.periods,
       dateInput.value,
+      calendarFaculty(),
     );
     var hourlyChanged =
       (type === "EXAM_SESSION") !== (state.dayType === "EXAM_SESSION");
@@ -231,6 +241,7 @@
           facultySelect.appendChild(option);
         });
         facultySelect.value = chosen;
+        refreshDay();
       })
       .catch(() => {
         setFormStatus("bookings.loadError", true);
@@ -438,6 +449,7 @@
       // A new faculty starts with no room chosen; the room from the link applies only once.
       prefill.room = "";
       roomSelect.value = "";
+      refreshDay();
       loadRooms();
     });
     dateInput.addEventListener("change", refreshDay);

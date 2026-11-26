@@ -461,7 +461,8 @@ describe("admin calendar tab: a calendar per faculty", () => {
     periods: [OWN],
     routes: { "/api/faculties": () => response(FACULTIES), ...extra },
   });
-  const options = () => [...$("acal-faculty").options].map((o) => o.textContent);
+  const options = () =>
+    [...$("acal-faculty").options].map((o) => o.textContent);
 
   it("shows the faculty of each period and offers every faculty in the form", async () => {
     await openTab(withFaculties());
@@ -502,6 +503,47 @@ describe("admin calendar tab: a calendar per faculty", () => {
     await flush();
 
     expect(JSON.parse(calls(fetch, "PUT")[0][1].body).faculty_id).toBe("f1");
+  });
+
+  it("says when the faculties cannot be loaded, so a new period is not saved blind", async () => {
+    await openTab(withFaculties({ "/api/faculties": () => httpError(500) }));
+
+    $("acal-add").click();
+
+    expect($("acal-form-error").textContent).toBe(
+      "Could not load the faculties. Try again.",
+    );
+  });
+
+  it("fills the list when the faculties arrive after the form is open", async () => {
+    const first = deferred();
+    let asked = 0;
+    await openTab(
+      withFaculties({
+        "/api/faculties": () =>
+          ++asked === 1 ? first.promise : response(FACULTIES),
+      }),
+    );
+    $("acal-add").click();
+
+    first.resolve(httpError(500));
+    await flush();
+    expect($("acal-form-error").textContent).toBe(
+      "Could not load the faculties. Try again.",
+    );
+    expect(options()).toEqual(["All faculties"]);
+
+    // Opening the tab again closes the form and asks once more.
+    const second = deferred();
+    window.fetch.mockImplementationOnce(() => second.promise);
+    tab().click();
+    $("acal-add").click();
+    expect($("acal-form-error").hidden).toBe(false);
+    second.resolve(response(FACULTIES));
+    await flush();
+
+    expect($("acal-form-error").hidden).toBe(true);
+    expect(options()).toHaveLength(3);
   });
 
   it("says what deleting a faculty's own period does", async () => {

@@ -278,7 +278,7 @@
       <div role="tabpanel" id="panel-calendar" aria-labelledby="tab-calendar" hidden>
         <section class="section" aria-labelledby="acal-title">
           <h2 id="acal-title" data-i18n="acal.title">An universitar</h2>
-          <p class="muted mt-3" data-i18n="acal.intro">Stabilește semestrele, sesiunile și vacanțele. Ele hotărăsc ce cursuri săptămânale se țin și ce grilă de timp folosesc rezervările.</p>
+          <p class="muted mt-3" data-i18n="acal.intro">Stabilește semestrele, sesiunile și vacanțele, pentru toate facultățile sau pentru una. Ele hotărăsc ce cursuri săptămânale se țin și ce grilă de timp folosesc rezervările.</p>
           <div class="btn-group mt-3">
             <button class="btn" type="button" id="acal-add" data-i18n="acal.add">Adaugă o perioadă</button>
           </div>
@@ -288,6 +288,7 @@
               <thead>
                 <tr>
                   <th scope="col" data-i18n="acal.colName">Nume</th>
+                  <th scope="col" data-i18n="acal.colFaculty">Facultate</th>
                   <th scope="col" data-i18n="acal.colType">Tip</th>
                   <th scope="col" data-i18n="acal.colStart">Început</th>
                   <th scope="col" data-i18n="acal.colEnd">Sfârșit</th>
@@ -297,7 +298,7 @@
               <tbody id="acal-body"></tbody>
             </table>
           </div>
-          <p class="muted mt-3" id="acal-default-note" data-i18n="acal.defaultNote">Datele fără nicio perioadă sunt săptămâni de predare.</p>
+          <p class="muted mt-3" id="acal-default-note" data-i18n="acal.defaultNote">Perioada proprie a unei facultăți are prioritate față de cea pentru toate facultățile. Datele fără nicio perioadă sunt săptămâni de predare.</p>
           <section class="card mt-5" id="acal-empty" hidden>
             <h2 data-i18n="acal.emptyTitle">Nicio perioadă încă</h2>
             <p data-i18n="acal.emptyText">Orice dată este săptămână de predare până adaugi o perioadă.</p>
@@ -310,6 +311,12 @@
               <label class="field">
                 <span class="field__label" data-i18n="acal.name">Nume</span>
                 <input id="acal-name" type="text" maxlength="150" required />
+              </label>
+              <label class="field">
+                <span class="field__label" data-i18n="acal.faculty">Facultate</span>
+                <select id="acal-faculty">
+                  <option value="" data-i18n="acal.allFaculties">Toate facultățile</option>
+                </select>
               </label>
               <label class="field">
                 <span class="field__label" data-i18n="acal.type">Tip</span>
