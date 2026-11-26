@@ -6,6 +6,7 @@ from pydantic import BaseModel, field_validator
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.academic_calendar import get_period_type_for_date
 from app.auth import get_current_user
 from app.db import get_db
 from app.models import (
@@ -17,7 +18,7 @@ from app.models import (
     Role,
     User,
 )
-from app.planning import LOCAL_TZ, booking_window, hhmm, local_now, occurrences
+from app.planning import LOCAL_TZ, hhmm, local_now, occurrences, validate_booking_times
 
 router = APIRouter(prefix="/api/bookings", tags=["bookings"])
 
@@ -110,7 +111,8 @@ def create_booking(
     if not room.is_bookable:
         raise HTTPException(400, "This room cannot be booked.")
     try:
-        start, end = booking_window(body.start_time, body.end_time)
+        period_type = get_period_type_for_date(db, body.specific_date)
+        start, end = validate_booking_times(period_type, body.start_time, body.end_time)
     except ValueError as exc:
         raise HTTPException(400, str(exc)) from exc
     if datetime.combine(body.specific_date, start, tzinfo=LOCAL_TZ) <= local_now():

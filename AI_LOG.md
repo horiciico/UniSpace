@@ -8,6 +8,14 @@ Each entry follows the same shape:
 
 ```
 
+## 2026-11-26 · Academic calendar, Tasks 3 and 4: weekly activities follow the calendar; booking times follow the period type
+Tool: Claude Code, claude-sonnet-5-5
+What I asked: (3) suppress weekly activities on EXAM_SESSION and HOLIDAY dates in `occurrences()`, keep one-offs; (4) validate booking times by period type: modules (TEACHING), whole hours 08:00 to 22:00 (EXAM_SESSION), closed with 400 (HOLIDAY); tests for both.
+What I got: `backend/app/planning.py`: `_weekly_suppressed_days` (one query per call) used by `_base_occurrences`, and `validate_booking_times(period_type, start, end)` (TEACHING delegates to the unchanged `booking_window`). `backend/app/routers/bookings.py` calls it with `get_period_type_for_date`. Room view, group view, professor schedule, free-room search and the booking clash check all read `occurrences()`, so they follow without other edits. Tests: `test_academic_calendar_planning.py` (occurrences, one-off blocking, `validate_booking_times` cases) and `test_bookings_academic_periods.py` (POST /api/bookings in all three period types, an exam blocking a 12:00 to 14:00 booking, an approved hourly booking blocking another).
+Tests changed: none.
+Not done on purpose (outside the two tasks): the free-room search (`/api/classrooms/free`), the move endpoint and `availability.py` still use the 90-minute modules even on exam-session dates; the timetable UI grid is unchanged. These need their own tasks and a C-003 / C-009 PROPOSAL.
+Not committed at the time of this entry.
+
 ## 2026-11-26 · Academic calendar, Task 2: admin CRUD and the public read endpoint
 Tool: Claude Code, claude-sonnet-5-5
 What I asked: admin-only GET/POST/PUT/DELETE on `/api/admin/academic-periods` (400 inverted dates, 409 overlap, self excluded on update), a read-only `GET /api/academic-periods` for signed-in users, and tests for CRUD, 403, 400 and 409.

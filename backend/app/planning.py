@@ -5,6 +5,8 @@
 - A recurring activity (specific_date NULL) happens on a day when its planning unit covers
   that day, the weekday matches day_of_week, and its parity matches the week number.
 - A one-off activity (specific_date set) happens only on that date (D-008: ISO weekday).
+- On a date inside an EXAM_SESSION or HOLIDAY academic period, weekly activities do not happen;
+  one-off activities still do (D-027).
 - Local dates and times are in Europe/Bucharest.
 """
 
@@ -16,7 +18,15 @@ from zoneinfo import ZoneInfo
 from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session, joinedload
 
-from app.models import Activity, ActivityException, Parity, PlanningTimeUnit, Status
+from app.models import (
+    AcademicPeriod,
+    AcademicPeriodType,
+    Activity,
+    ActivityException,
+    Parity,
+    PlanningTimeUnit,
+    Status,
+)
 
 LOCAL_TZ = ZoneInfo("Europe/Bucharest")
 
@@ -61,6 +71,32 @@ def booking_window(start: time | None, end: time | None) -> tuple[time, time]:
         raise ValueError(
             "a booking starts at the start of a module and ends at the end of a module"
         )
+    return start, end
+
+
+EXAM_DAY_START = time(8, 0)
+EXAM_DAY_END = time(22, 0)  # EXAM_SESSION: whole hours from 08:00 to 22:00 (D-027)
+
+
+def validate_booking_times(
+    period_type: AcademicPeriodType, start: time, end: time
+) -> tuple[time, time]:
+    """The times of a booking on a day of the given period type. Raises ValueError when refused.
+
+    TEACHING: whole modules (booking_window). EXAM_SESSION: whole hours, 08:00 to 22:00, at least
+    one hour. HOLIDAY: no booking.
+    """
+    if period_type == AcademicPeriodType.HOLIDAY:
+        raise ValueError("Bookings are closed on holidays.")
+    if period_type == AcademicPeriodType.TEACHING:
+        return booking_window(start, end)
+    if end <= start:
+        raise ValueError("end_time must be after start_time")
+    for value in (start, end):
+        if value.minute or value.second or value.microsecond:
+            raise ValueError("during an exam session a booking uses whole hours")
+    if start < EXAM_DAY_START or end > EXAM_DAY_END:
+        raise ValueError("during an exam session a booking is between 08:00 and 22:00")
     return start, end
 
 
@@ -181,6 +217,7 @@ def _base_occurrences(db: Session, first: date, last: date, *conditions) -> list
             )
         )
     )
+    suppressed = _weekly_suppressed_days(db, first, last)
     found: list[Occurrence] = []
     for activity, unit_id, unit_start, unit_end in db.execute(stmt).all():
         for offset in range((last - first).days + 1):
@@ -191,6 +228,8 @@ def _base_occurrences(db: Session, first: date, last: date, *conditions) -> list
                 if activity.specific_date == day:
                     found.append(Occurrence(activity, day))
                 continue
+            if day in suppressed:
+                continue
             if not (unit_start <= day <= unit_end):
                 continue
             if (
@@ -200,6 +239,24 @@ def _base_occurrences(db: Session, first: date, last: date, *conditions) -> list
                 continue
             found.append(Occurrence(activity, day, unit_start, unit_id))
     return found
+
+
+def _weekly_suppressed_days(db: Session, first: date, last: date) -> set[date]:
+    """Days in first..last that fall in an EXAM_SESSION or HOLIDAY period (D-027)."""
+    periods = db.scalars(
+        select(AcademicPeriod).where(
+            AcademicPeriod.type != AcademicPeriodType.TEACHING,
+            AcademicPeriod.start_date <= last,
+            AcademicPeriod.end_date >= first,
+        )
+    ).all()
+    days: set[date] = set()
+    for period in periods:
+        day = max(period.start_date, first)
+        while day <= min(period.end_date, last):
+            days.add(day)
+            day += timedelta(days=1)
+    return days
 
 
 def week_info(unit_start: date, monday: date) -> tuple[int, Parity]:
