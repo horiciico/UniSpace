@@ -81,7 +81,15 @@ def test_an_admin_creates_lists_updates_and_deletes_a_period(admin: TestClient) 
     assert period["type"] == "TEACHING"
     assert period["start_date"] == "2041-10-01"
     assert period["end_date"] == "2041-12-20"
-    assert set(period) == {"id", "name", "type", "start_date", "end_date"}
+    assert set(period) == {
+        "id",
+        "name",
+        "type",
+        "start_date",
+        "end_date",
+        "faculty_id",
+        "faculty_name",
+    }
 
     assert period in admin.get(URL).json()
 

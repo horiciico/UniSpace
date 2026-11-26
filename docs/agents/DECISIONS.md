@@ -32,7 +32,7 @@
 - D-024 · Admin-managed room fields are never written by the classroom ETL
 - D-025 · Admins invite users by email; an invitation admits a new account; admin-set roles persist
 - D-026 · A professor moves one teaching occurrence; it takes effect at once and blocks on conflicts
-- D-027 · The academic calendar (`academic_periods`) decides the time grid and whether weekly courses run
+- D-028 · Each faculty has its own academic calendar, with all-faculties periods as the default
 
 ---
 
@@ -54,7 +54,7 @@
 - **Rejected:** none stated
 - **Evidence:** backend/alembic.ini, backend/alembic/env.py, backend/app/db.py:9
 - **Source:** user · confidence high
-- **Confirmed:** 2026-11-12
+- **Confirmed:** 2026-11-26
 
 ## D-003 · Frontend is plain HTML, CSS and JavaScript
 - **Status:** approved
@@ -94,7 +94,7 @@
 - **Rejected:** integer keys
 - **Evidence:** backend/app/models/*.py, backend/alembic/versions/20261111_84fcf3042b4d_scheduling_schema.py
 - **Source:** user · confidence high
-- **Confirmed:** 2026-11-12
+- **Confirmed:** 2026-11-26
 
 ## D-007 · Booking priority scale is 1 to 5
 - **Status:** approved
@@ -142,7 +142,7 @@
 - **Rejected:** a translation library (a dependency with no need yet); JSON fetched at run time; a reload on switch
 - **Evidence:** frontend/i18n/i18n.js, frontend/i18n/ro.js, frontend/i18n/en.js, frontend/components/app.js, frontend/components/header.js, backend/tests/test_i18n.py
 - **Source:** user · confidence high
-- **Confirmed:** 2026-11-17
+- **Confirmed:** 2026-11-26
 
 ## D-012 · Records from the backend are shown as they arrive, not translated in the frontend
 - **Status:** approved
@@ -152,7 +152,7 @@
 - **Rejected:** translating course and room names in the frontend
 - **Evidence:** frontend/pages/student/timetable.html, frontend/js/pages/timetable.js, frontend/pages/student/rooms/index.html
 - **Source:** user · confidence high
-- **Confirmed:** 2026-11-17
+- **Confirmed:** 2026-11-26
 
 ## D-014 · Parity is by week number: 0 ALL, 1 ODD, 2 EVEN
 - **Status:** approved
@@ -248,7 +248,7 @@
 - **Rejected:** a single column for the formation only (a formation can appear under more than one faculty in the data, so the faculty would be a guess); a dialog the student can skip; a new `student_groups.faculty_id` column (a schema and loader change for a list the existing lookup already gives).
 - **Evidence:** backend/alembic/versions/20261123_b0f9c8035187_user_study_profile_faculty_and_formation.py, backend/app/models/user.py (needs_onboarding), backend/app/routers/study_profile.py, backend/app/routers/lookups.py (faculty_groups), frontend/components/onboarding.js
 - **Source:** user (request and answers, 2026-11-23) · confidence high
-- **Confirmed:** 2026-11-23
+- **Confirmed:** 2026-11-26
 
 ## D-023 · Any signed-in user can request a room; an admin's booking is approved at once
 - **Status:** approved
@@ -296,16 +296,16 @@
 - **Source:** user (business rules 1 to 6, pasted spec "Business Rules (Approved)", 2026-11-26) · confidence high
 - **Confirmed:** 2026-11-26
 
-## D-027 · The academic calendar (`academic_periods`) decides the time grid and whether weekly courses run
+## D-028 · Each faculty has its own academic calendar, with all-faculties periods as the default
 - **Status:** approved
 - **Date:** 2026-11-26
-- **Rule:** `academic_periods` rows (global, inclusive `start_date`..`end_date`, no overlaps) are set by an admin. For any date the type is the covering period's, or `TEACHING` when none covers it.
+- **Rule:** An `academic_periods` row belongs to one faculty (`faculty_id`) or to all faculties (`faculty_id` NULL). Periods are set by an admin, `start_date`..`end_date` inclusive, with no overlaps within the same faculty or within the all-faculties rows. For a faculty and a date the type is: the faculty's own covering period, else the all-faculties covering period, else `TEACHING`.
   - `TEACHING`: the 90-minute module grid; weekly recurring courses are active.
-  - `EXAM_SESSION`: hourly grid 08:00 to 22:00, whole hours only, minimum 1 hour; weekly recurring courses are suppressed; exams and student bookings use the hourly grid.
+  - `EXAM_SESSION`: hourly grid 08:00 to 22:00, whole hours only, minimum 1 hour; weekly recurring courses are suppressed.
   - `HOLIDAY`: weekly recurring courses are suppressed; new bookings are disabled.
-  Overlap is enforced by the application helper; the database only checks `start_date <= end_date`. Changes to the grid, booking and free-room contracts (C-009 and others) are made task by task, each with its own PROPOSAL.
-- **Why:** The user wants one source of truth for the timetable and for booking validation (spec "Academic Calendar", 2026-11-26).
-- **Rejected:** per-faculty periods; a database exclusion constraint (user chose helper only).
-- **Evidence:** backend/app/academic_calendar.py, backend/app/models/academic_period.py, backend/tests/test_academic_calendar.py (Task 1; later tasks add the grid and booking uses)
-- **Source:** user (spec, answers and approval, 2026-11-26) · confidence high
+  Which faculty counts: a weekly course follows the faculty of its planning unit; a room booking follows the room's faculty (a campus room follows the all-faculties periods); the timetable follows the room's faculty in the room view and the selected faculty in the group and professor views; in "Orarul meu" each course follows its own faculty, the banner names the affected faculties, and the grid is hourly when any of them is in an exam session. Overlap is enforced by the application helper; the database only checks `start_date <= end_date`.
+- **Why:** The faculties do not have the same year structure (user, 2026-11-26).
+- **Rejected:** per-faculty periods only (a shared holiday would be entered once per faculty and campus rooms would have no calendar); the booker's faculty for room bookings (one room would have different times per person); all-faculties-only banner and grid in "Orarul meu"; a database exclusion constraint.
+- **Evidence:** backend/app/academic_calendar.py, backend/app/planning.py, backend/app/routers/academic_periods.py, backend/tests/test_academic_calendar_faculty.py
+- **Source:** user (request, answers and plan approval, 2026-11-26) · confidence high
 - **Confirmed:** 2026-11-26
