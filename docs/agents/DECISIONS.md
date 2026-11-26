@@ -291,6 +291,6 @@
   6. A PROFESSOR user with no matching `professors` row has no activities and cannot move any; the app shows an empty state.
 - **Why:** The user approved these rules for the professor reschedule flow (PR 1), which is also the base of Schedule Exam (PR 2). Single occurrences keep the schedule correct for one week without a permanent change.
 - **Rejected:** a cancel action (a move replaces it); a permanent change from the professor's own screen (admin request, D-016); a move that needs admin approval.
-- **Evidence:** backend/app/professors.py (get_professor_for_user), backend/app/routers/professors.py, backend/app/availability.py, backend/app/planning.py (occurrences), backend/tests/test_professor_timetable.py, backend/tests/test_professor_availability.py. Rule 4 and 5 are not yet enforced by a move endpoint (the move action is a later step of PR 1).
+- **Evidence:** backend/app/professors.py (get_professor_for_user), backend/app/routers/professors.py, backend/app/availability.py, backend/app/planning.py (occurrences), backend/tests/test_professor_timetable.py, backend/tests/test_professor_availability.py. Rules 1 to 6 are enforced by the move endpoint (C-009, backend/app/moves.py, backend/tests/test_professor_move.py). The frontend Move Activity modal is not built yet.
 - **Source:** user (business rules 1 to 6, pasted spec "Business Rules (Approved)", 2026-11-26) · confidence high
 - **Confirmed:** 2026-11-26

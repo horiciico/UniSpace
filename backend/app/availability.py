@@ -105,3 +105,44 @@ def day_availability(
             }
         )
     return modules
+
+
+def slot_clashes(
+    db: Session,
+    day: date,
+    start: time,
+    end: time,
+    professor_id: uuid.UUID,
+    groups: list[tuple[uuid.UUID, str]],
+    room_id: uuid.UUID,
+    exclude_activity_id: uuid.UUID | None = None,
+) -> list[str]:
+    """Why the professor, a group or the room cannot use start-end on the day; [] when all are free.
+
+    The excluded activity's own occurrence on `day` does not count (a move's own original slot).
+    Approved bookings block the room; pending ones do not (D-023).
+    """
+    reasons: list[str] = []
+    clash = _first_clash(
+        _busy_of(db, day, exclude_activity_id, Activity.professor_id == professor_id), start, end
+    )
+    if clash is not None:
+        reasons.append(f"Professor busy: {clash[0]} {hhmm(clash[1])}-{hhmm(clash[2])}.")
+    for group_id, group_name in groups:
+        in_group = Activity.id.in_(
+            select(ActivityGroup.activity_id).where(ActivityGroup.group_id == group_id)
+        )
+        clash = _first_clash(_busy_of(db, day, exclude_activity_id, in_group), start, end)
+        if clash is not None:
+            reasons.append(f"Group {group_name} busy: {clash[0]}.")
+
+    room_busy = _busy_of(db, day, exclude_activity_id, Activity.classroom_id == room_id)
+    room_busy += [
+        ("an approved booking", booked_start, booked_end)
+        for booked_room, booked_start, booked_end in approved_busy(db, day)
+        if booked_room == room_id
+    ]
+    clash = _first_clash(room_busy, start, end)
+    if clash is not None:
+        reasons.append(f"Room busy: {clash[0]} {hhmm(clash[1])}-{hhmm(clash[2])}.")
+    return reasons

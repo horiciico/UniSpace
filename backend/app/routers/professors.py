@@ -10,9 +10,10 @@ Only a PROFESSOR user has these (403 otherwise). A PROFESSOR with no professors 
 """
 
 import uuid
-from datetime import date, timedelta
+from datetime import date, time, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel
 from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
 
@@ -20,11 +21,20 @@ from app.auth import get_current_user
 from app.availability import day_availability
 from app.db import get_db
 from app.models import Activity, Classroom, PlanningTimeUnit, Role, Status, StudentGroup, User
+from app.moves import move_occurrence
 from app.planning import hhmm, local_today, occurrences, week_monday
 from app.professors import get_professor_for_user
 from app.routers.schedule import activity_items
 
 router = APIRouter(prefix="/api/professors", tags=["professors"])
+
+
+class MoveIn(BaseModel):
+    original_date: date
+    new_date: date
+    start_time: time
+    end_time: time
+    new_classroom_id: uuid.UUID
 
 
 def _require_professor(user: User) -> None:
@@ -126,4 +136,40 @@ def my_availability(
         "date": day.isoformat(),
         "professor_id": str(professor.id),
         "modules": day_availability(db, day, professor.id, groups, exclude_activity_id),
+    }
+
+
+@router.post("/me/activities/{activity_id}/move")
+def move_activity(
+    activity_id: uuid.UUID,
+    body: MoveIn,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Move one occurrence of an activity the signed-in professor teaches (D-026, step 3)."""
+    _require_professor(user)
+    professor = get_professor_for_user(db, user)
+    if professor is None:
+        raise HTTPException(403, "Your account is not linked to a professor record.")
+    new, room = move_occurrence(
+        db,
+        professor,
+        user,
+        activity_id,
+        body.original_date,
+        body.new_date,
+        body.start_time,
+        body.end_time,
+        body.new_classroom_id,
+        local_today(),
+    )
+    return {
+        "id": str(new.id),
+        "original_date": body.original_date.isoformat(),
+        "date": body.new_date.isoformat(),
+        "start_time": hhmm(new.start_time),
+        "end_time": hhmm(new.end_time),
+        "room_id": str(room.id),
+        "room_name": room.name,
+        "title": new.name,
     }

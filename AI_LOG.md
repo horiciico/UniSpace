@@ -8,6 +8,15 @@ Each entry follows the same shape:
 
 ```
 
+## 2026-11-26 · Professor schedule, step 3: move one occurrence (backend) and the audit
+Tool: Claude Code, claude-haiku-5-5
+What I asked: step 3 of PR 1: `POST /api/professors/me/activities/{activity_id}/move`, with the approved answers (weekly move = exception with `is_cancelled = true` plus a new one-off; one-off move = new one-off and old one `CANCELLED`, imported ones marked `is_manually_modified`; whole modules; bookable room; no new date before today; 409/400/403; same-day move keeps the activity's own slot out of the checks; groups copied as `ActivityGroup` rows).
+What I got: `backend/app/moves.py` (`move_occurrence`: the checks, then one atomic commit; an `IntegrityError` becomes 409). `backend/app/availability.py` (`slot_clashes`: the professor, group and room check, with reasons; shares the helpers of step 2). `backend/app/routers/professors.py` (the endpoint, with a `MoveIn` body). The response has the new one-off's id.
+Audit: every timing read goes through `planning.occurrences()`, which applies exceptions, cancellations and moves, so the vacated slot is free for the free-room search, the timetable, the booking clash check and availability. Direct reads of activity timing outside it: none found (the movable list and the unit count read names and dates, not occurrences). The known gap is Q-018: `occurrences()` ignores `ActivityException.new_classroom_id`. The move never sets that field, so the gap does not affect it. No query was changed.
+Tests: `backend/tests/test_professor_move.py`, 23 tests written before the code. One of them was wrong and was fixed before the first green run: it checked the whole week's timetable for Tuesday, but the moved one-off on Wednesday is in the same week. It now checks Tuesday's entries only. Named here as a change to a test I wrote this session.
+Ledger: C-009 gained the POST endpoint (it is part of the approved step 3 spec, with no consumers yet). D-026's evidence line now says rules 1 to 6 are enforced by the endpoint, instead of "not yet". Ledger lint passes.
+Result: `node scripts/test-all.mjs`: 826 tests in 7 suites, lint and types pass; `docker compose config` and `docker compose build backend` pass. Not committed at the time of this entry.
+
 ## 2026-11-26 · Ledger lint: crash on Windows consoles fixed
 Tool: Claude Code, claude-haiku-5-5
 What I asked: fix the ledger lint crash.
