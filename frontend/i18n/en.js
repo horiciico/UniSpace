@@ -526,6 +526,8 @@ window.UniSpaceI18n.register("en", {
   "timetable.moveBusy": "Busy",
   "timetable.moveNoRoom":
     "No room is free in this module. Choose another module.",
+  "timetable.moveFaculty": "Faculty",
+  "timetable.moveAllFaculties": "All faculties",
   "timetable.moveSeats": "{n} seats",
   "timetable.moveDone": "The activity has been moved.",
   "timetable.moveFailed": "The activity could not be moved.",

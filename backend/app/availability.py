@@ -14,7 +14,7 @@ from datetime import date, time
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import Activity, ActivityGroup, Classroom
+from app.models import Activity, ActivityGroup, Classroom, Faculty
 from app.planning import MODULES, hhmm, occurrences
 from app.routers.bookings import approved_busy
 
@@ -69,8 +69,12 @@ def day_availability(
     for room_id, start, end in approved_busy(db, day):
         room_busy[room_id].append((start, end))
 
-    rooms = db.scalars(
-        select(Classroom).where(Classroom.is_bookable.is_(True)).order_by(Classroom.name)
+    # Each room with the name of the faculty that owns it (None for a campus room).
+    rooms = db.execute(
+        select(Classroom, Faculty.name)
+        .outerjoin(Faculty, Faculty.id == Classroom.faculty_id)
+        .where(Classroom.is_bookable.is_(True))
+        .order_by(Classroom.name)
     ).all()
 
     modules = []
@@ -91,8 +95,10 @@ def day_availability(
                 "capacity": room.capacity,
                 "has_projector": room.has_projector,
                 "is_field_verified": room.is_field_verified,
+                "faculty_id": str(room.faculty_id) if room.faculty_id else None,
+                "faculty_name": faculty_name,
             }
-            for room in rooms
+            for room, faculty_name in rooms
             if not any(_overlaps(start, end, s, e) for s, e in room_busy.get(room.id, []))
         ]
         modules.append(

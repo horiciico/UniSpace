@@ -537,6 +537,8 @@ window.UniSpaceI18n.register("ro", {
   "timetable.moveBusy": "Ocupat",
   "timetable.moveNoRoom":
     "Nicio sală liberă în acest interval. Alege alt interval.",
+  "timetable.moveFaculty": "Facultate",
+  "timetable.moveAllFaculties": "Toate facultățile",
   "timetable.moveSeats": "{n} locuri",
   "timetable.moveDone": "Activitatea a fost mutată.",
   "timetable.moveFailed": "Nu am putut muta activitatea.",

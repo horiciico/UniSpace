@@ -181,20 +181,65 @@
       });
   }
 
-  function fillRooms(rooms) {
+  // The free rooms of the module, and the faculty filter over them. A room with no faculty is
+  // a campus room, keyed "campus" in the filter.
+  var roomsOfModule = [];
+
+  function facultyKey(room) {
+    return room.faculty_id || "campus";
+  }
+
+  function option(value, text) {
+    var item = document.createElement("option");
+    item.value = value;
+    item.textContent = text;
+    return item;
+  }
+
+  function roomOption(room) {
+    return option(
+      room.id,
+      room.capacity === null || room.capacity === undefined
+        ? room.name
+        : room.name + " · " + t("timetable.moveSeats", { n: room.capacity }),
+    );
+  }
+
+  // One entry per faculty that owns a free room, in the order the rooms arrive.
+  function fillFaculties(rooms) {
+    var select = $("mv-faculty");
+    select.textContent = "";
+    select.appendChild(option("", t("timetable.moveAllFaculties")));
+    var seen = {};
+    rooms.forEach((room) => {
+      var key = facultyKey(room);
+      if (seen[key]) return;
+      seen[key] = true;
+      select.appendChild(
+        option(key, room.faculty_id ? room.faculty_name : t("common.campus")),
+      );
+    });
+    select.value = "";
+  }
+
+  function renderRooms() {
+    var chosen = $("mv-faculty").value;
+    var shown = roomsOfModule.filter(
+      (room) => chosen === "" || facultyKey(room) === chosen,
+    );
     var select = $("mv-room");
     select.textContent = "";
-    rooms.forEach((room) => {
-      var option = document.createElement("option");
-      option.value = room.id;
-      option.textContent =
-        room.capacity === null || room.capacity === undefined
-          ? room.name
-          : room.name + " · " + t("timetable.moveSeats", { n: room.capacity });
-      select.appendChild(option);
+    shown.forEach((room) => {
+      select.appendChild(roomOption(room));
     });
-    $("mv-noroom").hidden = rooms.length > 0;
-    $("mv-submit").disabled = rooms.length === 0;
+    $("mv-noroom").hidden = shown.length > 0;
+    $("mv-submit").disabled = shown.length === 0;
+  }
+
+  function fillRooms(rooms) {
+    roomsOfModule = rooms;
+    fillFaculties(rooms);
+    renderRooms();
   }
 
   function toStep2() {
@@ -285,6 +330,7 @@
   $("mv-back-3").addEventListener("click", () => showStep(2));
   $("mv-next-3").addEventListener("click", toStep4);
   $("mv-back-4").addEventListener("click", () => showStep(3));
+  $("mv-faculty").addEventListener("change", renderRooms);
   $("mv-submit").addEventListener("click", submit);
   $("mv-cancel").addEventListener("click", () => dialog.close());
 

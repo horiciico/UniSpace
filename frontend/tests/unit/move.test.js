@@ -50,6 +50,8 @@ const FREE_MODULE = {
       capacity: 30,
       has_projector: true,
       is_field_verified: true,
+      faculty_id: "f1",
+      faculty_name: "Facultatea de Drept",
     },
     {
       id: "r2",
@@ -57,6 +59,17 @@ const FREE_MODULE = {
       capacity: null,
       has_projector: null,
       is_field_verified: false,
+      faculty_id: null,
+      faculty_name: null,
+    },
+    {
+      id: "r3",
+      name: "Sala 2",
+      capacity: 12,
+      has_projector: false,
+      is_field_verified: false,
+      faculty_id: "f1",
+      faculty_name: "Facultatea de Drept",
     },
   ],
 };
@@ -435,7 +448,7 @@ describe("move.js: step 4 (the room) and the move", () => {
     await toStep4();
 
     const options = [...$("mv-room").options].map((o) => o.textContent);
-    expect(options).toEqual(["Sala 1 · 30 seats", "Lab"]);
+    expect(options).toEqual(["Sala 1 · 30 seats", "Lab", "Sala 2 · 12 seats"]);
     expect($("mv-noroom").hidden).toBe(true);
     expect($("mv-submit").disabled).toBe(false);
     expect(visibleStep()).toEqual([4]);
@@ -600,5 +613,75 @@ describe("move.js: closing and language", () => {
     await loadScript("js/move.js");
 
     expect(window.UniSpaceMove).toBeUndefined();
+  });
+});
+
+describe("move.js: the faculty filter on step 4", () => {
+  beforeEach(() => {
+    vi.resetModules();
+    delete window.UniSpaceMove;
+  });
+
+  async function toRooms() {
+    await toStep3();
+    $("mv-modules").querySelectorAll("button")[1].click();
+    $("mv-next-3").click();
+    await flush();
+  }
+
+  const roomNames = () => [...$("mv-room").options].map((o) => o.textContent);
+  const pickFaculty = (value) => {
+    $("mv-faculty").value = value;
+    $("mv-faculty").dispatchEvent(new Event("change"));
+  };
+
+  it("lists the faculties of the free rooms once each, with the campus rooms as Campus", async () => {
+    await setup();
+    await toRooms();
+
+    const names = [...$("mv-faculty").options].map((o) => o.textContent);
+    expect(names).toEqual(["All faculties", "Facultatea de Drept", "Campus"]);
+    expect($("mv-faculty").value).toBe("");
+  });
+
+  it("shows only the rooms of the chosen faculty, then the campus rooms, then all again", async () => {
+    await setup();
+    await toRooms();
+
+    pickFaculty("f1");
+    expect(roomNames()).toEqual(["Sala 1 · 30 seats", "Sala 2 · 12 seats"]);
+
+    pickFaculty("campus");
+    expect(roomNames()).toEqual(["Lab"]);
+
+    pickFaculty("");
+    expect(roomNames()).toHaveLength(3);
+    expect($("mv-noroom").hidden).toBe(true);
+  });
+
+  it("starts again on all faculties each time step 4 opens", async () => {
+    await setup();
+    await toRooms();
+    pickFaculty("campus");
+
+    $("mv-back-4").click();
+    $("mv-next-3").click();
+
+    expect($("mv-faculty").value).toBe("");
+    expect(roomNames()).toHaveLength(3);
+  });
+
+  it("says no room is free when the module has none", async () => {
+    await setup({
+      "/api/professors/me/availability": () =>
+        response({ modules: [{ ...FREE_MODULE, free_classrooms: [] }] }),
+    });
+    await toStep3();
+    $("mv-modules").querySelectorAll("button")[0].click();
+    $("mv-next-3").click();
+
+    expect($("mv-faculty").options).toHaveLength(1);
+    expect($("mv-noroom").hidden).toBe(false);
+    expect($("mv-submit").disabled).toBe(true);
   });
 });

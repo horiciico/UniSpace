@@ -194,6 +194,7 @@ def world(db: Session) -> dict:
         return activity
 
     return {
+        "faculty": faculty,
         "email": email,
         "ulbs_id": ulbs_id,
         "room_a": room_a,
@@ -520,7 +521,15 @@ def test_a_free_room_has_the_room_fields(db, world, monkeypatch) -> None:
 
     room = module_at(get_day(client, MON), M0[0])["free_classrooms"][0]
 
-    assert set(room) == {"id", "name", "capacity", "has_projector", "is_field_verified"}
+    assert set(room) == {
+        "id",
+        "name",
+        "capacity",
+        "has_projector",
+        "is_field_verified",
+        "faculty_id",
+        "faculty_name",
+    }
 
 
 # --- who may ask ---------------------------------------------------------------------------
@@ -551,3 +560,20 @@ def test_a_missing_date_is_422(db, world, monkeypatch) -> None:
     signed_in_professor(db, client, monkeypatch, world)
 
     assert client.get("/api/professors/me/availability").status_code == 422
+
+
+def test_each_free_room_says_which_faculty_owns_it(db, world, monkeypatch) -> None:
+    client = make_client(db)
+    campus = Classroom(name=f"Campus-{uuid.uuid4().hex[:6]}", capacity=12, is_bookable=True)
+    db.add(campus)
+    db.flush()
+    signed_in_professor(db, client, monkeypatch, world)
+
+    rooms = {r["id"]: r for r in module_at(get_day(client, MON), M0[0])["free_classrooms"]}
+
+    owned = rooms[str(world["room_a"].id)]
+    assert owned["faculty_id"] == str(world["faculty"].id)
+    assert owned["faculty_name"] == "Facultatea de Test"
+    campus_room = rooms[str(campus.id)]
+    assert campus_room["faculty_id"] is None
+    assert campus_room["faculty_name"] is None

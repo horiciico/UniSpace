@@ -8,6 +8,14 @@ Each entry follows the same shape:
 
 ```
 
+## 2026-11-26 · Move dialog: faculty filter for the room step
+Tool: Claude Code, claude-haiku-5-5
+What I asked: on the room step of the Move Activity dialog, a faculty filter, so the professor picks the faculty whose rooms are offered.
+What I got: `backend/app/availability.py`: each free room carries `faculty_id` and `faculty_name` (null for a campus room). `frontend/js/move.js`: a faculty select above the room select, with "All faculties" first and one entry per faculty of the free rooms (campus as "Campus"); the room list follows it, and each time step 4 opens it starts on all faculties. `frontend/pages/student/timetable.html`: the select. `frontend/i18n`: `timetable.moveFaculty`, `timetable.moveAllFaculties`. C-009 shape updated.
+Design note: DESIGN.md asks for a mock before a changed screen is built. This is a field added to the confirmed step 4, placed like the other fields; the user asked for it directly. Flagged here for confirmation.
+Tests changed (named as required): `backend/tests/test_professor_availability.py::test_a_free_room_has_the_room_fields` (exact key set now includes the two faculty fields); `frontend/tests/unit/move.test.js` "lists only the free rooms of the module, with their seats" (the fixture now has a third room, so the expected list has three rooms). Test rooms in move.test.js gained faculty fields. New tests: `test_each_free_room_says_which_faculty_owns_it`; the "faculty filter" describe block in move.test.js.
+Result: backend professor tests pass; frontend 463 tests, lint and types pass. The full suite and the commit follow in the same session. No browser re-check this time (it would need another temporary session).
+
 ## 2026-11-26 · Professor schedule, step 4 (part 2): "Orarul meu" tab and the Move Activity dialog (frontend)
 Tool: Claude Code, claude-haiku-5-5
 What I asked: build the confirmed mock (DS-unispace-timetable-move): the "Orarul meu" tab for professors, the move button, the four-step dialog.
