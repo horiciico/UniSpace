@@ -12,6 +12,7 @@ import logging
 import smtplib
 from datetime import UTC, date, datetime, time
 from email.message import EmailMessage as MailMessage
+from pathlib import Path
 
 import pytest
 from fastapi import BackgroundTasks
@@ -368,7 +369,7 @@ def test_user_text_is_escaped_in_the_html_part(
     assert "&lt;i&gt;Room&lt;/i&gt;" in html_part
     assert "&lt;img" in html_part
     assert "<b>Seminar</b>" not in html_part
-    assert "<img" not in html_part
+    assert '<img src="x"' not in html_part  # the logo is an <img>; the user's tag must not be
 
 
 def test_the_rejection_gives_the_reason_only_when_there_is_one(
@@ -394,3 +395,96 @@ def test_the_rejection_gives_the_reason_only_when_there_is_one(
     assert "Reason: Sală ocupată" in with_reason.get_body(("plain",)).get_content()
     assert "Motiv" not in without_reason.get_body(("plain",)).get_content()
     assert "Reason" not in without_reason.get_body(("plain",)).get_content()
+
+
+def test_blank_settings_fall_back_to_the_defaults(monkeypatch: pytest.MonkeyPatch) -> None:
+    # .env.example leaves some values blank; a blank value must not stop the app from starting.
+    for name in EMAIL_SETTINGS:
+        monkeypatch.setenv(name, "")
+    try:
+        importlib.reload(config)
+        assert config.EMAIL_BACKEND == "console"
+        assert config.SMTP_HOST == "smtp.gmail.com"
+        assert config.SMTP_PORT == 587
+        assert config.SMTP_FROM_EMAIL == "noreply@unispace.local"
+        assert config.SMTP_FROM_NAME == "UniSpace"
+        assert config.SMTP_USE_TLS is True
+        assert config.APP_BASE_URL == "http://localhost:8080"
+    finally:
+        monkeypatch.undo()
+        importlib.reload(config)
+
+
+# ---- The logo (every HTML email) --------------------------------------------
+
+LOGO_BYTES = (
+    Path(__file__).resolve().parents[1] / "app" / "assets" / "brand-mark.png"
+).read_bytes()
+
+
+def _logo_parts(mail: MailMessage) -> list[MailMessage]:
+    return [
+        part
+        for part in mail.walk()
+        if part.get_content_type() == "image/png" and part["Content-ID"] == "<unispace-logo>"
+    ]
+
+
+@pytest.mark.parametrize(
+    "send_it",
+    [
+        lambda: send_invitation_email(
+            "guest@example.test", "STUDENT", LINK, datetime(2026, 12, 3, 10, 30, tzinfo=UTC)
+        ),
+        lambda: send_booking_approved_email(
+            "guest@example.test", "Aula Ș", date(2026, 12, 5), time(10, 0), time(12, 0), "Seminar"
+        ),
+        lambda: send_booking_rejected_email(
+            "guest@example.test",
+            "Aula Ș",
+            date(2026, 12, 5),
+            time(10, 0),
+            time(12, 0),
+            "Seminar",
+            None,
+        ),
+    ],
+    ids=["invitation", "approved", "rejected"],
+)
+def test_every_html_email_carries_the_logo_inline(
+    monkeypatch: pytest.MonkeyPatch, fake_smtp: type[FakeSMTP], send_it
+) -> None:
+    _smtp_settings(monkeypatch)
+
+    send_it()
+
+    mail = fake_smtp.instances[0].sent[0]
+    html_part = mail.get_body(("html",)).get_content()
+    assert 'src="cid:unispace-logo"' in html_part
+    logos = _logo_parts(mail)
+    assert len(logos) == 1
+    assert logos[0].get_payload(decode=True) == LOGO_BYTES
+    assert logos[0].get_content_disposition() == "inline"
+
+
+def test_the_plain_text_part_has_no_logo(
+    monkeypatch: pytest.MonkeyPatch, fake_smtp: type[FakeSMTP]
+) -> None:
+    _smtp_settings(monkeypatch)
+
+    send_email("guest@example.test", "Subject", "plain text", "<p>html</p>")
+
+    assert "cid:" not in fake_smtp.instances[0].sent[0].get_body(("plain",)).get_content()
+
+
+def test_a_sent_email_is_logged_by_subject_only(
+    monkeypatch: pytest.MonkeyPatch, fake_smtp: type[FakeSMTP], caplog: pytest.LogCaptureFixture
+) -> None:
+    # Visible in the container log, so a sent message can be seen without reading the mailbox.
+    _smtp_settings(monkeypatch)
+    caplog.set_level(logging.INFO, logger="app.email_service")
+
+    send(_message())
+
+    assert "Email 'Test subject' sent." in caplog.text
+    assert "guest@example.test" not in caplog.text

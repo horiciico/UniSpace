@@ -8,6 +8,31 @@ Each entry follows the same shape:
 
 ```
 
+## 2026-11-26 · Email: the brand mark in every HTML email
+Tool: Claude Code, claude-haiku-5-5
+What I asked: add the app logo to all emails.
+What I got: the brand mark (`frontend/public/brand-mark.png`, 128 px, 13 KB) is attached to each HTML email as an inline image (`cid:unispace-logo`) and shown at the top with the name "UniSpace". The full logo is 2 MB at 2048 px, too large for email, so it was not used. The text part has no logo. A copy of the image sits in `backend/app/assets/`, because the backend image only contains `backend/`; if the mark changes, both copies must be updated.
+Tests: `test_every_html_email_carries_the_logo_inline` (3 messages) and `test_the_plain_text_part_has_no_logo`. In `test_user_text_is_escaped_in_the_html_part` one assertion was narrowed: it checked that no `<img` appeared at all, which the logo now contains; it checks the user's tag `<img src="x"` is absent instead. Named here as a change to an assertion.
+Result: backend 248 passed; lint and types pass; ETL 114; frontend 402 passed. The pending-booking test that failed earlier passes: the local "whatever" booking is no longer in the database. Not committed.
+
+## 2026-11-26 · Email: emails not sent (stale backend container) and blank settings crash the start
+Tool: Claude Code, claude-haiku-5-5
+What I asked: why the emails were not being sent.
+What I found: the backend container had started four hours earlier, before the email code and the `.env` email keys existed. It had no `EMAIL_BACKEND`, so it could not send. Docker reads `.env` only when a container is created, so `docker compose restart` does not pick up new values; `docker compose up -d backend` does. The SMTP settings in `.env` are `smtp` on smtp.gmail.com:587 with STARTTLS. A connection, STARTTLS and sign-in test succeeded in the container; no message was sent.
+What I did: recreated the backend container (`docker compose up -d backend`). Defect found while reading the config: a blank setting (as `.env.example` leaves some) stopped the app from starting. `backend/app/config.py` now uses the default for a blank value. Test: `test_blank_settings_fall_back_to_the_defaults` (tests first; it failed with the RuntimeError).
+Result: backend lint passes; backend 244 tests, 243 pass. One fails: `test_admin_bookings.py::test_the_pending_list_shows_each_requester_and_role`, because the local development database has a pending booking titled "whatever" (created 2026-11-25) that no test creates. Not changed: the test's assertion needs the user's decision (delete that row, or limit the test to its own bookings). Not committed.
+
+## 2026-11-26 · Email service, step 2: emails wired into the invitation and booking decisions
+Tool: Claude Code, claude-haiku-5-5
+What I asked: step 2 of the email objective. The invitation email (full link, role, expiry) on `POST /api/admin/invitations`; the approval and rejection emails to the requester on the booking decision (the rejection with the admin's reason when there is one); no email for an admin's own booking, which is approved at once.
+What I got:
+- `admin_users.py`: `create_invitation` queues `send_invitation_email` with `APP_BASE_URL` + `/login?invite=<token>` after the save. The API response keeps its relative link, so Copy Link is unchanged.
+- `admin_bookings.py`: `decide` queues the approval or the rejection email to the requester after the save, using the room, date, times, title and the admin's message.
+- Nothing is sent for: a refused invitation (409), a refused decision (409, including a clash on approval), an admin's own booking, or a student's request until it is decided.
+- Tests: `backend/tests/test_email_wiring.py`, 11 tests. The messages are recorded by replacing `send`. A failing SMTP server does not fail the invitation or the decision.
+- Not covered by the spec and not changed: an admin cancelling an approved booking (`admin_cancel`) sends no email. Noted for the user.
+What I did with it: tests first (4 of the 11 failed for the right reason before the wiring; 2 of my first test requests used times that are not booking modules, fixed in the test). Full run: backend 243 passed, ETL 114 passed, frontend 402 passed, all lint and type checks pass. Not committed.
+
 ## 2026-11-26 · Email service, step 1b: multipart HTML and the three bilingual messages
 Tool: Claude Code, claude-haiku-5-5
 What I asked: the email helpers (invitation, booking approved, booking rejected) with a plain-text and an HTML part, bilingual, with user text escaped. Answers given to the proposals: keep the link masking in the console; `logger.error` with the subject and error type only; `EMAIL_BACKEND` is the only switch; extend `backend/app/email_service.py`, not a new `services/` module.

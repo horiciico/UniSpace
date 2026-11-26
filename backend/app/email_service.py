@@ -18,6 +18,7 @@ from dataclasses import dataclass, field
 from datetime import date, datetime, time
 from email.message import EmailMessage as MailMessage
 from email.utils import formataddr
+from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from fastapi import BackgroundTasks
@@ -89,12 +90,23 @@ def _smtp(message: EmailMessage) -> None:
     mail.set_content(message.body)
     if message.html:
         mail.add_alternative(message.html, subtype="html")
+        html_part = mail.get_body(("html",))
+        assert html_part is not None  # set just above
+        html_part.add_related(
+            LOGO_PATH.read_bytes(),
+            maintype="image",
+            subtype="png",
+            cid="<unispace-logo>",
+            disposition="inline",
+            filename="brand-mark.png",
+        )
     with smtplib.SMTP(config.SMTP_HOST, config.SMTP_PORT, timeout=SMTP_TIMEOUT_SECONDS) as server:
         if config.SMTP_USE_TLS:
             server.starttls(context=ssl.create_default_context())
         if config.SMTP_USERNAME:
             server.login(config.SMTP_USERNAME, config.SMTP_PASSWORD)
         server.send_message(mail)
+    logger.info("Email '%s' sent.", message.subject)
 
 
 # ---- The messages -----------------------------------------------------------
@@ -105,6 +117,12 @@ ROLE_NAMES = {
     "STUDENT_ORG": ("Organizație studențească", "Student organization"),
 }
 SECTION_BREAK = "\n\n---\n\n"
+# The brand mark: attached to every HTML email and shown at the top of it (cid = its reference).
+LOGO_PATH = Path(__file__).resolve().parent / "assets" / "brand-mark.png"
+LOGO_HTML = (
+    '<p><img src="cid:unispace-logo" alt="UniSpace" width="40" height="40" '
+    'style="vertical-align:middle"> <strong>UniSpace</strong></p>'
+)
 
 
 @dataclass(frozen=True)
@@ -145,7 +163,8 @@ def _render(sections: list[_Section]) -> tuple[str, str]:
             href = html.escape(section.link, quote=True)
             parts.append(f'<p><a href="{href}">{html.escape(section.link_label or "")}</a></p>')
         htmls.append("".join(parts))
-    return SECTION_BREAK.join(texts), "<hr>".join(f"<div>{part}</div>" for part in htmls)
+    body = "<hr>".join(f"<div>{part}</div>" for part in htmls)
+    return SECTION_BREAK.join(texts), f"{LOGO_HTML}{body}"
 
 
 def _day(day: date) -> str:

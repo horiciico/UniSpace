@@ -2,13 +2,14 @@ import uuid
 from datetime import datetime
 from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.auth import get_current_user
 from app.db import get_db
+from app.email_service import send_booking_approved_email, send_booking_rejected_email
 from app.models import Booking, BookingStatus, Classroom, Faculty, Role, User
 from app.planning import LOCAL_TZ, local_now
 from app.routers.bookings import booking_out, clash
@@ -64,12 +65,14 @@ def pending_requests(
 def decide(
     booking_id: uuid.UUID,
     body: Decision,
+    background_tasks: BackgroundTasks,
     admin: User = Depends(require_admin),
     db: Session = Depends(get_db),
 ) -> dict:
     """Accept (approve) or reject a pending request, with an optional message to the requester.
 
     An approval is checked for clashes again, since a clash may have appeared since the request.
+    The requester is emailed once the decision is saved.
     """
     booking = db.get(Booking, booking_id)
     if booking is None:
@@ -91,6 +94,29 @@ def decide(
     db.commit()
     room = db.get(Classroom, booking.classroom_id)
     assert room is not None
+    requester = db.get(User, booking.user_id)
+    assert requester is not None
+    if body.decision == "approve":
+        background_tasks.add_task(
+            send_booking_approved_email,
+            requester.email,
+            room.name,
+            booking.specific_date,
+            booking.start_time,
+            booking.end_time,
+            booking.title,
+        )
+    else:
+        background_tasks.add_task(
+            send_booking_rejected_email,
+            requester.email,
+            room.name,
+            booking.specific_date,
+            booking.start_time,
+            booking.end_time,
+            booking.title,
+            body.message,
+        )
     faculty = db.get(Faculty, room.faculty_id) if room.faculty_id else None
     return booking_out(booking, room.name, faculty.name if faculty else None)
 
