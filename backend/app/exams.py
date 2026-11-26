@@ -29,7 +29,27 @@ from app.models import (
     StudentGroup,
     User,
 )
-from app.planning import booking_window
+
+# Exam times (D-030): start on :00 or :30, length a multiple of 30 minutes and at least 1 hour,
+# between 08:00 and 21:30. Exams are not on the 90-minute module grid.
+EXAM_EARLIEST = time(8, 0)
+EXAM_LATEST = time(21, 30)
+
+
+def exam_window(start: time, end: time) -> tuple[time, time]:
+    """The exam's start and end if they are on the exam grid; raises ValueError otherwise."""
+    if start.second or start.microsecond or end.second or end.microsecond:
+        raise ValueError("An exam starts and ends on the minute.")
+    if start.minute % 30:
+        raise ValueError("An exam starts on the hour or the half hour.")
+    if end <= start:
+        raise ValueError("end_time must be after start_time")
+    length = (end.hour * 60 + end.minute) - (start.hour * 60 + start.minute)
+    if length < 60 or length % 30:
+        raise ValueError("An exam lasts a whole number of half hours, at least one hour.")
+    if start < EXAM_EARLIEST or end > EXAM_LATEST:
+        raise ValueError("An exam runs between 08:00 and 21:30.")
+    return start, end
 
 
 def professor_subjects(db: Session, professor: Professor) -> list[dict]:
@@ -84,7 +104,7 @@ def schedule_exam(
     if exam_date < today:
         raise HTTPException(400, "The exam date is in the past.")
     try:
-        start, end = booking_window(start_time, end_time)
+        start, end = exam_window(start_time, end_time)
     except ValueError as exc:
         raise HTTPException(400, str(exc)) from exc
     room = db.get(Classroom, classroom_id)

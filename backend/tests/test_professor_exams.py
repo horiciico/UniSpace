@@ -306,7 +306,13 @@ def test_the_exam_shows_in_the_group_timetable(db, world, client_signed_in) -> N
         {"subject_name": "Not taught"},
         {"group_ids": []},
         {"exam_date": "2026-11-19"},
-        {"start_time": "08:30", "end_time": "10:00"},
+        # The 30-minute grid, D-030: start on :00 or :30, length a multiple of 30 min, at least 1 h.
+        {"start_time": "08:15", "end_time": "09:45"},
+        {"start_time": "08:00", "end_time": "08:45"},
+        {"start_time": "08:00", "end_time": "08:30"},
+        {"start_time": "07:30", "end_time": "09:30"},
+        {"start_time": "20:30", "end_time": "21:40"},
+        {"start_time": "10:00", "end_time": "09:00"},
     ],
 )
 def test_bad_input_is_400_and_saves_nothing(db, world, client_signed_in, overrides) -> None:
@@ -314,6 +320,29 @@ def test_bad_input_is_400_and_saves_nothing(db, world, client_signed_in, overrid
 
     assert response.status_code == 400, response.text
     assert exams_named(db, "Sisteme de Operare") == 0
+
+
+@pytest.mark.parametrize(
+    ("start", "end"),
+    [
+        ("08:00", "11:00"),
+        ("08:30", "10:00"),
+        ("14:30", "19:30"),
+        ("08:00", "09:30"),
+        ("18:00", "21:30"),
+    ],
+)
+def test_any_half_hour_start_and_length_of_an_hour_or_more_is_accepted(
+    db, world, client_signed_in, start, end
+) -> None:
+    response = client_signed_in.post(
+        "/api/professors/me/exams",
+        json=body(world, start_time=start, end_time=end, group_ids=[str(world["groups"]["3A"].id)]),
+    )
+
+    assert response.status_code == 201, response.text
+    assert response.json()["start_time"] == start
+    assert response.json()["end_time"] == end
 
 
 def test_a_group_not_taught_in_the_subject_is_400(db, world, client_signed_in) -> None:

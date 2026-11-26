@@ -8,6 +8,16 @@ Each entry follows the same shape:
 
 ```
 
+## 2026-11-26 · Exam time grid (D-027) and the ledger update (backend)
+Tool: Claude Code, claude-haiku-5-5
+What I asked: the proposal approved: exams on a 30-minute grid (start :00 or :30; length a multiple of 30 minutes, at least 1 hour; 08:00 to 21:30); courses, moves and bookings stay on modules. The interval endpoint is approved too.
+What I got:
+- `backend/app/exams.py`: `exam_window` replaces the module rule for exams (the module check `booking_window` is no longer used by exams).
+- Ledger: D-027 (approved, confirmed 2026-11-26 by the user); C-010 rule and shape updated (times rule; the interval endpoint added); a change line records D-027.
+Tests changed (named as required): `backend/tests/test_professor_exams.py`: `test_bad_input_is_400_and_saves_nothing` lost its module-based cases (08:30-10:00 is now valid) and gained the grid cases (08:15, 45 minutes, 30 minutes, 07:30 start, end 21:40, end before start). New test `test_any_half_hour_start_and_length_of_an_hour_or_more_is_accepted` (five cases, 08:00-11:00, 08:30-10:00, 14:30-19:30, 08:00-09:30, 18:00-21:30).
+Result: exam tests 28 passed; lint and types pass. Full suite and commit at the end of the session.
+Not done: the frontend timetable grid still stops at 21:10 (exams can end at 21:30); the exam screen has no mock yet (DESIGN.md requires one before building it).
+
 ## 2026-11-26 · Arbitrary-interval availability for exams (backend)
 Tool: Claude Code, claude-haiku-5-5
 What I asked: the exam modal must check any start-end interval live (date, start, end, groups) and list free rooms. Exam times were answered as: 30-minute starts, duration a multiple of 30 minutes (at least 1 hour), 08:00 to 21:30; courses, moves and bookings stay on modules.

@@ -34,6 +34,7 @@
 - D-026 · A professor moves one teaching occurrence; it takes effect at once and blocks on conflicts
 - D-028 · Each faculty has its own academic calendar, with all-faculties periods as the default
 - D-029 · A class cannot be moved onto a holiday or into an exam session, and an approval follows the calendar
+- D-030 · Exams are scheduled on a 30-minute grid; courses, moves and bookings stay on modules
 
 ---
 
@@ -320,3 +321,12 @@
 - **Evidence:** backend/app/moves.py, backend/app/availability.py, backend/app/academic_calendar.py, backend/app/routers/admin_bookings.py, backend/tests/test_calendar_checks.py
 - **Source:** user (2026-11-27) · confidence high
 - **Confirmed:** 2026-11-27
+## D-030 · Exams are scheduled on a 30-minute grid; courses, moves and bookings stay on modules
+- **Status:** approved
+- **Date:** 2026-11-26
+- **Rule:** An exam's start is on the hour or the half hour (:00 or :30). Its length is a multiple of 30 minutes and at least one hour. Its window is 08:00 to 21:30. The exam is an activity of type EXAM with priority EXAM and is checked for clashes by overlap, so a partial overlap counts. Courses, activity moves (D-026) and room bookings (C-005) stay on the 90-minute module grid (D-014, planning.MODULES).
+- **Why:** Exams are not 90-minute courses: they run 1 to 4 hours and can start at 08:30 or 14:30. The user decided this on 2026-11-26.
+- **Rejected:** the module grid for exams (too coarse for exam times); a free-form minute grid (the user asked for half hours).
+- **Evidence:** backend/app/exams.py (exam_window), backend/app/availability.py (interval_availability), backend/app/routers/professors.py (availability/interval), backend/tests/test_professor_exams.py
+- **Source:** user (answers on exam times, 2026-11-26; proposal approved 2026-11-26) · confidence high
+- **Confirmed:** 2026-11-26
