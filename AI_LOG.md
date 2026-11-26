@@ -8,6 +8,13 @@ Each entry follows the same shape:
 
 ```
 
+## 2026-11-26 · Professor schedule, step 2: cascading availability for a day (backend)
+Tool: Claude Code, claude-haiku-5-5
+What I asked: step 2 of PR 1: `GET /api/professors/me/availability?date=&group_ids=&exclude_activity_id=`, reusable by PR 2 with several groups. Answers given: the modules are the existing 90-minute `planning.MODULES` (the spec's 2-hour list was not used); `exclude_activity_id` skips only that activity's occurrence on the requested date.
+What I got: `backend/app/availability.py` (`day_availability`): for each of the 8 modules, `available`, `conflict_reason` (professor and group clashes, named) and `free_classrooms` (bookable rooms with no occurrence and no approved booking). `backend/app/routers/professors.py`: the endpoint (403 for non-professors and unlinked professors, 404 for an unknown group, 422 without a date). The room rule is the free-room search's: only bookable rooms; pending bookings do not block.
+Tests: `backend/tests/test_professor_availability.py`, 23 tests written before the code (import error at first). One test was wrong and was fixed before the run: it passed the exclusion on both dates, so the other date was also excluded. It now checks the other date without the exclusion. Named here as a change to a test's request.
+Result: `node scripts/test-all.mjs`: 803 tests in 7 suites, lint and types pass; `docker compose config` and `docker compose build backend` pass. Not committed at the time of this entry.
+
 ## 2026-11-26 · Professor schedule, step 1: professor resolution, "My schedule" and movable activities (backend)
 Tool: Claude Code, claude-haiku-5-5
 What I asked: step 1 of PR 1 of the professor reschedule flow: a helper that resolves the signed-in PROFESSOR to a `professors` row by `LOWER(email)`; `GET /api/professors/me/timetable?week_start=` returning `{linked, professor_id, activities}` for the week; and a movable-activities list (weekly plus upcoming one-offs) for the Move Activity dropdown.

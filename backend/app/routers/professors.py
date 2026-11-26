@@ -9,15 +9,17 @@ Only a PROFESSOR user has these (403 otherwise). A PROFESSOR with no professors 
 `linked` is false and the lists are empty (business rule 6).
 """
 
+import uuid
 from datetime import date, timedelta
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
 
 from app.auth import get_current_user
+from app.availability import day_availability
 from app.db import get_db
-from app.models import Activity, Classroom, PlanningTimeUnit, Role, Status, User
+from app.models import Activity, Classroom, PlanningTimeUnit, Role, Status, StudentGroup, User
 from app.planning import hhmm, local_today, occurrences, week_monday
 from app.professors import get_professor_for_user
 from app.routers.schedule import activity_items
@@ -97,4 +99,31 @@ def my_movable_activities(
             }
             for activity, room_name in rows
         ],
+    }
+
+
+@router.get("/me/availability")
+def my_availability(
+    day: date = Query(alias="date"),
+    group_ids: list[uuid.UUID] = Query(default=[]),
+    exclude_activity_id: uuid.UUID | None = None,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Each module of the day: whether the professor and the given groups are free, and which
+    bookable rooms are free. `exclude_activity_id` ignores that activity's occurrence on `day`."""
+    _require_professor(user)
+    professor = get_professor_for_user(db, user)
+    if professor is None:
+        raise HTTPException(403, "Your account is not linked to a professor record.")
+    groups: list[tuple[uuid.UUID, str]] = []
+    for group_id in dict.fromkeys(group_ids):
+        group = db.get(StudentGroup, group_id)
+        if group is None:
+            raise HTTPException(404, "Group not found")
+        groups.append((group.id, group.name))
+    return {
+        "date": day.isoformat(),
+        "professor_id": str(professor.id),
+        "modules": day_availability(db, day, professor.id, groups, exclude_activity_id),
     }
