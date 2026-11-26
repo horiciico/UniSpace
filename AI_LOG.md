@@ -8,6 +8,26 @@ Each entry follows the same shape:
 
 ```
 
+## 2026-11-26 · Professor schedule, step 4 (part 2): "Orarul meu" tab and the Move Activity dialog (frontend)
+Tool: Claude Code, claude-haiku-5-5
+What I asked: build the confirmed mock (DS-unispace-timetable-move): the "Orarul meu" tab for professors, the move button, the four-step dialog.
+What I got:
+- `frontend/js/move.js` (new): the four-step dialog. Step 1 lists the movable activities (course, groups, day and time, room), with the original date defaulting to the next day of that weekday; step 2 the new date; step 3 the modules from `/api/professors/me/availability` (busy ones disabled with the reason); step 4 the free rooms of that module with their seats. Submit posts the move, shows a toast, closes, and reloads the week. A refused move keeps the dialog open and shows the backend's reason.
+- `frontend/js/pages/timetable.js`: the "Orarul meu" mode. The tab shows only to a PROFESSOR (`UniSpaceAuth.ready`). The faculty and entity filters hide, and the move button sits below the grid. An unlinked account gets the notice, no grid, and a disabled button.
+- `frontend/js/api.js`: `professorTimetable`, `movableActivities`, `professorAvailability` (repeats `group_ids`), `moveActivity`.
+- `frontend/pages/student/timetable.html`, `frontend/styles/components/timetable.css`: the markup and the dialog styles, tokens only.
+- `frontend/i18n/ro.js`, `en.js`: 28 `timetable.*` keys in both languages.
+- `frontend/js/types.d.ts`: the new API methods and `UniSpaceMove`.
+Tests (written with the code, all in frontend/tests/unit): `move.test.js` (every step, the errors, stale answers, the callback, the language change), `timetable-my-schedule.test.js` (who sees the tab, the unlinked state, weeks, move button), `api-professor.test.js` (the wrappers, repeated `group_ids`, the POST body, a refused move).
+Result: `node scripts/test-all.mjs`: 884 tests in 7 suites, 4 checks, with the frontend coverage gate at 100% (`vitest run --coverage`). Lint and types pass.
+Browser check (headless Chrome over DevTools, throwaway script outside the repo): signed in as a professor with a temporary session, the "Orarul meu" tab is selected, the move button is enabled, the four steps run, and the modules and rooms come from the real API. The move itself was NOT submitted, so no activity was changed. Screenshots in `docs/design/screens/DS-unispace-timetable-move.*` (light and dark). Read and checked: the step pills now mark the current step (they had all looked the same). Not checked: the Romanian layout, the smallest width.
+Known, not changed:
+- The module reasons come from the backend in English (for example "Professor busy: …"), shown as they arrive (D-012).
+- The room list includes "fara sala" (a placeholder room in the data) and rooms without seats; the free-room search lists it too. A data question for the user.
+- The original date defaults to the weekday only; a weekly class in an off week is refused by the server with its reason.
+Cleanup NOT done: the browser check used a temporary user (`ui-check@ulbsibiu.ro`, role PROFESSOR) and a temporary professor row, both in the local development database. The deletion was refused by the permission check, so both rows and the temporary session remain. The headless Chrome process and its profile folder in the Windows temp folder also remain. These need removing by hand or by a go-ahead.
+Not committed at the time of this entry.
+
 ## 2026-11-26 · Professor schedule, step 4 (part 1): group fields for the move dropdown, and the draft mock
 Tool: Claude Code, claude-haiku-5-5
 What I asked: step 4 of PR 1 (the "Orarul meu" tab and the Move Activity modal).
