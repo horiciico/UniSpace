@@ -114,8 +114,9 @@ describe("admin calendar tab", () => {
       calls(fetch, "GET").some((c) => c[0] === "/api/admin/academic-periods"),
     ).toBe(true);
     expect(rows()).toHaveLength(3);
-    expect(cells(rows()[0]).slice(0, 4)).toEqual([
+    expect(cells(rows()[0]).slice(0, 5)).toEqual([
       "Semestrul 1",
+      "All faculties",
       "Semester",
       "2026-10-05",
       "2026-12-06",
@@ -214,6 +215,7 @@ describe("admin calendar tab", () => {
       type: "EXAM_SESSION",
       start_date: "2027-06-01",
       end_date: "2027-06-30",
+      faculty_id: null,
     });
     expect(toast).toHaveBeenCalledWith("Period saved.");
     expect($("acal-edit").hidden).toBe(true);
@@ -300,7 +302,7 @@ describe("admin calendar tab", () => {
   it.each([
     [
       409,
-      "These dates overlap another period. Change the dates or edit that period.",
+      "These dates overlap another period of the same faculty. Change the dates or edit that period.",
     ],
     [400, "Check the dates. The end date must be on or after the start date."],
     [
@@ -340,7 +342,7 @@ describe("admin calendar tab", () => {
     expect($("acal-delete").hidden).toBe(false);
     expect($("acal-delete-title").textContent).toBe("Delete “Sesiune iarnă”?");
     expect($("acal-delete-text").textContent).toBe(
-      "After this, 2026-12-10 – 2026-12-18 count as teaching weeks again.",
+      "After this, 2026-12-10 – 2026-12-18 count as teaching weeks for faculties without their own period.",
     );
     $("acal-delete-keep").click();
 
@@ -440,5 +442,75 @@ describe("admin calendar tab", () => {
     await flush();
 
     expect(toast).toHaveBeenCalledWith("Perioada a fost salvată.");
+  });
+});
+
+describe("admin calendar tab: a calendar per faculty", () => {
+  beforeEach(() => vi.resetModules());
+
+  const FACULTIES = [
+    { id: "f1", code: "dre", name: "Facultatea de Drept" },
+    { id: "f2", code: "ing", name: "Facultatea de Inginerie" },
+  ];
+  const OWN = {
+    ...PERIODS[1],
+    faculty_id: "f1",
+    faculty_name: "Facultatea de Drept",
+  };
+  const withFaculties = (extra = {}) => ({
+    periods: [OWN],
+    routes: { "/api/faculties": () => response(FACULTIES), ...extra },
+  });
+  const options = () => [...$("acal-faculty").options].map((o) => o.textContent);
+
+  it("shows the faculty of each period and offers every faculty in the form", async () => {
+    await openTab(withFaculties());
+
+    expect(cells(rows()[0])[1]).toBe("Facultatea de Drept");
+    $("acal-add").click();
+    expect(options()).toEqual([
+      "All faculties",
+      "Facultatea de Drept",
+      "Facultatea de Inginerie",
+    ]);
+    expect($("acal-faculty").value).toBe("");
+  });
+
+  it("creates a period for the chosen faculty", async () => {
+    const { fetch } = await openTab(withFaculties());
+    $("acal-add").click();
+    fillForm();
+    $("acal-faculty").value = "f2";
+
+    submit();
+    await flush();
+
+    expect(JSON.parse(calls(fetch, "POST")[0][1].body).faculty_id).toBe("f2");
+  });
+
+  it("keeps a period's faculty when it is edited, even if the faculties cannot be loaded", async () => {
+    const { fetch } = await openTab(
+      withFaculties({
+        "/api/faculties": () => httpError(500),
+        "/api/admin/academic-periods/p2": () => response(OWN),
+      }),
+    );
+
+    rows()[0].querySelectorAll("button")[0].click();
+    expect($("acal-faculty").value).toBe("f1");
+    submit();
+    await flush();
+
+    expect(JSON.parse(calls(fetch, "PUT")[0][1].body).faculty_id).toBe("f1");
+  });
+
+  it("says what deleting a faculty's own period does", async () => {
+    await openTab(withFaculties());
+
+    rows()[0].querySelectorAll("button")[1].click();
+
+    expect($("acal-delete-text").textContent).toBe(
+      "After this, Facultatea de Drept follows the calendar for all faculties from 2026-12-10 to 2026-12-18.",
+    );
   });
 });

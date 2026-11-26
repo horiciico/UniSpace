@@ -109,4 +109,46 @@ describe("modules.js: the academic calendar helpers", () => {
     expect(modules.nextExamSession(PERIODS, "2026-12-19")).toBeNull();
     expect(modules.nextExamSession([], "2026-12-01")).toBeNull();
   });
+
+  const own = (type, start, end, faculty_id) => ({
+    type,
+    start_date: start,
+    end_date: end,
+    faculty_id,
+  });
+  const MIXED = [
+    own("HOLIDAY", "2027-03-01", "2027-03-07", null),
+    own("TEACHING", "2027-03-01", "2027-03-07", "f1"),
+    own("EXAM_SESSION", "2027-03-08", "2027-03-14", "f2"),
+  ];
+
+  it("prefers the faculty's own period over the all-faculties one", () => {
+    expect(modules.typeOnDate(MIXED, "2027-03-01", "f1")).toBe("TEACHING");
+    expect(modules.typeOnDate(MIXED, "2027-03-01", "f2")).toBe("HOLIDAY");
+    expect(modules.typeOnDate(MIXED, "2027-03-01")).toBe("HOLIDAY");
+    expect(modules.typeOnDate(MIXED, "2027-03-08", "f2")).toBe("EXAM_SESSION");
+    expect(modules.typeOnDate(MIXED, "2027-03-08", "f1")).toBe("TEACHING");
+    expect(modules.weekInfo(MIXED, "2027-03-08", "f2").hourly).toBe(true);
+  });
+
+  it("finds the next exam session of the given faculties only", () => {
+    expect(modules.nextExamSession(MIXED, "2027-01-01", ["f1"])).toBeNull();
+    expect(
+      modules.nextExamSession(MIXED, "2027-01-01", ["f1", "f2"]).start_date,
+    ).toBe("2027-03-08");
+  });
+
+  it("skips the days of a shared session that the faculty overrides", () => {
+    const periods = [
+      own("EXAM_SESSION", "2027-06-07", "2027-06-20", null),
+      own("TEACHING", "2027-06-07", "2027-06-13", "f1"),
+    ];
+
+    expect(
+      modules.nextExamSession(periods, "2027-01-01", ["f1"]).start_date,
+    ).toBe("2027-06-14");
+    expect(
+      modules.nextExamSession(periods, "2027-01-01", ["f2"]).start_date,
+    ).toBe("2027-06-07");
+  });
 });

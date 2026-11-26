@@ -285,3 +285,116 @@ describe("timetable.js: the academic calendar", () => {
     expect($("tt-exam").hidden).toBe(false);
   });
 });
+
+describe("timetable.js: a calendar per faculty", () => {
+  beforeEach(() => vi.resetModules());
+
+  const session = (faculty_id) => ({ ...PERIODS[0], faculty_id });
+
+  it("draws a room by the calendar of its faculty", async () => {
+    await setup({ periods: () => response([session("f1")]) });
+
+    expect(hourLabels()).toHaveLength(14);
+    expect($("tt-period").hidden).toBe(false);
+  });
+
+  it("ignores another faculty's periods", async () => {
+    await setup({ periods: () => response([session("f2")]) });
+
+    expect(hourLabels()).toHaveLength(8);
+    expect($("tt-period").hidden).toBe(true);
+    expect($("tt-exam").hidden).toBe(true);
+  });
+
+  it("follows the selected faculty before anything is chosen", async () => {
+    await setup({ entity: false, periods: () => response([session("f1")]) });
+    expect($("tt-period").hidden).toBe(false);
+
+    $("tt-faculty").value = "";
+    $("tt-faculty").dispatchEvent(new Event("change", { bubbles: true }));
+    await flush();
+
+    expect($("tt-period").hidden).toBe(true);
+  });
+
+  const FACS = [
+    { id: "f1", name: "Drept" },
+    { id: "f2", name: "Inginerie" },
+  ];
+
+  async function mine(periods, faculties = FACS) {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(NOW);
+    window.history.replaceState(null, "", "/timetable?mode=mine&date=2026-12-07");
+    mountPage("pages/student/timetable.html");
+    await loadI18n("en");
+    window.UniSpaceI18n.setLanguage("en");
+    window.UniSpaceI18n.apply(document.body);
+    window.UniSpaceAuth = { ready: Promise.resolve({ role: "PROFESSOR" }) };
+    await loadScript("js/modules.js");
+    await loadScript("js/api.js");
+    await loadScript("js/grid.js");
+    await loadScript("js/bookings.js");
+    stubFetch({
+      "/api/faculties": () => response(FACULTIES),
+      "/api/academic-periods": () => response(periods),
+      "/api/professors/me/timetable": () =>
+        response({ linked: true, activities: [], faculties }),
+    });
+    await loadScript("js/pages/timetable.js");
+    await flush();
+    await flush();
+    await flush();
+  }
+
+  const lines = () =>
+    [...$("tt-period").querySelectorAll("p")]
+      .filter((p) => !p.hidden)
+      .map((p) => p.textContent.trim().replace(/\s+/g, " "));
+  const holiday = (faculty_id) => ({
+    ...PERIODS[1],
+    start_date: "2026-12-07",
+    end_date: "2026-12-07",
+    faculty_id,
+  });
+
+  it("names each affected faculty in Orarul meu when they differ", async () => {
+    await mine([session("f1"), holiday("f2")]);
+
+    expect(lines()).toEqual([
+      "Exam session Drept: exam session on Thu, Fri, Sat, Sun. Its weekly courses are not held then.",
+      "Holiday Inginerie: holiday on Mon. Its weekly courses are not held then.",
+    ]);
+    expect(hourLabels()).toHaveLength(14);
+    // Monday is a holiday for one faculty only, so the day is not marked.
+    expect(document.querySelectorAll("#tt-grid .tt-off")).toHaveLength(0);
+    expect($("tt-exam").hidden).toBe(false);
+  });
+
+  it("marks a day that is a holiday for all of the professor's faculties", async () => {
+    await mine([holiday("f1"), holiday("f2")]);
+
+    expect(document.querySelectorAll("#tt-grid .tt-off")).toHaveLength(1);
+    expect(lines()).toEqual([
+      "Holiday Holiday on Mon: no weekly courses and no new bookings then.",
+    ]);
+  });
+
+  it("uses the usual banner for a professor with one faculty", async () => {
+    await mine([session("f1")], [FACS[0]]);
+
+    expect(lines()).toEqual([
+      "Exam session Exam session on Thu, Fri, Sat, Sun: weekly courses are not held then, and rooms are booked by the hour, 08:00 to 22:00.",
+    ]);
+  });
+
+  it("translates the faculty lines when the language changes", async () => {
+    await mine([session("f1"), holiday("f2")]);
+
+    window.UniSpaceI18n.setLanguage("ro");
+    await flush();
+
+    expect(lines()[0]).toContain("Drept: sesiune de examene");
+    expect(lines()).toHaveLength(2);
+  });
+});

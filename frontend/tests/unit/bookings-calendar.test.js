@@ -346,3 +346,38 @@ describe("bookings page: the academic calendar", () => {
     expect($("bk-from").options).toHaveLength(14);
   });
 });
+
+describe("bookings page: a calendar per faculty", () => {
+  beforeEach(() => vi.resetModules());
+
+  const own = () => response([{ ...PERIODS[0], faculty_id: FACULTY }]);
+
+  async function choose(value) {
+    $("bk-faculty").value = value;
+    $("bk-faculty").dispatchEvent(new Event("change", { bubbles: true }));
+    await flush();
+  }
+
+  it("follows the calendar of the chosen faculty's rooms", async () => {
+    await setup({ periods: own });
+    pickDate("2026-12-14");
+    expect($("bk-from").options).toHaveLength(8);
+
+    await choose(FACULTY);
+    expect($("bk-from").options).toHaveLength(14);
+
+    await choose("campus");
+    expect($("bk-from").options).toHaveLength(8);
+  });
+
+  it("opens a faculty's exam-session link with the hours from the link", async () => {
+    await setup({
+      periods: own,
+      url: `/bookings/?faculty_id=${FACULTY}&room=${ROOM}&date=2026-12-14&start=10:00&end=11:00`,
+    });
+
+    expect($("bk-from").options).toHaveLength(14);
+    expect($("bk-from").value).toBe("2");
+    expect($("bk-time-note").hidden).toBe(true);
+  });
+});
