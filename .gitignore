@@ -27,3 +27,6 @@ frontend/coverage/
 
 # Test report written by scripts/test-all.mjs
 output/
+
+# Python coverage artifact
+.coverage
