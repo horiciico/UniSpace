@@ -32,6 +32,7 @@
 - D-024 · Admin-managed room fields are never written by the classroom ETL
 - D-025 · Admins invite users by email; an invitation admits a new account; admin-set roles persist
 - D-026 · A professor moves one teaching occurrence; it takes effect at once and blocks on conflicts
+- D-027 · The academic calendar (`academic_periods`) decides the time grid and whether weekly courses run
 
 ---
 
@@ -293,4 +294,18 @@
 - **Rejected:** a cancel action (a move replaces it); a permanent change from the professor's own screen (admin request, D-016); a move that needs admin approval.
 - **Evidence:** backend/app/professors.py (get_professor_for_user), backend/app/routers/professors.py, backend/app/availability.py, backend/app/planning.py (occurrences), backend/tests/test_professor_timetable.py, backend/tests/test_professor_availability.py. Rules 1 to 6 are enforced by the move endpoint (C-009, backend/app/moves.py, backend/tests/test_professor_move.py). The frontend Move Activity modal is not built yet.
 - **Source:** user (business rules 1 to 6, pasted spec "Business Rules (Approved)", 2026-11-26) · confidence high
+- **Confirmed:** 2026-11-26
+
+## D-027 · The academic calendar (`academic_periods`) decides the time grid and whether weekly courses run
+- **Status:** approved
+- **Date:** 2026-11-26
+- **Rule:** `academic_periods` rows (global, inclusive `start_date`..`end_date`, no overlaps) are set by an admin. For any date the type is the covering period's, or `TEACHING` when none covers it.
+  - `TEACHING`: the 90-minute module grid; weekly recurring courses are active.
+  - `EXAM_SESSION`: hourly grid 08:00 to 22:00, whole hours only, minimum 1 hour; weekly recurring courses are suppressed; exams and student bookings use the hourly grid.
+  - `HOLIDAY`: weekly recurring courses are suppressed; new bookings are disabled.
+  Overlap is enforced by the application helper; the database only checks `start_date <= end_date`. Changes to the grid, booking and free-room contracts (C-009 and others) are made task by task, each with its own PROPOSAL.
+- **Why:** The user wants one source of truth for the timetable and for booking validation (spec "Academic Calendar", 2026-11-26).
+- **Rejected:** per-faculty periods; a database exclusion constraint (user chose helper only).
+- **Evidence:** backend/app/academic_calendar.py, backend/app/models/academic_period.py, backend/tests/test_academic_calendar.py (Task 1; later tasks add the grid and booking uses)
+- **Source:** user (spec, answers and approval, 2026-11-26) · confidence high
 - **Confirmed:** 2026-11-26

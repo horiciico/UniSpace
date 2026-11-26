@@ -8,6 +8,14 @@ Each entry follows the same shape:
 
 ```
 
+## 2026-11-26 · Academic calendar, Task 1: model, migration, period lookup
+Tool: Claude Code, claude-sonnet-5-5
+What I asked: add the `academic_periods` table (TEACHING, EXAM_SESSION, HOLIDAY), a lookup helper with a TEACHING default, and an overlap rule. Answers given: global periods; overlap checked by the helper only. Decision D-027 proposed and approved.
+What I got: `backend/app/models/academic_period.py` and `AcademicPeriodType` in `enums.py`; migration `20261126_aa97baefd548_academic_periods.py` (upgrade, downgrade and re-upgrade checked; downgrade drops the enum); `backend/app/academic_calendar.py` (`get_period_for_date`, `get_period_type_for_date`, `find_overlapping_period`, `add_period`, `PeriodOverlapError`); `backend/tests/test_academic_calendar.py`. D-027 added to the ledger; a Proposed answer written under Q-008.
+Tests changed (named as required): `backend/tests/test_models.py::test_all_tables_and_enums_registered` now lists `academic_periods` (a table was added on purpose).
+Result: `node scripts/test-all.mjs`: 900 tests, 4 checks, all pass. No frontend or visible text changed, so no i18n keys. Tasks 2 to 7 not started.
+Not committed at the time of this entry.
+
 ## 2026-11-26 · Move dialog: faculty filter for the room step
 Tool: Claude Code, claude-haiku-5-5
 What I asked: on the room step of the Move Activity dialog, a faculty filter, so the professor picks the faculty whose rooms are offered.
