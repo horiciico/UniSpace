@@ -8,6 +8,12 @@ Each entry follows the same shape:
 
 ```
 
+## 2026-11-26 · Ledger: professor reschedule decision D-026 and contract C-009
+Tool: Claude Code, claude-haiku-5-5
+What I asked: update the ledger for the professor reschedule work and commit.
+What I got: `docs/agents/DECISIONS.md`: D-026 (the six business rules: one occurrence, automatic approval, no cancel action, hard block on group and professor conflicts, vacated slot freed, unlinked professors have no activities), approved, confirmed 2026-11-26 on the user's pasted "Business Rules (Approved)". `docs/agents/CONTRACTS.md`: C-009 (`/api/professors/me/timetable`, `/movable-activities`, `/availability`), approved, consumers none yet. `python docs/agents/tools/ledger-lint.py --fix` passes (run with UTF-8 output: the default Windows console cannot print its check mark). It reports two size warnings, DECISIONS.md at 296 lines and CONTRACTS.md at 166 lines; the split into topic folders was not done.
+Result: ledger only; no code changed. Committed on `feature/professor-my-schedule`.
+
 ## 2026-11-26 · Professor schedule, step 2: cascading availability for a day (backend)
 Tool: Claude Code, claude-haiku-5-5
 What I asked: step 2 of PR 1: `GET /api/professors/me/availability?date=&group_ids=&exclude_activity_id=`, reusable by PR 2 with several groups. Answers given: the modules are the existing 90-minute `planning.MODULES` (the spec's 2-hour list was not used); `exclude_activity_id` skips only that activity's occurrence on the requested date.

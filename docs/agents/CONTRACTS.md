@@ -17,6 +17,7 @@
 - C-006 · Admin booking review API (/api/admin/bookings) · provided
 - C-007 · Admin room attributes API (/api/admin/classrooms) · provided
 - C-008 · Admin users and invitations API (/api/admin/users, /api/admin/invitations) · provided
+- C-009 · Professor's own timetable, movable activities and availability (/api/professors/me/*) · provided
 
 ---
 
@@ -132,6 +133,19 @@
 - **Evidence:** backend/app/routers/admin_users.py, backend/app/invitations.py, backend/tests/test_admin_users.py, backend/tests/test_invitation_sign_in.py, backend/alembic/versions/20261125_b7e2d4a9c013_user_invitations.py, backend/alembic/versions/20261125_c4d1e8f2a7b9_user_role_set_by_admin.py
 - **Source:** user (plan approved 2026-11-25, answers 1 to 6; created_at and 48-hour expiry 2026-11-25) · code · confidence high
 - **Confirmed:** 2026-11-25
+
+### C-009 · Professor's own timetable, movable activities and availability (/api/professors/me/*)
+- **Status:** approved
+- **Interface:** HTTP JSON on the backend, same origin, through nginx at `/api/`. Signed in as PROFESSOR only (401 signed out, 403 for any other role). A PROFESSOR with no `professors` row is unlinked (D-026): the first two return `linked: false` with empty lists, the availability endpoint is 403.
+- **Consumers:** none yet. The My Schedule page, the Move Activity modal and the Schedule Exam flow (PR 1 and PR 2) will call them; the frontend wrappers are not written yet.
+- **Shape:**
+  - `GET /api/professors/me/timetable?week_start=YYYY-MM-DD` (optional, default today; any date snaps to its Monday) → `{linked, professor_id, week_start, week_end, activities}`. `activities` are the timetable items of `GET /api/schedule` (C-003): `{id, title, activity_type, priority, day_of_week, date, start_time, end_time, parity, room_id, room_name, professor, groups, is_recurring}`. Parity, exceptions, cancellations and moves apply. No week number (a professor's week can span faculties).
+  - `GET /api/professors/me/movable-activities` → `{linked, activities}`; activities are `{id, title, activity_type, day_of_week, start_time, end_time, room_name, is_recurring, specific_date}`. Weekly activities whose planning unit has not ended, and one-offs not yet past, not cancelled.
+  - `GET /api/professors/me/availability?date=YYYY-MM-DD&group_ids=UUID&group_ids=UUID&exclude_activity_id=UUID` → `{date, professor_id, modules}`. `modules` is one entry per planning module of the day (`planning.MODULES`, 90 minutes, 08:00-21:10): `{start_time, end_time, available, conflict_reason, free_classrooms}`. `available` is false when the professor or any requested group has an occurrence in the module; `conflict_reason` names them, or is null. `free_classrooms` is `[{id, name, capacity, has_projector, is_field_verified}]`: bookable rooms with no occurrence and no approved booking in the module (pending bookings do not block). `exclude_activity_id` skips that activity's occurrence on `date` only. 404 for an unknown group. 422 without a date.
+- **Rules:** the professor is found by `LOWER(users.email) = LOWER(professors.email)`. The week and the availability use `planning.occurrences` (Q-017), so they match the timetable and the room search. Times are `HH:MM`.
+- **Evidence:** backend/app/routers/professors.py, backend/app/professors.py, backend/app/availability.py, backend/tests/test_professor_timetable.py, backend/tests/test_professor_availability.py
+- **Source:** user (PR 1 steps 1 and 2 spec, 2026-11-26; answers on the time grid and exclude_activity_id, 2026-11-26) · code · confidence high
+- **Confirmed:** 2026-11-26
 
 ## Consumed
 
