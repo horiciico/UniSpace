@@ -103,8 +103,9 @@ describe("timetable.js: the academic calendar", () => {
   it("offers every free hour of an exam-session week, but not on a holiday day", async () => {
     await setup({ date: "2026-12-14" });
 
-    // Monday to Saturday: 6 days of 14 hours. Sunday 20 December is a holiday.
-    expect(freeSlots()).toHaveLength(6 * 14);
+    // Monday to Friday: 5 days of 14 hours. Saturday 19 December is a teaching day (8 modules),
+    // Sunday 20 December a holiday.
+    expect(freeSlots()).toHaveLength(5 * 14 + 8);
     const first = freeSlots()[0];
     expect(first.getAttribute("aria-label")).toBe("Book 08:00–09:00, Mon");
   });
@@ -145,6 +146,56 @@ describe("timetable.js: the academic calendar", () => {
 
     expect(hourLabels()).toHaveLength(14);
     expect($("tt-period-pill").textContent).toBe("Exam session");
+  });
+
+  it("offers modules on the teaching days of a week that starts the session", async () => {
+    await setup({ date: "2026-12-07" });
+    const assign = vi.fn();
+    vi.stubGlobal("location", { ...window.location, assign });
+
+    // Monday to Wednesday teach (8 modules each), Thursday to Sunday are in the session.
+    expect(freeSlots()).toHaveLength(3 * 8 + 4 * 14);
+    expect(freeSlots()[1].getAttribute("aria-label")).toBe(
+      "Book 09:40–11:10, Mon",
+    );
+    freeSlots()[1].click();
+    expect(assign).toHaveBeenCalledWith(
+      expect.stringContaining("date=2026-12-07&start=09%3A40&end=11%3A10"),
+    );
+  });
+
+  it("names the exam-session days in the banner of a partial week", async () => {
+    await setup({ date: "2026-12-07" });
+
+    expect($("tt-period-text").textContent).toContain(
+      "Exam session on Thu, Fri, Sat, Sun",
+    );
+  });
+
+  it("names the holiday days of a partial week and marks them in the grid", async () => {
+    await setup({
+      date: "2026-11-30",
+      periods: () =>
+        response([
+          { ...PERIODS[1], start_date: "2026-11-30", end_date: "2026-11-30" },
+        ]),
+    });
+
+    expect($("tt-period-text").textContent).toContain("Holiday on Mon:");
+    expect(freeSlots()).toHaveLength(6 * 8);
+    const marks = document.querySelectorAll("#tt-grid .tt-off");
+    expect(marks).toHaveLength(1);
+    expect(marks[0].textContent).toBe("Holiday");
+    expect(marks[0].parentElement.style.gridColumn).toBe("2");
+  });
+
+  it("keeps the whole-week wording when every day has the type", async () => {
+    await setup({ date: "2026-12-21" });
+
+    expect($("tt-period-text").textContent).toBe(
+      "Holiday: there are no weekly courses and new bookings are closed.",
+    );
+    expect(document.querySelectorAll("#tt-grid .tt-off")).toHaveLength(7);
   });
 
   it("translates the banner and the chip when the language changes", async () => {

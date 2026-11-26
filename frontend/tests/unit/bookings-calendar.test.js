@@ -218,6 +218,96 @@ describe("bookings page: the academic calendar", () => {
     expect($("bk-to").value).toBe("2");
   });
 
+  const link = (date, start, end) =>
+    "/bookings/?faculty_id=" +
+    FACULTY +
+    "&room=" +
+    ROOM +
+    `&date=${date}&start=${start}&end=${end}`;
+
+  it("does not replace an hour from a link that a teaching day cannot take", async () => {
+    const { fetch } = await setup({
+      url: link("2026-12-08", "10:00", "11:00"),
+    });
+    $("bk-title").value = "Study";
+
+    expect($("bk-from").value).toBe("");
+    expect($("bk-to").value).toBe("");
+    expect($("bk-time-note").hidden).toBe(false);
+    expect($("bk-time-note").textContent).toContain("does not fit");
+
+    submit();
+    await flush();
+
+    expect(posted(fetch)).toHaveLength(0);
+    expect($("bk-form-status").textContent).toBe("Choose the start and the end.");
+  });
+
+  it("does not replace module times from a link on an exam-session day", async () => {
+    await setup({ url: link("2026-12-14", "14:40", "16:10") });
+
+    expect($("bk-from").value).toBe("");
+    expect($("bk-to").value).toBe("");
+    expect($("bk-time-note").hidden).toBe(false);
+  });
+
+  it("hides the note once both times are chosen, and sends them", async () => {
+    const { fetch } = await setup({
+      url: link("2026-12-08", "10:00", "11:00"),
+    });
+    $("bk-title").value = "Study";
+
+    for (const id of ["bk-from", "bk-to"]) {
+      $(id).value = "1";
+      $(id).dispatchEvent(new Event("change", { bubbles: true }));
+    }
+    expect($("bk-time-note").hidden).toBe(true);
+
+    submit();
+    await flush();
+
+    expect(JSON.parse(posted(fetch)[0][1].body)).toMatchObject({
+      start_time: "09:40",
+      end_time: "11:10",
+    });
+  });
+
+  it("keeps the times unchosen when the language changes", async () => {
+    await setup({ url: link("2026-12-08", "10:00", "11:00") });
+
+    window.UniSpaceI18n.setLanguage("ro");
+    await flush();
+
+    expect($("bk-from").value).toBe("");
+    expect($("bk-to").value).toBe("");
+    expect($("bk-time-note").textContent).toContain("nu se potrivește");
+  });
+
+  it("shows no time note while the periods are still loading", async () => {
+    const periods = deferred();
+    await setup({
+      url: link("2026-12-14", "10:00", "11:00"),
+      periods: () => periods.promise,
+    });
+    expect($("bk-time-note").hidden).toBe(true);
+
+    periods.resolve(response(PERIODS));
+    await flush();
+    await flush();
+
+    expect($("bk-from").value).toBe("2");
+    expect($("bk-time-note").hidden).toBe(true);
+  });
+
+  it("shows the time note when the periods cannot be loaded and the link does not fit", async () => {
+    await setup({
+      url: link("2026-12-14", "10:00", "11:00"),
+      periods: () => response({ detail: "boom" }, 500),
+    });
+
+    expect($("bk-time-note").hidden).toBe(false);
+  });
+
   it("keeps working with modules when the periods cannot be loaded", async () => {
     await setup({ periods: () => response({ detail: "boom" }, 500) });
 
