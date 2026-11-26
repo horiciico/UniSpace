@@ -16,9 +16,47 @@ from app.models import (
     PlanningTimeUnit,
     StudentGroup,
 )
-from app.planning import hhmm, local_today, occurrences, week_info, week_monday
+from app.planning import Occurrence, hhmm, local_today, occurrences, week_info, week_monday
 
 router = APIRouter(prefix="/api/schedule", tags=["schedule"])
+
+
+def activity_items(db: Session, found: list[Occurrence]) -> list[dict]:
+    """The timetable items of occurrences, by day and start time. Shared by the timetables."""
+    activity_ids = {o.activity.id for o in found}
+    group_names: dict[uuid.UUID, list[str]] = defaultdict(list)
+    if activity_ids:
+        rows = db.execute(
+            select(ActivityGroup.activity_id, StudentGroup.name)
+            .join(StudentGroup, StudentGroup.id == ActivityGroup.group_id)
+            .where(ActivityGroup.activity_id.in_(activity_ids))
+        ).all()
+        for activity_id, group_name in rows:
+            group_names[activity_id].append(group_name)
+
+    items = []
+    for o in sorted(found, key=lambda o: (o.day, o.start_time, o.activity.name)):
+        a = o.activity
+        assert o.start_time is not None and o.end_time is not None
+        items.append(
+            {
+                "id": str(a.id),
+                "title": a.name,
+                "activity_type": a.type.value,
+                "priority": a.priority,
+                "day_of_week": o.day.isoweekday(),
+                "date": o.day.isoformat(),
+                "start_time": hhmm(o.start_time),
+                "end_time": hhmm(o.end_time),
+                "parity": a.parity.value,
+                "room_id": str(a.classroom_id),
+                "room_name": a.classroom.name,
+                "professor": a.professor_name,
+                "groups": sorted(group_names.get(a.id, [])),
+                "is_recurring": a.specific_date is None,
+            }
+        )
+    return items
 
 
 def _timetable_unit(
@@ -119,39 +157,7 @@ def get_schedule(
         or (unit is not None and o.activity.planning_time_unit_id == unit.id)
     ]
 
-    activity_ids = {o.activity.id for o in found}
-    group_names: dict[uuid.UUID, list[str]] = defaultdict(list)
-    if activity_ids:
-        rows = db.execute(
-            select(ActivityGroup.activity_id, StudentGroup.name)
-            .join(StudentGroup, StudentGroup.id == ActivityGroup.group_id)
-            .where(ActivityGroup.activity_id.in_(activity_ids))
-        ).all()
-        for activity_id, group_name in rows:
-            group_names[activity_id].append(group_name)
-
-    items = []
-    for o in sorted(found, key=lambda o: (o.day, o.start_time, o.activity.name)):
-        a = o.activity
-        assert o.start_time is not None and o.end_time is not None
-        items.append(
-            {
-                "id": str(a.id),
-                "title": a.name,
-                "activity_type": a.type.value,
-                "priority": a.priority,
-                "day_of_week": o.day.isoweekday(),
-                "date": o.day.isoformat(),
-                "start_time": hhmm(o.start_time),
-                "end_time": hhmm(o.end_time),
-                "parity": a.parity.value,
-                "room_id": str(a.classroom_id),
-                "room_name": a.classroom.name,
-                "professor": a.professor_name,
-                "groups": sorted(group_names.get(a.id, [])),
-                "is_recurring": a.specific_date is None,
-            }
-        )
+    items = activity_items(db, found)
 
     if room_id is not None:
         # Approved room bookings show in the room's timetable (pending and cancelled do not).

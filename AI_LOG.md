@@ -8,6 +8,13 @@ Each entry follows the same shape:
 
 ```
 
+## 2026-11-26 · Professor schedule, step 1: professor resolution, "My schedule" and movable activities (backend)
+Tool: Claude Code, claude-haiku-5-5
+What I asked: step 1 of PR 1 of the professor reschedule flow: a helper that resolves the signed-in PROFESSOR to a `professors` row by `LOWER(email)`; `GET /api/professors/me/timetable?week_start=` returning `{linked, professor_id, activities}` for the week; and a movable-activities list (weekly plus upcoming one-offs) for the Move Activity dropdown.
+What I got: `backend/app/professors.py` (`get_professor_for_user`); `backend/app/routers/professors.py` (both endpoints, 403 for non-professors, unlinked professors get `linked: false` and empty lists); `backend/app/routers/schedule.py` (the item builder moved into `activity_items` so both timetables share it; response unchanged); `backend/app/main.py` (router registered). The week uses `planning.occurrences`, so parity, exceptions, cancellations and moves apply. The timetable has no single-planning-unit filter: each activity uses its own unit, so a professor teaching in two faculties keeps both. The response has no `week_number`/`parity`, because a professor's week can span faculties with different units.
+Tests: `backend/tests/test_professor_timetable.py`, 14 tests written before the code (import error at first). They cover the week's occurrences, parity, moves, cancellations, one-offs, other professors' and name-only rows, unlinked and non-professor access, week snapping, 422, movable items, and the case-insensitive lookup.
+Result: `node scripts/test-all.mjs`: 779 tests passed in 7 suites, lint and types pass (after `ruff format` on the new files). Branch `feature/professor-my-schedule`, not committed. The frontend part of step 1 is not built here.
+
 ## 2026-11-26 · Email: the brand mark in every HTML email
 Tool: Claude Code, claude-haiku-5-5
 What I asked: add the app logo to all emails.
