@@ -21,6 +21,7 @@ from app.main import app
 from app.models import (
     Activity,
     ActivityException,
+    ActivityGroup,
     ActivityType,
     Classroom,
     Faculty,
@@ -31,6 +32,7 @@ from app.models import (
     Professor,
     Role,
     Status,
+    StudentGroup,
     User,
 )
 from app.professors import get_professor_for_user
@@ -344,6 +346,27 @@ def test_movable_activities_are_the_weekly_ones_and_upcoming_one_offs(
     ]
 
 
+def test_movable_items_carry_their_groups_for_the_availability_check(
+    db, world, monkeypatch
+) -> None:
+    client = make_client(db)
+    sign_in(db, client, monkeypatch, "sub-1", world["email"], Role.PROFESSOR)
+    group = StudentGroup(name=f"G-{uuid.uuid4().hex[:6]}", external_id=uuid.uuid4().int % 10**9)
+    db.add(group)
+    db.flush()
+    seminar = db.scalar(select(Activity).where(Activity.name == "Seminar"))
+    db.add(ActivityGroup(activity_id=seminar.id, group_id=group.id))
+    db.flush()
+
+    body = client.get("/api/professors/me/movable-activities").json()
+
+    item = next(a for a in body["activities"] if a["title"] == "Seminar")
+    assert item["group_ids"] == [str(group.id)]
+    assert item["groups"] == [group.name]
+    other = next(a for a in body["activities"] if a["title"] == "Algebra")
+    assert other["group_ids"] == [] and other["groups"] == []
+
+
 def test_movable_items_say_whether_they_repeat(db, world, monkeypatch) -> None:
     client = make_client(db)
     sign_in(db, client, monkeypatch, "sub-1", world["email"], Role.PROFESSOR)
@@ -365,6 +388,8 @@ def test_movable_items_say_whether_they_repeat(db, world, monkeypatch) -> None:
         "room_name",
         "is_recurring",
         "specific_date",
+        "group_ids",
+        "groups",
     }
 
 

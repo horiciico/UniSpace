@@ -10,6 +10,7 @@ Only a PROFESSOR user has these (403 otherwise). A PROFESSOR with no professors 
 """
 
 import uuid
+from collections import defaultdict
 from datetime import date, time, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -20,7 +21,16 @@ from sqlalchemy.orm import Session
 from app.auth import get_current_user
 from app.availability import day_availability
 from app.db import get_db
-from app.models import Activity, Classroom, PlanningTimeUnit, Role, Status, StudentGroup, User
+from app.models import (
+    Activity,
+    ActivityGroup,
+    Classroom,
+    PlanningTimeUnit,
+    Role,
+    Status,
+    StudentGroup,
+    User,
+)
 from app.moves import move_occurrence
 from app.planning import hhmm, local_today, occurrences, week_monday
 from app.professors import get_professor_for_user
@@ -91,6 +101,15 @@ def my_movable_activities(
         )
         .order_by(Activity.day_of_week, Activity.start_time, Activity.name)
     ).all()
+    # The groups of each activity: their ids (for the availability check) and names (for the list).
+    groups: dict[uuid.UUID, list[tuple[uuid.UUID, str]]] = defaultdict(list)
+    if rows:
+        for activity_id, group_id, group_name in db.execute(
+            select(ActivityGroup.activity_id, StudentGroup.id, StudentGroup.name)
+            .join(StudentGroup, StudentGroup.id == ActivityGroup.group_id)
+            .where(ActivityGroup.activity_id.in_([activity.id for activity, _ in rows]))
+        ).all():
+            groups[activity_id].append((group_id, group_name))
     return {
         "linked": True,
         "activities": [
@@ -106,6 +125,10 @@ def my_movable_activities(
                 "specific_date": (
                     activity.specific_date.isoformat() if activity.specific_date else None
                 ),
+                "group_ids": [
+                    str(gid) for gid, _ in sorted(groups[activity.id], key=lambda g: g[1])
+                ],
+                "groups": sorted(name for _, name in groups[activity.id]),
             }
             for activity, room_name in rows
         ],

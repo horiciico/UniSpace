@@ -8,6 +8,14 @@ Each entry follows the same shape:
 
 ```
 
+## 2026-11-26 · Professor schedule, step 4 (part 1): group fields for the move dropdown, and the draft mock
+Tool: Claude Code, claude-haiku-5-5
+What I asked: step 4 of PR 1 (the "Orarul meu" tab and the Move Activity modal).
+What I got: the backend part the modal needs. `GET /api/professors/me/movable-activities` items carry `group_ids` (for the availability call) and `groups` (names, for the dropdown); `backend/app/routers/professors.py`. The mock `docs/design/mocks/DS-unispace-timetable-move.html` (all the states: not linked, the four steps, busy modules, no free room, a refused move), registered as `DS-unispace-timetable-move` with status `draft` in `docs/design/registry.yaml`. No frontend code is written yet: DESIGN.md says a new or changed screen is built only after the user confirms its mock.
+Test changed (named as required): `backend/tests/test_professor_timetable.py::test_movable_items_say_whether_they_repeat`. It asserted the exact set of keys of a movable item; the two new keys are the intended change, so the set now includes `group_ids` and `groups`. New test: `test_movable_items_carry_their_groups_for_the_availability_check`.
+Ledger: C-009 movable-activities shape updated (additive). Ledger lint passes.
+Result: `node scripts/test-all.mjs`: 827 tests in 7 suites, lint and types pass. Not committed at the time of this entry.
+
 ## 2026-11-26 · Professor schedule, step 3: move one occurrence (backend) and the audit
 Tool: Claude Code, claude-haiku-5-5
 What I asked: step 3 of PR 1: `POST /api/professors/me/activities/{activity_id}/move`, with the approved answers (weekly move = exception with `is_cancelled = true` plus a new one-off; one-off move = new one-off and old one `CANCELLED`, imported ones marked `is_manually_modified`; whole modules; bookable room; no new date before today; 409/400/403; same-day move keeps the activity's own slot out of the checks; groups copied as `ActivityGroup` rows).

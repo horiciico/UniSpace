@@ -54,6 +54,12 @@ designs:
     design_ref: docs/design/mocks/DS-unispace-timetable-grid.html
     status: implemented  # built in steps 3-4; mock confirmed 2026-11-24; screenshots light and dark
 
+  - id: DS-unispace-timetable-move
+    kind: screen
+    source: frontend/pages/student/timetable.html  # planned: "Orarul meu" tab and the Move Activity modal (professors only)
+    design_ref: docs/design/mocks/DS-unispace-timetable-move.html
+    status: draft  # mock drawn 2026-11-26; not built until the user confirms it (DESIGN.md, procedure step 1)
+
   - id: DS-unispace-room-card
     kind: component
     source: frontend/styles/components/room-card.css
