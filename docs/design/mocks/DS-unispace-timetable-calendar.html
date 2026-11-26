@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MOCK · DS-unispace-timetable-calendar · draft</title>
+    <!-- Mock only: the real page is frontend/pages/student/timetable.html. -->
+    <link rel="stylesheet" href="../../../frontend/styles/tokens.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/base.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/header.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/buttons.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/pills.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/cards.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/forms.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/notice.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/tabs-and-chips.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/utilities.css" />
+    <style>
+      /* Mock scaffolding only. */
+      .mock-bar { display: flex; gap: var(--space-2); padding: var(--space-3) var(--space-4); background: var(--color-warning-bg); color: var(--color-warning-text); flex-wrap: wrap; }
+      .mock-label { margin: var(--space-7) 0 var(--space-2); font-size: var(--text-sm); font-weight: 700; color: var(--color-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+      .mock-grid { display: grid; grid-template-columns: 4.5rem repeat(5, 1fr); gap: var(--space-1); }
+      .mock-grid div { border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: var(--space-2); font-size: var(--text-sm); background: var(--color-surface); min-height: 2rem; }
+      .mock-grid .hd { font-weight: 700; background: transparent; border: 0; }
+      .mock-grid .block { background: var(--color-info-bg); color: var(--color-info-text); }
+      .mock-grid .off { border-style: dashed; color: var(--color-muted); background: transparent; }
+      .mock-grid .free { background: var(--color-success-bg); color: var(--color-success-text); }
+      .cal-panel { display: grid; gap: var(--space-3); margin-top: var(--space-4); }
+    </style>
+  </head>
+  <body>
+    <div class="mock-bar">
+      <strong>Draft mock, not built.</strong>
+      <span>Timetable: exam-session hourly grid, holiday banner and the "Exam session" jump (D-027, task 6). Needs your confirmation before it is built (DESIGN.md).</span>
+      <button class="btn btn-small" type="button" onclick="var d=document.documentElement;d.dataset.theme=d.dataset.theme==='dark'?'light':'dark'">Toggle light / dark</button>
+    </div>
+
+    <main id="main" class="container">
+      <p class="eyebrow">Timetable</p>
+      <h1>Weekly timetable</h1>
+
+      <p class="mock-label">1 · Week navigation with the "Exam session" jump (shown while a current or upcoming session exists; it opens the session's first week)</p>
+      <div class="chips tt-week" aria-label="Week navigation">
+        <button class="chip" type="button">← Previous</button>
+        <span class="chip tt-week-label">11 Jan – 17 Jan 2027</span>
+        <button class="chip" type="button">Next →</button>
+        <button class="chip" type="button">Today</button>
+        <button class="chip" type="button">Exam session</button>
+      </div>
+
+      <p class="mock-label">2 · A week in an exam session: badge and banner, then hourly rows 08:00 to 22:00 (weekly courses hidden; one-off exams show; free hours link to the booking page)</p>
+      <p><span class="pill pill--pending">Exam session</span></p>
+      <p class="notice mt-3" role="status">Exam session: weekly courses are not held. Rooms are booked by the hour, 08:00 to 22:00.</p>
+      <div class="mock-grid mt-3" aria-hidden="true">
+        <div class="hd"></div><div class="hd">Mon</div><div class="hd">Tue</div><div class="hd">Wed</div><div class="hd">Thu</div><div class="hd">Fri</div>
+        <div class="hd">08:00</div><div class="free">Free</div><div class="free">Free</div><div class="free">Free</div><div class="free">Free</div><div class="free">Free</div>
+        <div class="hd">09:00</div><div class="free">Free</div><div class="free">Free</div><div class="free">Free</div><div class="free">Free</div><div class="free">Free</div>
+        <div class="hd">10:00</div><div class="block">Exam: Algebra</div><div class="free">Free</div><div class="free">Free</div><div class="free">Free</div><div class="free">Free</div>
+        <div class="hd">11:00</div><div class="block">Exam: Algebra</div><div class="free">Free</div><div class="free">Free</div><div class="free">Free</div><div class="free">Free</div>
+        <div class="hd">…</div><div></div><div></div><div></div><div></div><div></div>
+        <div class="hd">21:00</div><div class="free">Free</div><div class="free">Free</div><div class="free">Free</div><div class="free">Free</div><div class="free">Free</div>
+      </div>
+
+      <p class="mock-label">3 · A holiday week: badge and banner, no booking links, no weekly courses</p>
+      <p><span class="pill pill--busy">Holiday</span></p>
+      <p class="notice mt-3" role="status">Holiday: there are no weekly courses and new bookings are closed.</p>
+      <div class="mock-grid mt-3" aria-hidden="true">
+        <div class="hd"></div><div class="hd">Mon</div><div class="hd">Tue</div><div class="hd">Wed</div><div class="hd">Thu</div><div class="hd">Fri</div>
+        <div class="hd">08:00</div><div class="off">Holiday</div><div class="off">Holiday</div><div class="off">Holiday</div><div class="off">Holiday</div><div class="off">Holiday</div>
+      </div>
+      <p class="muted mt-3">The grid keeps the 90-minute modules when no day of the week is in an exam session.</p>
+
+      <p class="mock-label">4 · A week that mixes types (the rule)</p>
+      <section class="card">
+        <p>If any day of the week is in an exam session, the whole week uses the hourly grid (one grid per week). The banner names the session. Holiday days in that week show "Holiday" and have no booking links. The server checks every booking by the date it is for, so the grid is only a guide.</p>
+      </section>
+
+      <p class="mock-label">5 · Booking in an exam-session week: whole-hour start and end</p>
+      <section class="card">
+        <h2>Book a room</h2>
+        <p class="muted">B110 · Tue 12 Jan 2027 · exam session: whole hours, 08:00 to 22:00, at least 1 hour.</p>
+        <form class="cal-panel">
+          <div class="field">
+            <label for="bk-s">Start</label>
+            <select id="bk-s"><option>10:00</option><option>11:00</option></select>
+          </div>
+          <div class="field">
+            <label for="bk-e">End</label>
+            <select id="bk-e"><option>11:00</option><option selected>13:00</option></select>
+          </div>
+          <div class="btn-group">
+            <button class="btn" type="submit">Request room</button>
+            <button class="btn btn-secondary" type="button">Cancel</button>
+          </div>
+        </form>
+      </section>
+    </main>
+  </body>
+</html>

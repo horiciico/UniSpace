@@ -5,6 +5,10 @@
  * upcoming first, and a pending one can be cancelled. The link from the timetable or Free Now
  * fills the form in (see js/bookings.js for the link). Names and times from the backend are shown
  * as they arrive (D-012); the words around them come from the dictionaries.
+ *
+ * The academic calendar (D-027, C-010) shapes the time pickers by the chosen date: modules on a
+ * teaching day (also when no period covers it), whole hours from 08:00 to 22:00 in an exam
+ * session, and no booking on a holiday. The backend checks the same rules when the form is sent.
  */
 (() => {
   var t = window.UniSpaceI18n.t;
@@ -41,6 +45,9 @@
   var form = document.getElementById("bk-form");
   var prefillNote = document.getElementById("bk-prefill-note");
   var adminNote = document.getElementById("bk-admin-note");
+  var fromLabel = document.querySelector('label[for="bk-from"]');
+  var toLabel = document.querySelector('label[for="bk-to"]');
+  var periodNote = document.getElementById("bk-period-note");
 
   var prefill = bookings.readPrefill(window.location.search);
   var state = {
@@ -51,6 +58,10 @@
     formError: false,
     facultyRequest: 0,
     roomRequest: 0,
+    // The academic periods (C-010); empty until loaded or when they cannot be: a teaching day.
+    periods: [],
+    // The type of the day the pickers are filled for.
+    dayType: "TEACHING",
   };
 
   function pad(value) {
@@ -101,28 +112,71 @@
     formStatus.className = state.formError ? "notice notice--error" : "notice";
   }
 
-  // The index of the module whose start (or end) is this clock time, or -1.
+  // The slots of the chosen date: hours in an exam session, modules otherwise.
+  function slots() {
+    return modules.slotsFor(state.dayType);
+  }
+
+  // The index of the slot whose start (or end) is this clock time, or -1.
   function moduleIndex(clock, field) {
-    for (let index = 0; index < modules.list.length; index++) {
-      if (modules.list[index][field] === clock) return index;
+    var list = slots();
+    for (let index = 0; index < list.length; index++) {
+      if (list[index][field] === clock) return index;
     }
     return -1;
   }
 
-  // Fills the two module pickers, each option reads "1 · 08:00–09:30".
+  // Fills the two pickers. A module reads "1 · 08:00–09:30"; an hour reads "08:00–09:00".
   function fillModules(fromIndex, toIndex) {
+    var hourly = state.dayType === "EXAM_SESSION";
     [fromSelect, toSelect].forEach((select) => {
       select.textContent = "";
-      modules.list.forEach((module, index) => {
+      slots().forEach((module, index) => {
         var option = document.createElement("option");
         option.value = String(index);
-        option.textContent =
-          module.number + " · " + module.start + "–" + module.end;
+        var range = module.start + "–" + module.end;
+        option.textContent = hourly ? range : module.number + " · " + range;
         select.appendChild(option);
       });
     });
     fromSelect.value = String(fromIndex);
     toSelect.value = String(toIndex);
+  }
+
+  function setLabel(label, key) {
+    label.setAttribute("data-i18n", key);
+    label.textContent = t(key);
+  }
+
+  // The pickers, their labels and the note follow the type of the chosen date. On a holiday the
+  // form cannot be sent. Called when the date changes and when the periods arrive.
+  function refreshDay() {
+    var type = window.UniSpaceModules.typeOnDate(
+      state.periods,
+      dateInput.value,
+    );
+    var hourlyChanged =
+      (type === "EXAM_SESSION") !== (state.dayType === "EXAM_SESSION");
+    state.dayType = type;
+    if (hourlyChanged) {
+      fillModules(
+        Math.max(moduleIndex(prefill.start, "start"), 0),
+        Math.max(moduleIndex(prefill.end, "end"), 0),
+      );
+    }
+    var hourly = type === "EXAM_SESSION";
+    setLabel(fromLabel, hourly ? "bookings.fromHour" : "bookings.from");
+    setLabel(toLabel, hourly ? "bookings.toHour" : "bookings.to");
+    var noteKey = {
+      EXAM_SESSION: "bookings.examNote",
+      HOLIDAY: "bookings.holidayNote",
+    }[type];
+    periodNote.hidden = !noteKey;
+    if (noteKey) {
+      periodNote.setAttribute("data-i18n", noteKey);
+      periodNote.textContent = t(noteKey);
+    }
+    sendButton.disabled = type === "HOLIDAY";
   }
 
   function placeholder(text) {
@@ -305,6 +359,8 @@
     if (!dateInput.value) return setFormStatus("bookings.errorNoDate", true);
     if (!titleInput.value.trim())
       return setFormStatus("bookings.errorNoTitle", true);
+    if (state.dayType === "HOLIDAY")
+      return setFormStatus("bookings.errorHoliday", true);
     if (to < from) return setFormStatus("bookings.errorRange", true);
 
     sendButton.disabled = true;
@@ -312,12 +368,12 @@
       .createBooking({
         classroom_id: roomSelect.value,
         specific_date: dateInput.value,
-        start_time: modules.list[from].start,
-        end_time: modules.list[to].end,
+        start_time: slots()[from].start,
+        end_time: slots()[to].end,
         title: titleInput.value.trim(),
       })
       .then(() => {
-        sendButton.disabled = false;
+        refreshDay();
         titleInput.value = "";
         setFormStatus(
           state.user && state.user.role === "ADMIN"
@@ -327,7 +383,7 @@
         return loadMine();
       })
       .catch((error) => {
-        sendButton.disabled = false;
+        refreshDay();
         setFormStatus(errorKey(error.status), true);
       });
   }
@@ -357,7 +413,18 @@
       roomSelect.value = "";
       loadRooms();
     });
+    dateInput.addEventListener("change", refreshDay);
     form.addEventListener("submit", send);
+    // The periods can arrive after the form is filled in; the pickers follow the date.
+    api
+      .academicPeriods()
+      .then((periods) => {
+        state.periods = periods;
+        refreshDay();
+      })
+      .catch(() => {
+        state.periods = [];
+      });
     window.UniSpaceAuth.ready.then((user) => {
       state.user = user;
       adminNote.hidden = !(user && user.role === "ADMIN");
@@ -372,6 +439,7 @@
     var from = Number(fromSelect.value);
     var to = Number(toSelect.value);
     fillModules(from, to);
+    refreshDay();
     setFormStatus(state.formKey, state.formError);
     setMineStatus(state.mineKey, state.mineError);
     loadFaculties().then(loadRooms).then(loadMine);

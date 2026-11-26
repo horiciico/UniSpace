@@ -39,6 +39,10 @@
   var moveButton = /** @type {HTMLButtonElement} */ (
     document.getElementById("tt-move")
   );
+  var examButton = document.getElementById("tt-exam");
+  var periodNote = document.getElementById("tt-period");
+  var periodPill = document.getElementById("tt-period-pill");
+  var periodText = document.getElementById("tt-period-text");
 
   var ENTITY_LABEL_KEYS = {
     group: "timetable.entityGroup",
@@ -59,6 +63,19 @@
     "day.sat",
     "day.sun",
   ];
+  // The banner of a week that is not a teaching week (D-027): the pill, the pill class and the text.
+  var PERIOD_BANNERS = {
+    EXAM_SESSION: {
+      pill: "timetable.periodExamPill",
+      pillClass: "pill pill--pending",
+      text: "timetable.periodExamText",
+    },
+    HOLIDAY: {
+      pill: "timetable.periodHolidayPill",
+      pillClass: "pill pill--busy",
+      text: "timetable.periodHolidayText",
+    },
+  };
   var KIND_KEYS = {
     COURSE: "kind.course",
     SEMINAR: "kind.seminar",
@@ -114,6 +131,9 @@
         : new Date(),
     ),
     week: null,
+    // The academic periods (C-010). Empty until loaded, or when they cannot be: every week is then
+    // a teaching week.
+    periods: [],
     items: null,
     statusKey: "",
     statusError: false,
@@ -149,6 +169,30 @@
     } else {
       weekLabel.textContent = range;
     }
+    renderPeriod();
+  }
+
+  function weekInfo() {
+    return window.UniSpaceModules.weekInfo(
+      state.periods,
+      isoDate(state.monday),
+    );
+  }
+
+  // The banner for an exam-session or holiday week, and the "Sesiune" jump while a current or
+  // upcoming exam session exists.
+  function renderPeriod() {
+    var banner = PERIOD_BANNERS[weekInfo().type];
+    periodNote.hidden = !banner;
+    if (banner) {
+      periodPill.className = banner.pillClass;
+      periodPill.textContent = t(banner.pill);
+      periodText.textContent = t(banner.text);
+    }
+    examButton.hidden = !window.UniSpaceModules.nextExamSession(
+      state.periods,
+      isoDate(new Date()),
+    );
   }
 
   function renderEntityLabel() {
@@ -371,16 +415,19 @@
   }
 
   // The free modules of a bookable room, for each day of the week: a module with no activity
-  // over it. A module that has started is shown but disabled. Each one opens the Bookings page.
+  // over it (an hour in an exam-session week, D-027). A slot that has started is shown but
+  // disabled. A holiday has none. Each one opens the Bookings page.
   function freeSlots() {
     if (state.mode !== "room" || !state.entity || !state.entity.bookable)
       return [];
     var now = new Date();
     var slots = [];
+    var info = weekInfo();
     DAY_KEYS.forEach((dayKey, dayIndex) => {
+      if (info.days[dayIndex] === "HOLIDAY") return;
       var date = addDays(state.monday, dayIndex);
       var iso = isoDate(date);
-      window.UniSpaceModules.list.forEach((module) => {
+      window.UniSpaceModules.slotsFor(info.type).forEach((module) => {
         var taken = state.items.some(
           (item) =>
             Number(item.day_of_week) === dayIndex + 1 &&
@@ -425,7 +472,9 @@
 
   // Callers draw only when there are items. The helper line shows for a bookable room only.
   function drawGrid() {
-    grid.render(gridElement, state.items, openDetails, freeSlots());
+    grid.render(gridElement, state.items, openDetails, freeSlots(), {
+      hourly: weekInfo().hourly,
+    });
     bookHint.hidden = !(
       state.mode === "room" &&
       state.entity &&
@@ -530,6 +579,21 @@
     });
   }
 
+  // The academic periods decide the grid of each week. When they cannot be loaded every week is a
+  // teaching week, as before.
+  function loadPeriods() {
+    return api
+      .academicPeriods()
+      .then((periods) => {
+        state.periods = periods;
+        renderWeek();
+        if (state.items && !body.hidden) drawGrid();
+      })
+      .catch(() => {
+        state.periods = [];
+      });
+  }
+
   function init() {
     renderTabs();
     renderEntityLabel();
@@ -573,6 +637,16 @@
       updateUrl();
       loadSchedule();
     });
+    // The first week of the current or next exam session.
+    examButton.addEventListener("click", () => {
+      var session = window.UniSpaceModules.nextExamSession(
+        state.periods,
+        isoDate(new Date()),
+      );
+      state.monday = mondayOf(parseIso(session.start_date));
+      updateUrl();
+      loadSchedule();
+    });
     document.getElementById("tt-d-close").addEventListener("click", () => {
       dialog.close();
     });
@@ -582,6 +656,7 @@
       });
     });
     showMineTabIfProfessor();
+    loadPeriods();
 
     api
       .faculties()

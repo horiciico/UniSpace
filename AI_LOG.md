@@ -8,6 +8,16 @@ Each entry follows the same shape:
 
 ```
 
+## 2026-11-26 · Academic calendar, Tasks 5 and 6: admin tab, adaptive timetable grid, "Sesiune" jump, hourly booking pickers
+Tool: Claude Code, claude-sonnet-5-5
+What I asked: (5) an "An universitar" / "Academic calendar" admin tab (table, type badges, create and edit form with date validation and a 409 message, delete, toasts, RO and EN); (6) the timetable reads `GET /api/academic-periods`: an exam-session week uses hourly rows 08:00 to 22:00 with a banner, a holiday week has a banner and no booking, a "Sesiune" chip jumps to the first week of the next exam session, and the booking pickers use whole hours in a session.
+What I got: two draft mocks first (`DS-unispace-admin-calendar`, `DS-unispace-timetable-calendar`); the user said to reuse the existing timetable design, so the real page reuses the existing grid, chips, pill and notice. Code: `frontend/js/modules.js` (hours, `typeOnDate`, `weekInfo`, `nextExamSession`, `slotsFor`); `frontend/js/grid.js` (render option `hourly`, 84 rows) and `timetable.css` (`.tt-grid--hourly`); `frontend/js/pages/timetable.js` (periods, banner, chip, hourly free slots, no slots on a holiday day); `frontend/js/pages/bookings.js` and `bookings.html` (pickers and note by date, closed on a holiday); `frontend/js/pages/admin-calendar.js`, `admin/index.html` (new tab and panel), `admin-history.js` (shows the new panel); `frontend/js/api.js` and `types.d.ts`; 51 keys in `ro.js` and `en.js` (`acal.*`, `timetable.*`, `bookings.*`, `admin.tabCalendar`). C-010 consumers filled in; Q-019 added (Free now and the Move dialog still use modules; the user chose to leave them).
+Mixed weeks: one grid per week, hourly if any day is an exam-session day; holiday days get no booking links; the server checks each booking by its date.
+Tests changed: none of the existing ones. `backend/tests/test_i18n.py`: the key scan regex now also reads the `acal` prefix (a wider check, no assertion changed). New: `modules-calendar`, `grid-hourly`, `api-calendar`, `timetable-calendar`, `bookings-calendar`, `admin-calendar` (66 tests); the frontend 100% coverage gate holds.
+Biome `lint:fix` also touched `frontend/js/move.js` (a `let` to `const`); I reverted that file, it is not part of this change.
+Not done: no browser check and no screenshots (the pages are behind the sign-in and the earlier check needed a temporary user in the dev database); the Romanian layout and the small width are unchecked. The 409 message is generic (it does not name the clashing period) because the backend detail is English only.
+Not committed at the time of this entry.
+
 ## 2026-11-26 · Academic calendar, Tasks 3 and 4: weekly activities follow the calendar; booking times follow the period type
 Tool: Claude Code, claude-sonnet-5-5
 What I asked: (3) suppress weekly activities on EXAM_SESSION and HOLIDAY dates in `occurrences()`, keep one-offs; (4) validate booking times by period type: modules (TEACHING), whole hours 08:00 to 22:00 (EXAM_SESSION), closed with 400 (HOLIDAY); tests for both.

@@ -8,6 +8,7 @@
     <script src="/js/pages/admin-history.js" defer></script>
     <script src="/js/pages/admin-rooms.js" defer></script>
     <script src="/js/pages/admin-users.js" defer></script>
+    <script src="/js/pages/admin-calendar.js" defer></script>
   </head>
   <body>
     <main id="main" class="container">
@@ -20,6 +21,7 @@
         <button class="tab" role="tab" type="button" id="tab-history" data-tab="history" aria-controls="panel-history" aria-selected="false" data-i18n="admin.tabHistory">Istoric rezervări</button>
         <button class="tab" role="tab" type="button" id="tab-rooms" data-tab="rooms" aria-controls="panel-rooms" aria-selected="false" data-i18n="admin.tabRooms">Săli</button>
         <button class="tab" role="tab" type="button" id="tab-users" data-tab="users" aria-controls="panel-users" aria-selected="false" data-i18n="admin.tabUsers">Utilizatori</button>
+        <button class="tab" role="tab" type="button" id="tab-calendar" data-tab="calendar" aria-controls="panel-calendar" aria-selected="false" data-i18n="admin.tabCalendar">An universitar</button>
       </div>
       <div role="tabpanel" id="panel-pending" aria-labelledby="tab-pending">
         <section class="section" aria-labelledby="queue-title">
@@ -270,6 +272,77 @@
             <span class="muted" id="usr-range"></span>
             <button class="btn btn-small" type="button" id="usr-next" data-i18n="adminHistory.next">Următor</button>
           </nav>
+        </section>
+      </div>
+
+      <div role="tabpanel" id="panel-calendar" aria-labelledby="tab-calendar" hidden>
+        <section class="section" aria-labelledby="acal-title">
+          <h2 id="acal-title" data-i18n="acal.title">An universitar</h2>
+          <p class="muted mt-3" data-i18n="acal.intro">Stabilește semestrele, sesiunile și vacanțele. Ele hotărăsc ce cursuri săptămânale se țin și ce grilă de timp folosesc rezervările.</p>
+          <div class="btn-group mt-3">
+            <button class="btn" type="button" id="acal-add" data-i18n="acal.add">Adaugă o perioadă</button>
+          </div>
+          <p class="notice mt-3" id="acal-status" role="status" aria-live="polite" hidden></p>
+          <div class="table-wrap mt-3">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col" data-i18n="acal.colName">Nume</th>
+                  <th scope="col" data-i18n="acal.colType">Tip</th>
+                  <th scope="col" data-i18n="acal.colStart">Început</th>
+                  <th scope="col" data-i18n="acal.colEnd">Sfârșit</th>
+                  <th scope="col"><span class="visually-hidden" data-i18n="adminHistory.colActions">Acțiuni</span></th>
+                </tr>
+              </thead>
+              <tbody id="acal-body"></tbody>
+            </table>
+          </div>
+          <p class="muted mt-3" id="acal-default-note" data-i18n="acal.defaultNote">Datele fără nicio perioadă sunt săptămâni de predare.</p>
+          <section class="card mt-5" id="acal-empty" hidden>
+            <h2 data-i18n="acal.emptyTitle">Nicio perioadă încă</h2>
+            <p data-i18n="acal.emptyText">Orice dată este săptămână de predare până adaugi o perioadă.</p>
+          </section>
+
+          <section class="card mt-5" id="acal-edit" aria-labelledby="acal-edit-title" hidden>
+            <h2 id="acal-edit-title"></h2>
+            <p class="notice notice--error mt-3" id="acal-form-error" role="alert" hidden></p>
+            <form id="acal-form" class="form-grid mt-3" novalidate>
+              <label class="field">
+                <span class="field__label" data-i18n="acal.name">Nume</span>
+                <input id="acal-name" type="text" maxlength="150" required />
+              </label>
+              <label class="field">
+                <span class="field__label" data-i18n="acal.type">Tip</span>
+                <select id="acal-type">
+                  <option value="TEACHING" data-i18n="acal.typeTEACHING">Semestru</option>
+                  <option value="EXAM_SESSION" data-i18n="acal.typeEXAM_SESSION">Sesiune</option>
+                  <option value="HOLIDAY" data-i18n="acal.typeHOLIDAY">Vacanță</option>
+                </select>
+                <span class="muted" data-i18n="acal.typeHint">Sesiune: cursurile săptămânale sunt ascunse, iar sălile se rezervă pe ore întregi, între 08:00 și 22:00. Vacanță: cursurile săptămânale sunt ascunse și rezervările sunt închise.</span>
+              </label>
+              <label class="field">
+                <span class="field__label" data-i18n="acal.start">Data de început</span>
+                <input id="acal-start" type="date" required />
+              </label>
+              <label class="field">
+                <span class="field__label" data-i18n="acal.end">Data de sfârșit</span>
+                <input id="acal-end" type="date" required />
+              </label>
+              <div class="btn-group">
+                <button class="btn" type="submit" id="acal-save" data-i18n="acal.save">Salvează</button>
+                <button class="btn btn-secondary" type="button" id="acal-cancel" data-i18n="acal.cancel">Renunță</button>
+              </div>
+            </form>
+          </section>
+
+          <section class="card mt-5" id="acal-delete" aria-labelledby="acal-delete-title" hidden>
+            <h2 id="acal-delete-title"></h2>
+            <p id="acal-delete-text"></p>
+            <div class="btn-group">
+              <button class="btn" type="button" id="acal-delete-confirm" data-i18n="acal.deleteConfirm">Șterge</button>
+              <button class="btn btn-secondary" type="button" id="acal-delete-keep" data-i18n="acal.deleteKeep">Păstrează</button>
+            </div>
+          </section>
         </section>
       </div>
     </main>

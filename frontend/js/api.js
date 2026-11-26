@@ -101,6 +101,16 @@
         faculty_id: facultyId,
         study_formation_id: formationId,
       }),
+    // The academic calendar (C-010): every period, by start date: [{ id, name, type, start_date, end_date }].
+    academicPeriods: () => get("/academic-periods"),
+    // The same list for the admin, and its create, update and delete (C-010). body: { name, type, start_date, end_date }.
+    adminAcademicPeriods: () => get("/admin/academic-periods"),
+    createAcademicPeriod: (body) =>
+      send("POST", "/admin/academic-periods", body),
+    updateAcademicPeriod: (id, body) =>
+      send("PUT", "/admin/academic-periods/" + encodeURIComponent(id), body),
+    deleteAcademicPeriod: (id) =>
+      send("DELETE", "/admin/academic-periods/" + encodeURIComponent(id)),
     // Room bookings (C-005). Your own bookings, upcoming first.
     myBookings: () => get("/bookings/my"),
     // A booking request: { classroom_id, specific_date, start_time, end_time, title }. Resolves with the booking.

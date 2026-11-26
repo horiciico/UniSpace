@@ -170,7 +170,7 @@ None yet.
 ### C-010 · Academic calendar API (/api/academic-periods, /api/admin/academic-periods)
 - **Status:** approved
 - **Interface:** HTTP JSON on the backend, same origin, through nginx at `/api/`.
-- **Consumers:** none yet. Planned: the Timetable UI and the admin page (later tasks of D-027), through `frontend/js/api.js`.
+- **Consumers:** `frontend/js/api.js` (`academicPeriods`, `adminAcademicPeriods`, `createAcademicPeriod`, `updateAcademicPeriod`, `deleteAcademicPeriod`); `frontend/js/pages/admin-calendar.js` (the Academic calendar tab on the admin page); `frontend/js/pages/timetable.js` and `frontend/js/grid.js` (hourly grid, banner, jump); `frontend/js/pages/bookings.js` (hour or module pickers); `frontend/js/modules.js` (the date and week helpers).
 - **Shape:**
   - `GET /api/academic-periods` (any signed-in user; 401 signed out) → `[{id, name, type, start_date, end_date}]` ordered by `start_date`. `type` is `TEACHING`, `EXAM_SESSION` or `HOLIDAY`; dates are `YYYY-MM-DD`, both inclusive.
   - ADMIN only (403 for any other role, 401 signed out): `GET /api/admin/academic-periods` (same list); `POST` with `{name, type, start_date, end_date}` → 201 with the period; `PUT /{id}` with the same body → 200; `DELETE /{id}` → 204.

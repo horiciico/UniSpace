@@ -26,7 +26,8 @@
 - Q-015 · Where do the professors and their emails come from? · _answered_
 - Q-016 · Two professor ids share one email: which record is kept? · _answered_
 - Q-017 · Should a cancelled or moved occurrence still block a room in the free-room search and in booking? · _answered_
-- Q-018 · Does a move of an occurrence to another room need to block that room? 
+- Q-018 · Does a move of an occurrence to another room need to block that room?
+- Q-019 · Should Free now and the Move dialog use the hourly grid in an exam session?
 
 ---
 
@@ -148,4 +149,11 @@
 - **Status:** open
 - **Found (2026-11-24):** `ActivityException.new_classroom_id` exists, but `planning.occurrences()` ignores it. A course moved to another room still shows in its old room, and its new room is not blocked.
 - **Blocks:** the room view, the free-room search and the booking check for a relocated occurrence.
+- **Who answers:** the user
+
+## Q-019 · Should Free now and the Move dialog use the hourly grid in an exam session?
+- **Status:** open
+- **Found (2026-11-26):** in an exam session (D-027) the timetable grid and the Bookings page use whole hours, but `GET /api/classrooms/free` (C-003), the professor availability and the move endpoint (C-009) still accept only 90-minute modules, and the Free now page and the Move dialog show modules.
+- **Note (user, 2026-11-26):** leave them as they are for now; Tasks 5 and 6 cover the timetable and the Bookings page only.
+- **Blocks:** hourly windows in the free-room search and in the move dialog; changing them is a PROPOSAL on C-003 and C-009.
 - **Who answers:** the user
