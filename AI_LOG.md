@@ -8,6 +8,12 @@ Each entry follows the same shape:
 
 ```
 
+## 2026-11-26 · Ledger lint: crash on Windows consoles fixed
+Tool: Claude Code, claude-haiku-5-5
+What I asked: fix the ledger lint crash.
+What I got: `docs/agents/tools/ledger-lint.py` switches stdout to UTF-8 at the start of `main()`, so the ✓ ✗ — messages print on a Windows console (cp1252). The lint logic is unchanged.
+Result: `python docs/agents/tools/ledger-lint.py` passes with no environment workaround (two size warnings, as before). `--next D` now gives D-027. Not committed at the time of this entry.
+
 ## 2026-11-26 · Ledger: professor reschedule decision D-026 and contract C-009
 Tool: Claude Code, claude-haiku-5-5
 What I asked: update the ledger for the professor reschedule work and commit.
