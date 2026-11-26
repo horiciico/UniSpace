@@ -19,7 +19,7 @@ from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
 
 from app.auth import get_current_user
-from app.availability import day_availability
+from app.availability import day_availability, interval_availability
 from app.db import get_db
 from app.exams import professor_subjects, schedule_exam
 from app.models import (
@@ -56,6 +56,17 @@ class MoveIn(BaseModel):
     start_time: time
     end_time: time
     new_classroom_id: uuid.UUID
+
+
+def _groups_of(db: Session, group_ids: list[uuid.UUID]) -> list[tuple[uuid.UUID, str]]:
+    """(id, name) of each distinct group; an unknown id is 404."""
+    groups: list[tuple[uuid.UUID, str]] = []
+    for group_id in dict.fromkeys(group_ids):
+        group = db.get(StudentGroup, group_id)
+        if group is None:
+            raise HTTPException(404, "Group not found")
+        groups.append((group.id, group.name))
+    return groups
 
 
 def _require_professor(user: User) -> None:
@@ -181,16 +192,39 @@ def my_availability(
     professor = get_professor_for_user(db, user)
     if professor is None:
         raise HTTPException(403, "Your account is not linked to a professor record.")
-    groups: list[tuple[uuid.UUID, str]] = []
-    for group_id in dict.fromkeys(group_ids):
-        group = db.get(StudentGroup, group_id)
-        if group is None:
-            raise HTTPException(404, "Group not found")
-        groups.append((group.id, group.name))
+    groups = _groups_of(db, group_ids)
     return {
         "date": day.isoformat(),
         "professor_id": str(professor.id),
         "modules": day_availability(db, day, professor.id, groups, exclude_activity_id),
+    }
+
+
+@router.get("/me/availability/interval")
+def my_interval_availability(
+    day: date = Query(alias="date"),
+    start_time: time = Query(),
+    end_time: time = Query(),
+    group_ids: list[uuid.UUID] = Query(default=[]),
+    exclude_activity_id: uuid.UUID | None = None,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Whether the professor and the groups are free in any start-end interval of the day, and
+    which bookable rooms are free in it. Used by exam scheduling (any time, not only modules)."""
+    _require_professor(user)
+    professor = get_professor_for_user(db, user)
+    if professor is None:
+        raise HTTPException(403, "Your account is not linked to a professor record.")
+    if end_time <= start_time:
+        raise HTTPException(400, "end_time must be after start_time")
+    groups = _groups_of(db, group_ids)
+    return {
+        "date": day.isoformat(),
+        "professor_id": str(professor.id),
+        **interval_availability(
+            db, day, start_time, end_time, professor.id, groups, exclude_activity_id
+        ),
     }
 
 

@@ -8,6 +8,13 @@ Each entry follows the same shape:
 
 ```
 
+## 2026-11-26 · Arbitrary-interval availability for exams (backend)
+Tool: Claude Code, claude-haiku-5-5
+What I asked: the exam modal must check any start-end interval live (date, start, end, groups) and list free rooms. Exam times were answered as: 30-minute starts, duration a multiple of 30 minutes (at least 1 hour), 08:00 to 21:30; courses, moves and bookings stay on modules.
+What I got: `GET /api/professors/me/availability/interval` (`backend/app/routers/professors.py`). `backend/app/availability.py`: the room and conflict logic moved into shared helpers (`_day_state`, `_reason`, `_free_rooms`); `day_availability` uses them unchanged in behaviour; `interval_availability` checks any interval by overlap, so a partial overlap blocks a room. Returns the module shape: start_time, end_time, available, conflict_reason, free_classrooms. End not after start: 400. Unknown group: 404.
+Not done, waiting for approval: the exam time rules (30-minute grid, 1h minimum, 08:00-21:30) are NOT enforced yet. The existing exam endpoint still uses modules and refuses 08:00-11:00. The ledger change (C-010 and a new decision) is a PROPOSAL, sent to the user, not written to the ledger.
+Tests: `backend/tests/test_professor_availability.py`, 9 new interval tests (written first, failed before the route existed). Professor tests: 90 passed. Not committed at the time of this entry.
+
 ## 2026-11-26 · Schedule exam: subjects and exam endpoints (backend, branch feature/professor-schedule-exam)
 Tool: Claude Code, claude-haiku-5-5
 What I asked: step 1 `GET /api/professors/me/subjects` and step 2 `POST /api/professors/me/exams`, as specified.

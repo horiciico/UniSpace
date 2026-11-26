@@ -577,3 +577,145 @@ def test_each_free_room_says_which_faculty_owns_it(db, world, monkeypatch) -> No
     campus_room = rooms[str(campus.id)]
     assert campus_room["faculty_id"] is None
     assert campus_room["faculty_name"] is None
+
+
+# --- an arbitrary interval (exams, PR 2): GET /api/professors/me/availability/interval -------
+
+
+def get_interval(client: TestClient, day: str, start: str, end: str, **params) -> dict:
+    response = client.get(
+        "/api/professors/me/availability/interval",
+        params={"date": day, "start_time": start, "end_time": end, **params},
+    )
+    assert response.status_code == 200, response.text
+    return response.json()
+
+
+def test_an_interval_off_the_module_grid_is_checked_by_overlap(db, world, monkeypatch) -> None:
+    client = make_client(db)
+    world["weekly"]("Algebra", (time(16, 20), time(17, 50)), professor=world["ulbs_id"])
+    signed_in_professor(db, client, monkeypatch, world)
+
+    body = get_interval(client, MON, "14:30", "19:30")
+
+    assert body["start_time"] == "14:30" and body["end_time"] == "19:30"
+    assert body["available"] is False
+    assert "Algebra" in body["conflict_reason"]
+    free = {room["id"] for room in body["free_classrooms"]}
+    assert str(world["room_a"].id) not in free
+    assert str(world["room_b"].id) in free
+
+
+def test_a_partial_overlap_takes_the_room(db, world, monkeypatch) -> None:
+    client = make_client(db)
+    world["weekly"]("Lab", M1, professor=world["other"], room=world["room_b"])
+    signed_in_professor(db, client, monkeypatch, world)
+
+    body = get_interval(client, MON, "08:30", "09:50")
+
+    assert body["available"] is True
+    assert str(world["room_b"].id) not in {r["id"] for r in body["free_classrooms"]}
+
+
+def test_an_interval_that_only_touches_a_class_is_free(db, world, monkeypatch) -> None:
+    client = make_client(db)
+    world["weekly"]("Algebra", M0, professor=world["ulbs_id"])
+    signed_in_professor(db, client, monkeypatch, world)
+
+    body = get_interval(client, MON, "09:30", "11:00")
+
+    assert body["available"] is True
+    assert body["conflict_reason"] is None
+
+
+def test_a_busy_group_is_named_for_the_interval(db, world, monkeypatch) -> None:
+    client = make_client(db)
+    world["weekly"](
+        "Lecture", (time(13, 0), time(14, 30)), professor=world["other"], groups=(world["group_a"],)
+    )
+    signed_in_professor(db, client, monkeypatch, world)
+
+    body = get_interval(client, MON, "14:00", "15:00", group_ids=[str(world["group_a"].id)])
+
+    assert body["available"] is False
+    assert world["group_a"].name in body["conflict_reason"]
+
+
+def test_excluding_the_activity_frees_the_interval(db, world, monkeypatch) -> None:
+    client = make_client(db)
+    mine = world["weekly"]("Mine", M0, professor=world["ulbs_id"])
+    signed_in_professor(db, client, monkeypatch, world)
+
+    body = get_interval(client, MON, "08:00", "09:30", exclude_activity_id=str(mine.id))
+
+    assert body["available"] is True
+
+
+def test_an_approved_booking_takes_the_room_for_the_interval(db, world, monkeypatch) -> None:
+    client = make_client(db)
+    student = User(email=f"i.{uuid.uuid4().hex[:8]}@ulbsibiu.ro", name="S", role=Role.STUDENT)
+    db.add(student)
+    db.flush()
+    db.add(
+        Booking(
+            user_id=student.id,
+            classroom_id=world["room_b"].id,
+            specific_date=date(2026, 11, 16),
+            start_time=time(14, 0),
+            end_time=time(15, 0),
+            title="Approved",
+            status=BookingStatus.APPROVED,
+        )
+    )
+    db.flush()
+    signed_in_professor(db, client, monkeypatch, world)
+
+    body = get_interval(client, MON, "14:30", "16:00")
+
+    assert str(world["room_b"].id) not in {r["id"] for r in body["free_classrooms"]}
+
+
+def test_an_interval_must_end_after_it_starts(db, world, monkeypatch) -> None:
+    client = make_client(db)
+    signed_in_professor(db, client, monkeypatch, world)
+
+    response = client.get(
+        "/api/professors/me/availability/interval",
+        params={"date": MON, "start_time": "14:30", "end_time": "14:30"},
+    )
+
+    assert response.status_code == 400
+
+
+def test_the_interval_needs_a_date_and_both_times(db, world, monkeypatch) -> None:
+    client = make_client(db)
+    signed_in_professor(db, client, monkeypatch, world)
+
+    assert (
+        client.get(
+            "/api/professors/me/availability/interval", params={"date": MON, "start_time": "08:00"}
+        ).status_code
+        == 422
+    )
+
+
+def test_the_interval_is_for_professors_only(db, world, monkeypatch) -> None:
+    client = make_client(db)
+    sign_in(db, client, monkeypatch, "sub-6", world["email"], Role.STUDENT)
+
+    assert (
+        client.get(
+            "/api/professors/me/availability/interval",
+            params={"date": MON, "start_time": "08:00", "end_time": "09:30"},
+        ).status_code
+        == 403
+    )
+    assert (
+        make_client(db)
+        .get(
+            "/api/professors/me/availability/interval",
+            params={"date": MON, "start_time": "08:00", "end_time": "09:30"},
+        )
+        .status_code
+        == 401
+    )
