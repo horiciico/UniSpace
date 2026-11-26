@@ -8,6 +8,13 @@ Each entry follows the same shape:
 
 ```
 
+## 2026-11-26 · Academic calendar, Task 2: admin CRUD and the public read endpoint
+Tool: Claude Code, claude-sonnet-5-5
+What I asked: admin-only GET/POST/PUT/DELETE on `/api/admin/academic-periods` (400 inverted dates, 409 overlap, self excluded on update), a read-only `GET /api/academic-periods` for signed-in users, and tests for CRUD, 403, 400 and 409.
+What I got: `backend/app/routers/academic_periods.py` (two routers, registered in `main.py`), reusing `require_admin`, `get_current_user` and `find_overlapping_period`; `backend/tests/test_academic_periods_api.py` (11 tests); contract C-010 in `docs/agents/CONTRACTS.md`. Inverted dates are checked in the handler so they answer 400, not FastAPI's 422.
+Tests changed: none.
+Result: `node scripts/test-all.mjs` run after the change (see the report). No frontend or visible text changed, so no i18n keys. Task 1 was committed first (656887b). Not committed at the time of this entry.
+
 ## 2026-11-26 · Academic calendar, Task 1: model, migration, period lookup
 Tool: Claude Code, claude-sonnet-5-5
 What I asked: add the `academic_periods` table (TEACHING, EXAM_SESSION, HOLIDAY), a lookup helper with a TEACHING default, and an overlap rule. Answers given: global periods; overlap checked by the helper only. Decision D-027 proposed and approved.

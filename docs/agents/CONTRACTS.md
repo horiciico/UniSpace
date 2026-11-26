@@ -18,6 +18,7 @@
 - C-007 · Admin room attributes API (/api/admin/classrooms) · provided
 - C-008 · Admin users and invitations API (/api/admin/users, /api/admin/invitations) · provided
 - C-009 · Professor's own timetable, movable activities and availability (/api/professors/me/*) · provided
+- C-010 · Academic calendar API (/api/academic-periods, /api/admin/academic-periods) · external
 
 ---
 
@@ -165,3 +166,15 @@ None yet.
 - **We rely on:** static file serving of `frontend/` on port 80 inside the container.
 - **Known quirks:** none recorded.
 - **Evidence:** docker-compose.yml (service `frontend`)
+
+### C-010 · Academic calendar API (/api/academic-periods, /api/admin/academic-periods)
+- **Status:** approved
+- **Interface:** HTTP JSON on the backend, same origin, through nginx at `/api/`.
+- **Consumers:** none yet. Planned: the Timetable UI and the admin page (later tasks of D-027), through `frontend/js/api.js`.
+- **Shape:**
+  - `GET /api/academic-periods` (any signed-in user; 401 signed out) → `[{id, name, type, start_date, end_date}]` ordered by `start_date`. `type` is `TEACHING`, `EXAM_SESSION` or `HOLIDAY`; dates are `YYYY-MM-DD`, both inclusive.
+  - ADMIN only (403 for any other role, 401 signed out): `GET /api/admin/academic-periods` (same list); `POST` with `{name, type, start_date, end_date}` → 201 with the period; `PUT /{id}` with the same body → 200; `DELETE /{id}` → 204.
+  - Errors: 400 when `start_date` is after `end_date`; 409 when the range shares a day with another period (an update ignores itself); 404 for an unknown id; 422 for a bad body (unknown type, blank name, name over 150 characters, bad date).
+- **Rules:** D-027. Names are trimmed. No period covering a date means `TEACHING` (the helper `get_period_type_for_date`, not this API).
+- **Evidence:** backend/app/routers/academic_periods.py, backend/tests/test_academic_periods_api.py
+- **Source:** user (spec Task 2, 2026-11-26) · code · confidence high
