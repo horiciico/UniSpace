@@ -240,7 +240,9 @@ describe("bookings page: the academic calendar", () => {
     await flush();
 
     expect(posted(fetch)).toHaveLength(0);
-    expect($("bk-form-status").textContent).toBe("Choose the start and the end.");
+    expect($("bk-form-status").textContent).toBe(
+      "Choose the start and the end.",
+    );
   });
 
   it("does not replace module times from a link on an exam-session day", async () => {

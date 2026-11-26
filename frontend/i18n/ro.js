@@ -612,15 +612,22 @@ window.UniSpaceI18n.register("ro", {
   "timetable.periodExamPill": "Sesiune de examene",
   "timetable.periodExamText":
     "Sesiune de examene: cursurile săptămânale nu se țin. Sălile se rezervă pe ore, între 08:00 și 22:00.",
+  "timetable.periodExamPartText":
+    "Sesiune de examene ({days}): în aceste zile nu se țin cursurile săptămânale, iar sălile se rezervă pe ore, între 08:00 și 22:00.",
   "timetable.periodHolidayPill": "Vacanță",
   "timetable.periodHolidayText":
     "Vacanță: nu sunt cursuri săptămânale, iar rezervările noi sunt închise.",
   "bookings.fromHour": "De la ora",
   "bookings.toHour": "Până la ora",
+  "timetable.periodHolidayPartText":
+    "Vacanță ({days}): în aceste zile nu sunt cursuri săptămânale și nu se fac rezervări noi.",
   "bookings.examNote":
     "Sesiune de examene: sălile se rezervă pe ore întregi, între 08:00 și 22:00, cel puțin o oră.",
   "bookings.holidayNote":
     "Vacanță: rezervările sunt închise în această zi. Alege altă dată.",
+  "bookings.timeNotOffered":
+    "Ora din link nu se potrivește cu această dată. Alege începutul și sfârșitul.",
+  "bookings.errorNoTime": "Alege începutul și sfârșitul.",
   "bookings.errorHoliday":
     "Rezervările sunt închise în vacanță. Alege altă dată."
 });

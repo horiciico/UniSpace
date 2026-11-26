@@ -121,6 +121,7 @@
    * freeSlots (optional): [{ day_of_week, startMin, endMin, label, ariaLabel, disabled, onClick }]
    * are drawn as dashed buttons under the blocks (a free module that can be booked).
    * options.hourly: draw the exam-session grid (hours, 08:00-22:00) instead of the modules.
+   * options.holidays (optional): one boolean per day, Monday first; those days are marked.
    */
   function render(container, items, onSelect, freeSlots, options) {
     var t = window.UniSpaceI18n.t;
@@ -155,6 +156,11 @@
       column.style.gridRow = "2 / " + (layout.slotCount + 2);
       container.appendChild(column);
       columns.push({ element: column, entries: [] });
+      if (options && options.holidays && options.holidays[day]) {
+        column.appendChild(
+          element("span", "tt-off", t("timetable.periodHolidayPill")),
+        );
+      }
     }
 
     (freeSlots || []).forEach((slot) => {

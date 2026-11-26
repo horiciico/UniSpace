@@ -63,17 +63,20 @@
     "day.sat",
     "day.sun",
   ];
-  // The banner of a week that is not a teaching week (D-027): the pill, the pill class and the text.
+  // The banner of a week that is not a teaching week (D-027): the pill, the pill class, the text
+  // when every day has the type, and the text that names the days when only some do.
   var PERIOD_BANNERS = {
     EXAM_SESSION: {
       pill: "timetable.periodExamPill",
       pillClass: "pill pill--pending",
       text: "timetable.periodExamText",
+      partText: "timetable.periodExamPartText",
     },
     HOLIDAY: {
       pill: "timetable.periodHolidayPill",
       pillClass: "pill pill--busy",
       text: "timetable.periodHolidayText",
+      partText: "timetable.periodHolidayPartText",
     },
   };
   var KIND_KEYS = {
@@ -182,12 +185,19 @@
   // The banner for an exam-session or holiday week, and the "Sesiune" jump while a current or
   // upcoming exam session exists.
   function renderPeriod() {
-    var banner = PERIOD_BANNERS[weekInfo().type];
+    var info = weekInfo();
+    var banner = PERIOD_BANNERS[info.type];
     periodNote.hidden = !banner;
     if (banner) {
       periodPill.className = banner.pillClass;
       periodPill.textContent = t(banner.pill);
-      periodText.textContent = t(banner.text);
+      const days = DAY_KEYS.filter(
+        (_, index) => info.days[index] === info.type,
+      );
+      periodText.textContent =
+        days.length === info.days.length
+          ? t(banner.text)
+          : t(banner.partText, { days: days.map((key) => t(key)).join(", ") });
     }
     examButton.hidden = !window.UniSpaceModules.nextExamSession(
       state.periods,
@@ -414,8 +424,9 @@
       });
   }
 
-  // The free modules of a bookable room, for each day of the week: a module with no activity
-  // over it (an hour in an exam-session week, D-027). A slot that has started is shown but
+  // The free slots of a bookable room, for each day of the week: the modules of a teaching day, or
+  // the hours of an exam-session day (D-027), that no activity covers. The day decides, not the
+  // week: a mixed week has both on its hourly grid. A slot that has started is shown but
   // disabled. A holiday has none. Each one opens the Bookings page.
   function freeSlots() {
     if (state.mode !== "room" || !state.entity || !state.entity.bookable)
@@ -427,7 +438,7 @@
       if (info.days[dayIndex] === "HOLIDAY") return;
       var date = addDays(state.monday, dayIndex);
       var iso = isoDate(date);
-      window.UniSpaceModules.slotsFor(info.type).forEach((module) => {
+      window.UniSpaceModules.slotsFor(info.days[dayIndex]).forEach((module) => {
         var taken = state.items.some(
           (item) =>
             Number(item.day_of_week) === dayIndex + 1 &&
@@ -472,8 +483,10 @@
 
   // Callers draw only when there are items. The helper line shows for a bookable room only.
   function drawGrid() {
+    var info = weekInfo();
     grid.render(gridElement, state.items, openDetails, freeSlots(), {
-      hourly: weekInfo().hourly,
+      hourly: info.hourly,
+      holidays: info.days.map((type) => type === "HOLIDAY"),
     });
     bookHint.hidden = !(
       state.mode === "room" &&

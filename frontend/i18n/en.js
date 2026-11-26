@@ -599,15 +599,22 @@ window.UniSpaceI18n.register("en", {
   "timetable.periodExamPill": "Exam session",
   "timetable.periodExamText":
     "Exam session: weekly courses are not held. Rooms are booked by the hour, 08:00 to 22:00.",
+  "timetable.periodExamPartText":
+    "Exam session on {days}: weekly courses are not held then, and rooms are booked by the hour, 08:00 to 22:00.",
   "timetable.periodHolidayPill": "Holiday",
   "timetable.periodHolidayText":
     "Holiday: there are no weekly courses and new bookings are closed.",
   "bookings.fromHour": "From hour",
   "bookings.toHour": "To hour",
+  "timetable.periodHolidayPartText":
+    "Holiday on {days}: no weekly courses and no new bookings then.",
   "bookings.examNote":
     "Exam session: rooms are booked by whole hours, 08:00 to 22:00, at least one hour.",
   "bookings.holidayNote":
     "Holiday: bookings are closed on this day. Choose another date.",
+  "bookings.timeNotOffered":
+    "The time from your link does not fit this date. Choose the start and the end.",
+  "bookings.errorNoTime": "Choose the start and the end.",
   "bookings.errorHoliday":
     "Bookings are closed on holidays. Choose another date."
 });

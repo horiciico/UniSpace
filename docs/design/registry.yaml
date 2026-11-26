@@ -227,4 +227,4 @@ designs:
     source: frontend/pages/student/timetable.html  # exam-session hourly grid, holiday banner, Exam session jump, hourly booking pickers (D-027, Task 6)
     screenshots: []
     design_ref: docs/design/mocks/DS-unispace-timetable-calendar.html
-    status: implemented  # mock confirmed 2026-11-26 with the note "reuse the existing timetable design" (the real page uses the existing grid, chips, pill and notice, not the mock-grid scaffolding); tests in frontend/tests/unit/timetable-calendar.test.js, grid-hourly.test.js, bookings-calendar.test.js, modules-calendar.test.js; no screenshots yet
+    status: implemented  # mock confirmed 2026-11-26 with the note "reuse the existing timetable design" (the real page uses the existing grid, chips, pill and notice, not the mock-grid scaffolding); tests in frontend/tests/unit/timetable-calendar.test.js, grid-hourly.test.js, bookings-calendar.test.js, modules-calendar.test.js; no screenshots yet. 2026-11-26 (PR #37 review): holiday days marked in the grid (mock section 4); partial-week banner texts and the Bookings "time does not fit" note are not in the mock, awaiting confirmation

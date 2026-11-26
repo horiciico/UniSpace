@@ -72,7 +72,7 @@ interface Window {
       items: any[],
       onSelect?: (item: any) => void,
       freeSlots?: any[],
-      options?: { hourly?: boolean },
+      options?: { hourly?: boolean; holidays?: boolean[] },
     ): HTMLElement;
     toMinutes(hhmm: string): number;
   };

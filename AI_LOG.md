@@ -8,6 +8,14 @@ Each entry follows the same shape:
 
 ```
 
+## 2026-11-26 · PR #37 review fixes: slots and times in mixed weeks, partial-week banner
+Tool: Claude Code, claude-sonnet-5-5
+What I asked: fix findings 1 and 3 of the PR #37 review (a mixed week offered hour slots on teaching days and the Bookings page silently changed the time; the banner spoke for the whole week), then commit.
+What I got: free slots follow each day's type (`timetable.js`); a time from a link that the date does not offer leaves the pickers unchosen, with a note, and the form is not sent until both are chosen (`pages/bookings.js`, `bookings.html`); a partial week's banner names its days and holiday days are marked "Holiday" in the grid (`grid.js`, `timetable.css`); 4 new keys in `ro.js` and `en.js`.
+Design note: the "Holiday" mark follows section 4 of the confirmed timetable mock. The partial-week banner texts and the Bookings note are not in a mock (DESIGN.md asks for one); flagged for confirmation.
+Tests changed (named as required): `timetable-calendar.test.js` "offers every free hour of an exam-session week, but not on a holiday day" (Saturday 19 December is a teaching day: 5 * 14 + 8 slots, was 6 * 14); `bookings-page.test.js` "falls back to the first module when a link time is not a module boundary", now "chooses no module when ..." (the pickers stay empty, was the first module). 10 new tests.
+Result: `node scripts/test-all.mjs`: 1022 tests, 4 checks, all pass. Browser check: headless Chrome on the real frontend files with a stubbed API, English, light and dark, 1280 and 500 px wide; Romanian and the signed-in stack not checked.
+
 ## 2026-11-26 · Academic calendar, Tasks 5 and 6: admin tab, adaptive timetable grid, "Sesiune" jump, hourly booking pickers
 Tool: Claude Code, claude-sonnet-5-5
 What I asked: (5) an "An universitar" / "Academic calendar" admin tab (table, type badges, create and edit form with date validation and a 409 message, delete, toasts, RO and EN); (6) the timetable reads `GET /api/academic-periods`: an exam-session week uses hourly rows 08:00 to 22:00 with a banner, a holiday week has a banner and no booking, a "Sesiune" chip jumps to the first week of the next exam session, and the booking pickers use whole hours in a session.
