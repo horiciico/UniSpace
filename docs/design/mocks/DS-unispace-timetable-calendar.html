@@ -31,7 +31,7 @@
   <body>
     <div class="mock-bar">
       <strong>Draft mock, not built.</strong>
-      <span>Timetable: exam-session hourly grid, holiday banner and the "Exam session" jump (D-027, task 6). Needs your confirmation before it is built (DESIGN.md).</span>
+      <span>Timetable: exam-session hourly grid, holiday banner and the "Exam session" jump (D-027, task 6). Sections 6 to 8 are new (D-028 and the PR #37 review) and need your confirmation (DESIGN.md).</span>
       <button class="btn btn-small" type="button" onclick="var d=document.documentElement;d.dataset.theme=d.dataset.theme==='dark'?'light':'dark'">Toggle light / dark</button>
     </div>
 
@@ -94,6 +94,20 @@
           </div>
         </form>
       </section>
+
+      <p class="mock-label">6 · My schedule, when the professor's faculties differ (new): one line per affected faculty</p>
+      <div class="notice" role="status">
+        <p class="m-0"><span class="pill pill--pending">Exam session</span> Facultatea de Drept: exam session on Thu, Fri, Sat, Sun. Its weekly courses are not held then.</p>
+        <p class="m-0 mt-3"><span class="pill pill--busy">Holiday</span> Facultatea de Inginerie: holiday on Mon. Its weekly courses are not held then.</p>
+      </div>
+      <p class="muted mt-3">The grid is hourly when any of the professor's faculties is in an exam session. A day shows "Holiday" only when it is a holiday for all of them. A professor with one faculty sees the same banner as in the other views.</p>
+
+      <p class="mock-label">7 · A week only partly in a session or a holiday (new, already in the code)</p>
+      <p class="notice" role="status"><span class="pill pill--pending">Exam session</span> Exam session on Thu, Fri, Sat, Sun: weekly courses are not held then, and rooms are booked by the hour, 08:00 to 22:00.</p>
+      <p class="notice mt-3" role="status"><span class="pill pill--busy">Holiday</span> Holiday on Mon: no weekly courses and no new bookings then.</p>
+
+      <p class="mock-label">8 · Bookings: the link's time does not fit the date (new, already in the code)</p>
+      <p class="notice" role="status">The time from your link does not fit this date. Choose the start and the end.</p>
     </main>
   </body>
 </html>
