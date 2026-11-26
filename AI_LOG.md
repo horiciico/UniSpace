@@ -15,6 +15,14 @@ What I got: the brand mark (`frontend/public/brand-mark.png`, 128 px, 13 KB) is 
 Tests: `test_every_html_email_carries_the_logo_inline` (3 messages) and `test_the_plain_text_part_has_no_logo`. In `test_user_text_is_escaped_in_the_html_part` one assertion was narrowed: it checked that no `<img` appeared at all, which the logo now contains; it checks the user's tag `<img src="x"` is absent instead. Named here as a change to an assertion.
 Result: backend 248 passed; lint and types pass; ETL 114; frontend 402 passed. The pending-booking test that failed earlier passes: the local "whatever" booking is no longer in the database. Not committed.
 
+## 2026-11-26 · Tests: emails sent by the test suite; a test that depended on the shared database
+Tool: Claude Code, claude-haiku-5-5
+What happened: the backend tests ran against the local database with `EMAIL_BACKEND=smtp` from `.env`, so each approve or reject in the endpoint tests sent a real email to a test account (such as accept.student@ulbsibiu.ro, which bounced).
+What I changed: `backend/tests/conftest.py` has an autouse fixture that sets the console backend for every test. Checked by replacing `smtplib.SMTP` with a counter during the endpoint tests: no real connection.
+Test changed (named as required): `tests/test_admin_users.py::test_list_shows_only_active_pending_invitations_newest_first`. It asserted that the whole invitation list held exactly its two rows, which holds only when the database has no other pending invitations. It now checks its own rows (found by email) and that the expired, revoked and used ones are left out. The endpoint is unchanged.
+Known and not changed: the tests still run against the development database. A separate, empty test database is the proper fix (proposed, not done).
+Result: backend 249 passed; ETL, frontend, lint and types pass. Not committed.
+
 ## 2026-11-26 · Email: emails not sent (stale backend container) and blank settings crash the start
 Tool: Claude Code, claude-haiku-5-5
 What I asked: why the emails were not being sent.

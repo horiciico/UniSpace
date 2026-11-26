@@ -7,7 +7,14 @@ from alembic.config import Config
 from sqlalchemy.orm import Session
 
 from alembic import command
+from app import config
 from app.db import engine
+
+
+@pytest.fixture(autouse=True)
+def console_email(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Tests never send real email, whatever .env says: the console backend is used."""
+    monkeypatch.setattr(config, "EMAIL_BACKEND", "console")
 
 
 @pytest.fixture(scope="session")

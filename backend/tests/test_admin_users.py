@@ -328,17 +328,20 @@ def test_list_shows_only_active_pending_invitations_newest_first(
     now = datetime.now(UTC)
     older = add_invitation(db, "older@club.ro", created_at=now - timedelta(days=2))
     newer = add_invitation(db, "newer@club.ro", created_at=now - timedelta(days=1))
-    add_invitation(db, "expired@club.ro", expires_at=now - timedelta(days=1))
-    add_invitation(db, "revoked@club.ro", status=InvitationStatus.REVOKED)
-    add_invitation(db, "used@club.ro", status=InvitationStatus.ACCEPTED)
+    expired = add_invitation(db, "expired@club.ro", expires_at=now - timedelta(days=1))
+    revoked = add_invitation(db, "revoked@club.ro", status=InvitationStatus.REVOKED)
+    used = add_invitation(db, "used@club.ro", status=InvitationStatus.ACCEPTED)
 
+    # The database may hold other pending invitations (real ones, in a shared database): this test
+    # checks only the rows it made, and that the expired, revoked and used ones are left out.
     items = admin_client.get("/api/admin/invitations").json()
+    listed = [item["email"] for item in items]
 
-    assert [item["email"] for item in items] == [newer.email, older.email]
-    assert {"id", "email", "role", "token", "invite_url", "expires_at", "created_at"} <= set(
-        items[0]
-    )
-    assert items[0]["invite_url"] == f"/login?invite={newer.token}"
+    assert [e for e in listed if e in {newer.email, older.email}] == [newer.email, older.email]
+    assert not {expired.email, revoked.email, used.email} & set(listed)
+    own = next(item for item in items if item["email"] == newer.email)
+    assert {"id", "email", "role", "token", "invite_url", "expires_at", "created_at"} <= set(own)
+    assert own["invite_url"] == f"/login?invite={newer.token}"
 
 
 def test_revoke_marks_a_pending_invitation_and_only_once(
