@@ -1,9 +1,13 @@
-"""Academic calendar lookups and the no-overlap rule (D-027)."""
+"""Academic calendar lookups and the no-overlap rule (D-028).
+
+For a faculty and a date: the faculty's own period, else the period of all faculties, else
+teaching. faculty_id None means "no faculty" (a campus room): only all-faculties periods count.
+"""
 
 import uuid
 from datetime import date
 
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
 from app.models import AcademicPeriod, AcademicPeriodType
@@ -18,28 +22,44 @@ class PeriodOverlapError(ValueError):
         self.other = other
 
 
-def get_period_for_date(db: Session, target_date: date) -> AcademicPeriod | None:
-    """The period covering the date (both ends inclusive), or None."""
+def get_period_for_date(
+    db: Session, target_date: date, faculty_id: uuid.UUID | None = None
+) -> AcademicPeriod | None:
+    """The period that counts for the faculty on the date (both ends inclusive), or None."""
     return db.scalars(
         select(AcademicPeriod)
-        .where(AcademicPeriod.start_date <= target_date, AcademicPeriod.end_date >= target_date)
+        .where(
+            AcademicPeriod.start_date <= target_date,
+            AcademicPeriod.end_date >= target_date,
+            or_(AcademicPeriod.faculty_id.is_(None), AcademicPeriod.faculty_id == faculty_id),
+        )
+        # The faculty's own period before the all-faculties one.
+        .order_by(AcademicPeriod.faculty_id.is_(None))
         .limit(1)
     ).first()
 
 
-def get_period_type_for_date(db: Session, target_date: date) -> AcademicPeriodType:
-    """The covering period's type; TEACHING when no period covers the date."""
-    period = get_period_for_date(db, target_date)
+def get_period_type_for_date(
+    db: Session, target_date: date, faculty_id: uuid.UUID | None = None
+) -> AcademicPeriodType:
+    """The type that counts for the faculty on the date; TEACHING when no period covers it."""
+    period = get_period_for_date(db, target_date, faculty_id)
     return period.type if period else AcademicPeriodType.TEACHING
 
 
 def find_overlapping_period(
-    db: Session, start_date: date, end_date: date, ignore_id: uuid.UUID | None = None
+    db: Session,
+    start_date: date,
+    end_date: date,
+    ignore_id: uuid.UUID | None = None,
+    faculty_id: uuid.UUID | None = None,
 ) -> AcademicPeriod | None:
-    """An existing period that shares a day with start_date..end_date. ignore_id skips one row
-    (the period being edited)."""
+    """An existing period of the same scope (that faculty, or all faculties) that shares a day
+    with start_date..end_date. ignore_id skips one row (the period being edited)."""
     query = select(AcademicPeriod).where(
-        AcademicPeriod.start_date <= end_date, AcademicPeriod.end_date >= start_date
+        AcademicPeriod.start_date <= end_date,
+        AcademicPeriod.end_date >= start_date,
+        AcademicPeriod.faculty_id == faculty_id,
     )
     if ignore_id is not None:
         query = query.where(AcademicPeriod.id != ignore_id)
@@ -50,7 +70,9 @@ def add_period(db: Session, period: AcademicPeriod) -> AcademicPeriod:
     """Validate and add a period. Raises ValueError (order) or PeriodOverlapError."""
     if period.start_date > period.end_date:
         raise ValueError("start_date must be on or before end_date")
-    other = find_overlapping_period(db, period.start_date, period.end_date, period.id)
+    other = find_overlapping_period(
+        db, period.start_date, period.end_date, period.id, period.faculty_id
+    )
     if other is not None:
         raise PeriodOverlapError(other)
     db.add(period)

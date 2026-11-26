@@ -25,6 +25,7 @@ from app.models import (
     Activity,
     ActivityGroup,
     Classroom,
+    Faculty,
     PlanningTimeUnit,
     Role,
     Status,
@@ -52,6 +53,20 @@ def _require_professor(user: User) -> None:
         raise HTTPException(403, "Only professors have a teaching timetable.")
 
 
+def _faculties_of(db: Session, professor_id: uuid.UUID) -> list[dict]:
+    """The faculties of the professor's weekly courses (D-028). Read from the courses themselves,
+    not from a week's occurrences, which the calendar may hide."""
+    rows = db.execute(
+        select(Faculty.id, Faculty.name)
+        .join(PlanningTimeUnit, PlanningTimeUnit.faculty_id == Faculty.id)
+        .join(Activity, Activity.planning_time_unit_id == PlanningTimeUnit.id)
+        .where(Activity.professor_id == professor_id, Activity.status != Status.CANCELLED)
+        .distinct()
+        .order_by(Faculty.name)
+    ).all()
+    return [{"id": str(faculty_id), "name": name} for faculty_id, name in rows]
+
+
 @router.get("/me/timetable")
 def my_timetable(
     week_start: date | None = None,
@@ -65,7 +80,13 @@ def my_timetable(
     professor = get_professor_for_user(db, user)
     base = {"week_start": monday.isoformat(), "week_end": sunday.isoformat()}
     if professor is None:
-        return {**base, "linked": False, "professor_id": None, "activities": []}
+        return {
+            **base,
+            "linked": False,
+            "professor_id": None,
+            "activities": [],
+            "faculties": [],
+        }
 
     found = occurrences(db, monday, sunday, Activity.professor_id == professor.id)
     return {
@@ -73,6 +94,7 @@ def my_timetable(
         "linked": True,
         "professor_id": str(professor.id),
         "activities": activity_items(db, found),
+        "faculties": _faculties_of(db, professor.id),
     }
 
 

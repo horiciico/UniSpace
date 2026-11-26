@@ -1,7 +1,7 @@
 import uuid
 from datetime import date, datetime
 
-from sqlalchemy import CheckConstraint, Date, DateTime, Enum, String, text
+from sqlalchemy import CheckConstraint, Date, DateTime, Enum, ForeignKey, String, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
@@ -9,9 +9,10 @@ from app.models.enums import AcademicPeriodType
 
 
 class AcademicPeriod(Base):
-    """A date range of the academic calendar set by an admin (D-027). Both ends are inclusive.
+    """A date range of the academic calendar set by an admin (D-028). Both ends are inclusive.
 
-    Ranges must not overlap; that is checked by app.academic_calendar, not by the database.
+    A period belongs to one faculty, or to all of them (faculty_id NULL). Ranges of the same
+    scope must not overlap; that is checked by app.academic_calendar, not by the database.
     """
 
     __tablename__ = "academic_periods"
@@ -23,6 +24,9 @@ class AcademicPeriod(Base):
         primary_key=True, server_default=text("gen_random_uuid()")
     )
     name: Mapped[str] = mapped_column(String(150))
+    faculty_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("faculties.id", ondelete="CASCADE", name="fk_academic_periods_faculty")
+    )
     type: Mapped[AcademicPeriodType] = mapped_column(
         Enum(AcademicPeriodType, name="academic_period_type")
     )

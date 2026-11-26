@@ -27,8 +27,8 @@ from app.models import (
 from app.planning import LOCAL_TZ, occurrences
 from tests.test_academic_periods_api import URL, admin, body, make_client  # noqa: F401
 from tests.test_bookings_api import reset_overrides, sign_in  # noqa: F401
-from tests.test_professor_timetable import world  # noqa: F401
 from tests.test_professor_timetable import sign_in as sign_in_as
+from tests.test_professor_timetable import world  # noqa: F401
 
 T, E, H = (
     AcademicPeriodType.TEACHING,

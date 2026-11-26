@@ -5,12 +5,13 @@
 - A recurring activity (specific_date NULL) happens on a day when its planning unit covers
   that day, the weekday matches day_of_week, and its parity matches the week number.
 - A one-off activity (specific_date set) happens only on that date (D-008: ISO weekday).
-- On a date inside an EXAM_SESSION or HOLIDAY academic period, weekly activities do not happen;
-  one-off activities still do (D-027).
+- On a date inside an EXAM_SESSION or HOLIDAY academic period of its faculty's calendar, a weekly
+  activity does not happen; one-off activities still do (D-028).
 - Local dates and times are in Europe/Bucharest.
 """
 
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass, replace
 from datetime import date, datetime, time, timedelta
 from zoneinfo import ZoneInfo
@@ -200,7 +201,11 @@ def _base_occurrences(db: Session, first: date, last: date, *conditions) -> list
     """The weekly and one-off occurrences by their own dates, before any exception."""
     stmt = (
         select(
-            Activity, PlanningTimeUnit.id, PlanningTimeUnit.start_date, PlanningTimeUnit.end_date
+            Activity,
+            PlanningTimeUnit.id,
+            PlanningTimeUnit.start_date,
+            PlanningTimeUnit.end_date,
+            PlanningTimeUnit.faculty_id,
         )
         .outerjoin(PlanningTimeUnit, PlanningTimeUnit.id == Activity.planning_time_unit_id)
         .options(joinedload(Activity.classroom))
@@ -217,9 +222,9 @@ def _base_occurrences(db: Session, first: date, last: date, *conditions) -> list
             )
         )
     )
-    suppressed = _weekly_suppressed_days(db, first, last)
+    suppressed = _weekly_suppression(db, first, last)
     found: list[Occurrence] = []
-    for activity, unit_id, unit_start, unit_end in db.execute(stmt).all():
+    for activity, unit_id, unit_start, unit_end, faculty_id in db.execute(stmt).all():
         for offset in range((last - first).days + 1):
             day = first + timedelta(days=offset)
             if day.isoweekday() != activity.day_of_week:
@@ -228,7 +233,7 @@ def _base_occurrences(db: Session, first: date, last: date, *conditions) -> list
                 if activity.specific_date == day:
                     found.append(Occurrence(activity, day))
                 continue
-            if day in suppressed:
+            if suppressed(day, faculty_id):
                 continue
             if not (unit_start <= day <= unit_end):
                 continue
@@ -241,22 +246,30 @@ def _base_occurrences(db: Session, first: date, last: date, *conditions) -> list
     return found
 
 
-def _weekly_suppressed_days(db: Session, first: date, last: date) -> set[date]:
-    """Days in first..last that fall in an EXAM_SESSION or HOLIDAY period (D-027)."""
+def _weekly_suppression(
+    db: Session, first: date, last: date
+) -> Callable[[date, uuid.UUID | None], bool]:
+    """Whether a faculty's weekly courses are off on a day of first..last (D-028): the day is in
+    an exam session or a holiday of that faculty's calendar. One query for the whole range."""
     periods = db.scalars(
         select(AcademicPeriod).where(
-            AcademicPeriod.type != AcademicPeriodType.TEACHING,
             AcademicPeriod.start_date <= last,
             AcademicPeriod.end_date >= first,
         )
     ).all()
-    days: set[date] = set()
+    off: dict[tuple[uuid.UUID | None, date], bool] = {}
     for period in periods:
         day = max(period.start_date, first)
         while day <= min(period.end_date, last):
-            days.add(day)
+            off[period.faculty_id, day] = period.type != AcademicPeriodType.TEACHING
             day += timedelta(days=1)
-    return days
+
+    def is_off(day: date, faculty_id: uuid.UUID | None) -> bool:
+        # The faculty's own period wins, also a teaching one over a shared holiday.
+        own = off.get((faculty_id, day))
+        return own if own is not None else off.get((None, day), False)
+
+    return is_off
 
 
 def week_info(unit_start: date, monday: date) -> tuple[int, Parity]:

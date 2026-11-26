@@ -8,6 +8,13 @@ Each entry follows the same shape:
 
 ```
 
+## 2026-11-26 · Academic calendar per faculty: backend (D-028)
+Tool: Claude Code, claude-sonnet-5-5
+What I asked: make the academic calendar configurable for each faculty, since the year structures differ. Answers given: all-faculties periods as the default with faculty overrides; a room booking follows the room's faculty; "Orarul meu" is per faculty; it goes into PR #37. Plan approved; D-027 superseded by D-028, C-009 and C-010 updated.
+What I got: nullable `academic_periods.faculty_id` (revision `b7c1e2f9a4d3`); the lookup and overlap rule take a faculty; weekly courses follow their planning unit's faculty; bookings follow the room's faculty; the periods API takes and returns the faculty; `/me/timetable` returns `faculties`. 11 new tests in `test_academic_calendar_faculty.py`.
+Tests changed (named as required): `test_academic_periods_api.py::test_an_admin_creates_lists_updates_and_deletes_a_period` (the period now has `faculty_id` and `faculty_name`). Also `conftest.py`: the `db` fixture removes academic periods inside its rolled-back transaction, because a period stored in the development database made 38 tests fail.
+Result: `node scripts/test-all.mjs`: 1033 tests, 4 checks, all pass. The screens are not built yet: they wait for the updated mocks to be confirmed.
+
 ## 2026-11-26 · PR #37 review fixes: slots and times in mixed weeks, partial-week banner
 Tool: Claude Code, claude-sonnet-5-5
 What I asked: fix findings 1 and 3 of the PR #37 review (a mixed week offered hour slots on teaching days and the Bookings page silently changed the time; the banner spoke for the whole week), then commit.

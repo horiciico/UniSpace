@@ -111,7 +111,7 @@ def create_booking(
     if not room.is_bookable:
         raise HTTPException(400, "This room cannot be booked.")
     try:
-        period_type = get_period_type_for_date(db, body.specific_date)
+        period_type = get_period_type_for_date(db, body.specific_date, room.faculty_id)
         start, end = validate_booking_times(period_type, body.start_time, body.end_time)
     except ValueError as exc:
         raise HTTPException(400, str(exc)) from exc
