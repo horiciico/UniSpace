@@ -8,6 +8,52 @@ Each entry follows the same shape:
 
 ```
 
+## 2026-11-26 · Email: the brand mark in every HTML email
+Tool: Claude Code, claude-haiku-5-5
+What I asked: add the app logo to all emails.
+What I got: the brand mark (`frontend/public/brand-mark.png`, 128 px, 13 KB) is attached to each HTML email as an inline image (`cid:unispace-logo`) and shown at the top with the name "UniSpace". The full logo is 2 MB at 2048 px, too large for email, so it was not used. The text part has no logo. A copy of the image sits in `backend/app/assets/`, because the backend image only contains `backend/`; if the mark changes, both copies must be updated.
+Tests: `test_every_html_email_carries_the_logo_inline` (3 messages) and `test_the_plain_text_part_has_no_logo`. In `test_user_text_is_escaped_in_the_html_part` one assertion was narrowed: it checked that no `<img` appeared at all, which the logo now contains; it checks the user's tag `<img src="x"` is absent instead. Named here as a change to an assertion.
+Result: backend 248 passed; lint and types pass; ETL 114; frontend 402 passed. The pending-booking test that failed earlier passes: the local "whatever" booking is no longer in the database. Not committed.
+
+## 2026-11-26 · Email: emails not sent (stale backend container) and blank settings crash the start
+Tool: Claude Code, claude-haiku-5-5
+What I asked: why the emails were not being sent.
+What I found: the backend container had started four hours earlier, before the email code and the `.env` email keys existed. It had no `EMAIL_BACKEND`, so it could not send. Docker reads `.env` only when a container is created, so `docker compose restart` does not pick up new values; `docker compose up -d backend` does. The SMTP settings in `.env` are `smtp` on smtp.gmail.com:587 with STARTTLS. A connection, STARTTLS and sign-in test succeeded in the container; no message was sent.
+What I did: recreated the backend container (`docker compose up -d backend`). Defect found while reading the config: a blank setting (as `.env.example` leaves some) stopped the app from starting. `backend/app/config.py` now uses the default for a blank value. Test: `test_blank_settings_fall_back_to_the_defaults` (tests first; it failed with the RuntimeError).
+Result: backend lint passes; backend 244 tests, 243 pass. One fails: `test_admin_bookings.py::test_the_pending_list_shows_each_requester_and_role`, because the local development database has a pending booking titled "whatever" (created 2026-11-25) that no test creates. Not changed: the test's assertion needs the user's decision (delete that row, or limit the test to its own bookings). Not committed.
+
+## 2026-11-26 · Email service, step 2: emails wired into the invitation and booking decisions
+Tool: Claude Code, claude-haiku-5-5
+What I asked: step 2 of the email objective. The invitation email (full link, role, expiry) on `POST /api/admin/invitations`; the approval and rejection emails to the requester on the booking decision (the rejection with the admin's reason when there is one); no email for an admin's own booking, which is approved at once.
+What I got:
+- `admin_users.py`: `create_invitation` queues `send_invitation_email` with `APP_BASE_URL` + `/login?invite=<token>` after the save. The API response keeps its relative link, so Copy Link is unchanged.
+- `admin_bookings.py`: `decide` queues the approval or the rejection email to the requester after the save, using the room, date, times, title and the admin's message.
+- Nothing is sent for: a refused invitation (409), a refused decision (409, including a clash on approval), an admin's own booking, or a student's request until it is decided.
+- Tests: `backend/tests/test_email_wiring.py`, 11 tests. The messages are recorded by replacing `send`. A failing SMTP server does not fail the invitation or the decision.
+- Not covered by the spec and not changed: an admin cancelling an approved booking (`admin_cancel`) sends no email. Noted for the user.
+What I did with it: tests first (4 of the 11 failed for the right reason before the wiring; 2 of my first test requests used times that are not booking modules, fixed in the test). Full run: backend 243 passed, ETL 114 passed, frontend 402 passed, all lint and type checks pass. Not committed.
+
+## 2026-11-26 · Email service, step 1b: multipart HTML and the three bilingual messages
+Tool: Claude Code, claude-haiku-5-5
+What I asked: the email helpers (invitation, booking approved, booking rejected) with a plain-text and an HTML part, bilingual, with user text escaped. Answers given to the proposals: keep the link masking in the console; `logger.error` with the subject and error type only; `EMAIL_BACKEND` is the only switch; extend `backend/app/email_service.py`, not a new `services/` module.
+What I got:
+- `email_service.py`: `EmailMessage` gains `html`; SMTP sends a `multipart/alternative` when there is an HTML part; the console logs the text part only. `send_email(to_email, subject, text_body, html_body, hidden)` is the public send. `send_invitation_email`, `send_booking_approved_email`, `send_booking_rejected_email` (the reason is given only when present, in both languages). Each message is written in Romanian and English; the HTML escapes every user-supplied value (room, title, reason, link).
+- Tests: 7 added to `backend/tests/test_email_service.py` (multipart, console text only, invitation bilingual with the link hidden in the console and the real link over SMTP, approved content, escaping, reason shown only when given). 17 in the file.
+- Invitation expiry is shown in Romanian local time (Europe/Bucharest, from the Python zone database in the container; no new dependency). The user asked for local time instead of UTC.
+- Not wired to the endpoints yet (steps 2 and 3).
+What I did with it: tests first (the import failed as expected). Two of my own test mistakes fixed: each send opens its own SMTP connection, and the first ruff run had long docstring lines. Full run: backend lint and types pass; backend 232 passed; ETL 114 passed; frontend 402 passed. Frontend lint still fails with 12 errors that exist on `main` (see the previous entry). Not committed.
+
+## 2026-11-26 · Email service, step 1: settings and EmailService (console and SMTP)
+Tool: Claude Code, claude-haiku-5-5
+What I asked: step 1 of the email objective, on branch `feature/email-service` (from `main`): the email settings in `backend/app/config.py` and `.env.example`, and an `EmailService` with a `console` and an `smtp` backend, queued on BackgroundTasks. Answers given: the console hides the invite link as `[link hidden]`; emails are bilingual (Romanian and English); STARTTLS only on port 587; `APP_BASE_URL` defaults to `http://localhost:8080`; a failed send is logged without the body and does not fail the response; the variables go in `config.py`.
+What I got:
+- `backend/app/config.py`: EMAIL_BACKEND (console by default; any other value fails at start), SMTP_HOST, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD, SMTP_FROM_EMAIL, SMTP_FROM_NAME, SMTP_USE_TLS, APP_BASE_URL, with the defaults from the objective.
+- `backend/app/email_service.py`: `EmailMessage`, `queue()` (adds the send to BackgroundTasks), `send()` (never raises; logs the subject and the error type only), and the two backends. The console backend replaces the `hidden` part of the body with `[link hidden]` and logs no address.
+- `.env.example`: placeholders for every new variable; no value is set for a password.
+- `backend/tests/test_email_service.py`: 10 tests (defaults, environment values, unknown backend, console masking and no connection, SMTP with STARTTLS, login, Romanian text, skipped TLS and login, failed send logged without secrets, queueing). The SMTP class is faked; no real connection is opened.
+- Not wired into the invitation or booking endpoints yet (steps 2 and 3).
+What I did with it: tests written first; the first run failed on the missing module. One of my own assertions was wrong (fixed). Log capture failed in the full suite: alembic's `fileConfig` disables loggers created before it; the test now re-enables the service logger for each test. Backend: 225 passed (3 warnings from third-party libraries). ETL: 114 passed. Frontend: 402 passed. Backend lint and types pass. Frontend lint fails with 12 errors in files this change does not touch (`components/`, `js/api.js`, `js/auth.js`, `js/bookings.js`, `i18n/i18n.js`); the frontend is unchanged from `main`. Not committed.
+
 ## 2026-11-25 · Admin Users: mock confirmed, 48-hour invitations, created date, Users tab built
 Tool: Claude Code, claude-haiku-5-5
 What I asked: the user confirmed the Users tab mock, and asked for three changes: a new invitation revokes only an expired pending invitation for the same email (an unexpired one still gives 409); invitations expire after 48 hours; the users list shows the account's created date (the "use the column" answer).

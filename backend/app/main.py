@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import FastAPI
 from starlette.middleware.sessions import SessionMiddleware
 
@@ -14,6 +16,10 @@ from app.routers import (
     schedule,
     study_profile,
 )
+
+# The app's INFO lines (a sent email, a console email) reach the container log. Without this
+# Python drops them.
+logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 
 # Tables come from Alembic migrations only (D-002). The backend container runs
 # `alembic upgrade head` before it starts (see docker-compose.yml).

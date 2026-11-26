@@ -6,15 +6,17 @@ Every endpoint is for an ADMIN only (403 for others, 401 signed out).
 import re
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Response
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app import config
 from app.auth import get_current_user
 from app.db import get_db
+from app.email_service import send_invitation_email
 from app.invitations import (
     active_pending,
     announce,
@@ -169,10 +171,12 @@ def list_invitations(
 @router.post("/invitations", status_code=201, response_model=None)
 def create_invitation(
     body: InvitationIn,
+    background_tasks: BackgroundTasks,
     admin: User = Depends(require_admin),
     db: Session = Depends(get_db),
 ) -> dict | JSONResponse:
-    """Invite an email with a non-admin role. The admin copies the link from the pending list."""
+    """Invite an email with a non-admin role. The admin copies the link from the pending list, and
+    the invitation is also emailed (after the save; a failed email does not fail the request)."""
     existing = db.scalar(select(User).where(func.lower(User.email) == body.email))
     if existing is not None:
         return JSONResponse(
@@ -200,6 +204,13 @@ def create_invitation(
         db.rollback()  # a concurrent invitation for the same email won the race
         raise HTTPException(409, "An invitation for this email is already pending.") from None
     announce(invitation)
+    background_tasks.add_task(
+        send_invitation_email,
+        invitation.email,
+        invitation.role.value,
+        f"{config.APP_BASE_URL.rstrip('/')}{invite_url(invitation.token)}",
+        invitation.expires_at,
+    )
     return _invitation_out(invitation)
 
 
