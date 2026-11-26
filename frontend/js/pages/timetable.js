@@ -31,6 +31,14 @@
   var bookHint = document.getElementById("tt-hint");
   var roomBox = document.getElementById("tt-room");
   var roomAccess = document.getElementById("tt-room-access");
+  var mineTab = document.getElementById("tt-tab-mine");
+  var facultyField = document.getElementById("tt-filter-faculty");
+  var entityField = document.getElementById("tt-filter-entity");
+  var unlinkedNote = document.getElementById("tt-unlinked");
+  var moveBar = document.getElementById("tt-move-bar");
+  var moveButton = /** @type {HTMLButtonElement} */ (
+    document.getElementById("tt-move")
+  );
 
   var ENTITY_LABEL_KEYS = {
     group: "timetable.entityGroup",
@@ -111,6 +119,11 @@
     statusError: false,
     requestNumber: 0,
     entityRequestNumber: 0,
+    // "Orarul meu" (mode mine) is for professors only: the tab shows once the role is known,
+    // and a link that asks for it opens it only for a professor (wantMine).
+    wantMine: params.get("mode") === "mine",
+    canMine: false,
+    unlinked: false,
   };
 
   function setStatus(key, isError) {
@@ -139,7 +152,19 @@
   }
 
   function renderEntityLabel() {
+    if (state.mode === "mine") return; // the filters are hidden in this view
     entityLabel.textContent = t(ENTITY_LABEL_KEYS[state.mode]);
+  }
+
+  // The faculty and entity filters, and the move button, belong to the views that pick an entity
+  // or to "Orarul meu" only. The unlinked notice shows in "Orarul meu" for an unlinked account.
+  function renderMineControls() {
+    var mine = state.mode === "mine";
+    facultyField.hidden = mine;
+    entityField.hidden = mine;
+    moveBar.hidden = !mine;
+    moveButton.disabled = state.unlinked;
+    unlinkedNote.hidden = !(mine && state.unlinked);
   }
 
   function renderTabs() {
@@ -204,6 +229,7 @@
 
   // Loads the groups, professors or rooms of the faculty into the datalist.
   function loadEntities() {
+    if (state.mode === "mine") return Promise.resolve(); // nothing to pick in this view
     var request = ++state.entityRequestNumber;
     entityInput.disabled = !state.facultyId;
     // Drop the previous list at once, so the datalist never offers the old tab's names.
@@ -271,7 +297,45 @@
     return values;
   }
 
+  // "Orarul meu": the signed-in professor's own week (C-009). An unlinked account gets the notice
+  // and no grid; the move button stays disabled.
+  function hideBody() {
+    body.hidden = true;
+    emptyNote.hidden = true;
+  }
+
+  function loadMine() {
+    var request = ++state.requestNumber;
+    setStatus("timetable.loading");
+    api
+      .professorTimetable(isoDate(state.monday))
+      .then((data) => {
+        if (request !== state.requestNumber) return;
+        state.unlinked = !data.linked;
+        state.week = null;
+        renderWeek();
+        renderMineControls();
+        if (!data.linked) {
+          setStatus("");
+          hideBody();
+          return;
+        }
+        state.items = data.activities;
+        setStatus(data.activities.length ? "" : "timetable.noItems");
+        drawGrid();
+        showBody();
+      })
+      .catch(() => {
+        if (request !== state.requestNumber) return;
+        state.items = null;
+        renderWeek();
+        setStatus("timetable.error", true);
+        hideBody();
+      });
+  }
+
   function loadSchedule() {
+    if (state.mode === "mine") return loadMine();
     if (!state.entity) {
       state.items = null;
       state.week = null;
@@ -437,6 +501,7 @@
 
   function setMode(mode) {
     state.mode = mode;
+    state.unlinked = false;
     renderTabs();
     renderEntityLabel();
     entityInput.value = "";
@@ -444,9 +509,25 @@
     state.items = null;
     populateFaculties();
     updateUrl();
+    renderMineControls();
+    if (mode === "mine") {
+      loadMine();
+      return;
+    }
     loadEntities();
     setStatus("");
     showEmpty();
+  }
+
+  // The "Orarul meu" tab is shown to a professor only. A link asking for it opens it then.
+  function showMineTabIfProfessor() {
+    if (!window.UniSpaceAuth) return;
+    window.UniSpaceAuth.ready.then((user) => {
+      if (!user || user.role !== "PROFESSOR") return;
+      state.canMine = true;
+      mineTab.hidden = false;
+      if (state.wantMine) setMode("mine");
+    });
   }
 
   function init() {
@@ -495,6 +576,12 @@
     document.getElementById("tt-d-close").addEventListener("click", () => {
       dialog.close();
     });
+    moveButton.addEventListener("click", () => {
+      window.UniSpaceMove.open(() => {
+        loadMine();
+      });
+    });
+    showMineTabIfProfessor();
 
     api
       .faculties()

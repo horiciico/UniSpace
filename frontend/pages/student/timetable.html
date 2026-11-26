@@ -7,6 +7,7 @@
     <script src="/js/modules.js" defer></script>
     <script src="/js/grid.js" defer></script>
     <script src="/js/bookings.js" defer></script>
+    <script src="/js/move.js" defer></script>
     <script src="/js/pages/timetable.js" defer></script>
   </head>
   <body>
@@ -19,16 +20,17 @@
           <button class="tab" role="tab" type="button" data-mode="group" aria-selected="true" data-i18n="timetable.tabGroup">Pe grupă</button>
           <button class="tab" role="tab" type="button" data-mode="professor" aria-selected="false" data-i18n="timetable.tabProfessor">Pe profesor</button>
           <button class="tab" role="tab" type="button" data-mode="room" aria-selected="false" data-i18n="timetable.tabRoom">Pe sală</button>
+          <button class="tab" id="tt-tab-mine" role="tab" type="button" data-mode="mine" aria-selected="false" hidden data-i18n="timetable.tabMine">Orarul meu</button>
         </div>
 
         <div class="tt-filters">
-          <label class="field">
+          <label class="field" id="tt-filter-faculty">
             <span class="field__label" data-i18n="timetable.faculty">Facultate</span>
             <select id="tt-faculty" required>
               <option value="" data-i18n="timetable.chooseFaculty">Alege o facultate</option>
             </select>
           </label>
-          <label class="field">
+          <label class="field" id="tt-filter-entity">
             <span class="field__label" id="tt-entity-label" data-i18n="timetable.entityGroup">Grupă</span>
             <input id="tt-entity" list="entity-list" autocomplete="off" disabled
                    data-i18n-attr="placeholder:timetable.entitySearch" placeholder="Caută și alege din listă" />
@@ -45,6 +47,7 @@
       </div>
 
       <p class="muted" id="tt-status" role="status" aria-live="polite"></p>
+      <p class="notice" id="tt-unlinked" hidden data-i18n="timetable.mineNotLinked">Contul tău nu este legat de un profil de profesor, deci nu are cursuri de mutat. Dacă crezi că este o greșeală, contactează secretariatul.</p>
 
       <div class="card tt-empty" id="tt-empty">
         <p data-i18n="timetable.empty">Alege o facultate și o grupă, un profesor sau o sală pentru a vedea orarul</p>
@@ -67,6 +70,10 @@
           <div class="tt-grid" id="tt-grid" role="grid" data-i18n-attr="aria-label:timetable.gridAria" aria-label="Orar săptămânal"></div>
         </div>
       </div>
+
+      <div class="card__actions mt-3" id="tt-move-bar" hidden>
+        <button class="btn" id="tt-move" type="button" disabled data-i18n="timetable.moveButton">Mută activitatea</button>
+      </div>
     </main>
 
     <dialog class="tt-dialog" id="tt-dialog" aria-labelledby="tt-d-title">
@@ -85,6 +92,74 @@
       <div class="card__actions">
         <button class="btn btn-small" id="tt-d-close" type="button" data-i18n="timetable.close">Închide</button>
       </div>
+    </dialog>
+
+    <dialog class="tt-dialog mv-dialog" id="mv-dialog" aria-labelledby="mv-title">
+      <h2 id="mv-title" data-i18n="timetable.moveTitle">Mută activitatea</h2>
+      <div class="mv-steps">
+        <span class="pill pill--info" id="mv-pill-1" data-i18n="timetable.moveStepActivity">Activitate</span>
+        <span class="pill" id="mv-pill-2" data-i18n="timetable.moveStepDate">Data nouă</span>
+        <span class="pill" id="mv-pill-3" data-i18n="timetable.moveStepModule">Interval</span>
+        <span class="pill" id="mv-pill-4" data-i18n="timetable.moveStepRoom">Sală</span>
+      </div>
+
+      <div id="mv-step-1">
+        <label class="field">
+          <span class="field__label" data-i18n="timetable.moveStepActivity">Activitate</span>
+          <select id="mv-activity"></select>
+        </label>
+        <label class="field mt-3">
+          <span class="field__label" data-i18n="timetable.moveOriginalDate">Data originală</span>
+          <input type="date" id="mv-original" />
+          <small class="muted" data-i18n="timetable.moveOriginalHint">Doar zilele în care activitatea are loc.</small>
+        </label>
+        <p class="notice" id="mv-empty" hidden data-i18n="timetable.moveNoActivities">Nu ai activități de mutat.</p>
+        <div class="mv-actions">
+          <button class="btn btn-small" id="mv-cancel" type="button" data-i18n="timetable.moveCancel">Anulează</button>
+          <button class="btn" id="mv-next-1" type="button" data-i18n="timetable.moveNext">Continuă</button>
+        </div>
+      </div>
+
+      <div id="mv-step-2" hidden>
+        <label class="field">
+          <span class="field__label" data-i18n="timetable.moveStepDate">Data nouă</span>
+          <input type="date" id="mv-new" />
+          <small class="muted" data-i18n="timetable.moveDateHint">Nu poate fi în trecut.</small>
+        </label>
+        <div class="mv-actions">
+          <button class="btn btn-small" id="mv-back-2" type="button" data-i18n="timetable.moveBack">Înapoi</button>
+          <button class="btn" id="mv-next-2" type="button" data-i18n="timetable.moveNext">Continuă</button>
+        </div>
+      </div>
+
+      <div id="mv-step-3" hidden>
+        <h3 data-i18n="timetable.moveChooseModule">Alege intervalul</h3>
+        <p class="muted" id="mv-module-status" role="status" aria-live="polite"></p>
+        <div class="mv-modules" id="mv-modules"></div>
+        <div class="mv-actions">
+          <button class="btn btn-small" id="mv-back-3" type="button" data-i18n="timetable.moveBack">Înapoi</button>
+          <button class="btn" id="mv-next-3" type="button" disabled data-i18n="timetable.moveNext">Continuă</button>
+        </div>
+      </div>
+
+      <div id="mv-step-4" hidden>
+        <h3 data-i18n="timetable.moveChooseRoom">Alege sala</h3>
+        <label class="field">
+          <span class="field__label" data-i18n="timetable.moveFaculty">Facultate</span>
+          <select id="mv-faculty"></select>
+        </label>
+        <label class="field">
+          <span class="field__label" data-i18n="timetable.moveStepRoom">Sală</span>
+          <select id="mv-room"></select>
+        </label>
+        <p class="notice" id="mv-noroom" hidden data-i18n="timetable.moveNoRoom">Nicio sală liberă în acest interval. Alege alt interval.</p>
+        <div class="mv-actions">
+          <button class="btn btn-small" id="mv-back-4" type="button" data-i18n="timetable.moveBack">Înapoi</button>
+          <button class="btn" id="mv-submit" type="button" disabled data-i18n="timetable.moveButton">Mută activitatea</button>
+        </div>
+      </div>
+
+      <p class="notice notice--error" id="mv-error" role="alert" hidden><span id="mv-error-text"></span></p>
     </dialog>
   </body>
 </html>

@@ -310,6 +310,9 @@ def next_id(prefix):
 
 
 def main():
+    # The messages use ✓ ✗ — and —. Windows consoles default to cp1252 and cannot print them.
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     ap = argparse.ArgumentParser()
     ap.add_argument("--fix", action="store_true")
     ap.add_argument("--next", choices=list(KINDS))

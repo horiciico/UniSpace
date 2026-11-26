@@ -39,6 +39,14 @@ interface Window {
     adminInvitations(): Promise<any[]>;
     createInvitation(body: Record<string, any>): Promise<any>;
     revokeInvitation(id: string): Promise<null>;
+    professorTimetable(weekStart: string): Promise<any>;
+    movableActivities(): Promise<any>;
+    professorAvailability(
+      day: string,
+      groupIds?: string[],
+      excludeActivityId?: string | null,
+    ): Promise<any>;
+    moveActivity(id: string, body: Record<string, any>): Promise<any>;
   };
   UniSpaceAuth: {
     ready: Promise<any>;
@@ -75,4 +83,7 @@ interface Window {
     end: string;
   };
   UniSpaceUI: Record<string, any>;
+  UniSpaceMove: {
+    open(onMoved?: () => void): void;
+  };
 }

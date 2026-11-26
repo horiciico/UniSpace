@@ -54,6 +54,19 @@ designs:
     design_ref: docs/design/mocks/DS-unispace-timetable-grid.html
     status: implemented  # built in steps 3-4; mock confirmed 2026-11-24; screenshots light and dark
 
+  - id: DS-unispace-timetable-move
+    kind: screen
+    source: frontend/pages/student/timetable.html  # "Orarul meu" tab (professors only), move button and the Move Activity dialog (frontend/js/move.js)
+    screenshots:
+      - docs/design/screens/DS-unispace-timetable-move.timetable.light.png
+      - docs/design/screens/DS-unispace-timetable-move.timetable.dark.png
+      - docs/design/screens/DS-unispace-timetable-move.modal.step1.light.png
+      - docs/design/screens/DS-unispace-timetable-move.modal.modules.light.png
+      - docs/design/screens/DS-unispace-timetable-move.modal.modules.dark.png
+      - docs/design/screens/DS-unispace-timetable-move.modal.room.light.png
+    design_ref: docs/design/mocks/DS-unispace-timetable-move.html
+    status: implemented  # mock confirmed 2026-11-26; built 2026-11-26; tests in frontend/tests/unit/move.test.js, timetable-my-schedule.test.js, api-professor.test.js
+
   - id: DS-unispace-room-card
     kind: component
     source: frontend/styles/components/room-card.css

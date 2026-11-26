@@ -8,6 +8,77 @@ Each entry follows the same shape:
 
 ```
 
+## 2026-11-26 · Move dialog: faculty filter for the room step
+Tool: Claude Code, claude-haiku-5-5
+What I asked: on the room step of the Move Activity dialog, a faculty filter, so the professor picks the faculty whose rooms are offered.
+What I got: `backend/app/availability.py`: each free room carries `faculty_id` and `faculty_name` (null for a campus room). `frontend/js/move.js`: a faculty select above the room select, with "All faculties" first and one entry per faculty of the free rooms (campus as "Campus"); the room list follows it, and each time step 4 opens it starts on all faculties. `frontend/pages/student/timetable.html`: the select. `frontend/i18n`: `timetable.moveFaculty`, `timetable.moveAllFaculties`. C-009 shape updated.
+Design note: DESIGN.md asks for a mock before a changed screen is built. This is a field added to the confirmed step 4, placed like the other fields; the user asked for it directly. Flagged here for confirmation.
+Tests changed (named as required): `backend/tests/test_professor_availability.py::test_a_free_room_has_the_room_fields` (exact key set now includes the two faculty fields); `frontend/tests/unit/move.test.js` "lists only the free rooms of the module, with their seats" (the fixture now has a third room, so the expected list has three rooms). Test rooms in move.test.js gained faculty fields. New tests: `test_each_free_room_says_which_faculty_owns_it`; the "faculty filter" describe block in move.test.js.
+Result: backend professor tests pass; frontend 463 tests, lint and types pass. The full suite and the commit follow in the same session. No browser re-check this time (it would need another temporary session).
+
+## 2026-11-26 · Professor schedule, step 4 (part 2): "Orarul meu" tab and the Move Activity dialog (frontend)
+Tool: Claude Code, claude-haiku-5-5
+What I asked: build the confirmed mock (DS-unispace-timetable-move): the "Orarul meu" tab for professors, the move button, the four-step dialog.
+What I got:
+- `frontend/js/move.js` (new): the four-step dialog. Step 1 lists the movable activities (course, groups, day and time, room), with the original date defaulting to the next day of that weekday; step 2 the new date; step 3 the modules from `/api/professors/me/availability` (busy ones disabled with the reason); step 4 the free rooms of that module with their seats. Submit posts the move, shows a toast, closes, and reloads the week. A refused move keeps the dialog open and shows the backend's reason.
+- `frontend/js/pages/timetable.js`: the "Orarul meu" mode. The tab shows only to a PROFESSOR (`UniSpaceAuth.ready`). The faculty and entity filters hide, and the move button sits below the grid. An unlinked account gets the notice, no grid, and a disabled button.
+- `frontend/js/api.js`: `professorTimetable`, `movableActivities`, `professorAvailability` (repeats `group_ids`), `moveActivity`.
+- `frontend/pages/student/timetable.html`, `frontend/styles/components/timetable.css`: the markup and the dialog styles, tokens only.
+- `frontend/i18n/ro.js`, `en.js`: 28 `timetable.*` keys in both languages.
+- `frontend/js/types.d.ts`: the new API methods and `UniSpaceMove`.
+Tests (written with the code, all in frontend/tests/unit): `move.test.js` (every step, the errors, stale answers, the callback, the language change), `timetable-my-schedule.test.js` (who sees the tab, the unlinked state, weeks, move button), `api-professor.test.js` (the wrappers, repeated `group_ids`, the POST body, a refused move).
+Result: `node scripts/test-all.mjs`: 884 tests in 7 suites, 4 checks, with the frontend coverage gate at 100% (`vitest run --coverage`). Lint and types pass.
+Browser check (headless Chrome over DevTools, throwaway script outside the repo): signed in as a professor with a temporary session, the "Orarul meu" tab is selected, the move button is enabled, the four steps run, and the modules and rooms come from the real API. The move itself was NOT submitted, so no activity was changed. Screenshots in `docs/design/screens/DS-unispace-timetable-move.*` (light and dark). Read and checked: the step pills now mark the current step (they had all looked the same). Not checked: the Romanian layout, the smallest width.
+Known, not changed:
+- The module reasons come from the backend in English (for example "Professor busy: …"), shown as they arrive (D-012).
+- The room list includes "fara sala" (a placeholder room in the data) and rooms without seats; the free-room search lists it too. A data question for the user.
+- The original date defaults to the weekday only; a weekly class in an off week is refused by the server with its reason.
+Cleanup NOT done: the browser check used a temporary user (`ui-check@ulbsibiu.ro`, role PROFESSOR) and a temporary professor row, both in the local development database. The deletion was refused by the permission check, so both rows and the temporary session remain. The headless Chrome process and its profile folder in the Windows temp folder also remain. These need removing by hand or by a go-ahead.
+Not committed at the time of this entry.
+
+## 2026-11-26 · Professor schedule, step 4 (part 1): group fields for the move dropdown, and the draft mock
+Tool: Claude Code, claude-haiku-5-5
+What I asked: step 4 of PR 1 (the "Orarul meu" tab and the Move Activity modal).
+What I got: the backend part the modal needs. `GET /api/professors/me/movable-activities` items carry `group_ids` (for the availability call) and `groups` (names, for the dropdown); `backend/app/routers/professors.py`. The mock `docs/design/mocks/DS-unispace-timetable-move.html` (all the states: not linked, the four steps, busy modules, no free room, a refused move), registered as `DS-unispace-timetable-move` with status `draft` in `docs/design/registry.yaml`. No frontend code is written yet: DESIGN.md says a new or changed screen is built only after the user confirms its mock.
+Test changed (named as required): `backend/tests/test_professor_timetable.py::test_movable_items_say_whether_they_repeat`. It asserted the exact set of keys of a movable item; the two new keys are the intended change, so the set now includes `group_ids` and `groups`. New test: `test_movable_items_carry_their_groups_for_the_availability_check`.
+Ledger: C-009 movable-activities shape updated (additive). Ledger lint passes.
+Result: `node scripts/test-all.mjs`: 827 tests in 7 suites, lint and types pass. Not committed at the time of this entry.
+
+## 2026-11-26 · Professor schedule, step 3: move one occurrence (backend) and the audit
+Tool: Claude Code, claude-haiku-5-5
+What I asked: step 3 of PR 1: `POST /api/professors/me/activities/{activity_id}/move`, with the approved answers (weekly move = exception with `is_cancelled = true` plus a new one-off; one-off move = new one-off and old one `CANCELLED`, imported ones marked `is_manually_modified`; whole modules; bookable room; no new date before today; 409/400/403; same-day move keeps the activity's own slot out of the checks; groups copied as `ActivityGroup` rows).
+What I got: `backend/app/moves.py` (`move_occurrence`: the checks, then one atomic commit; an `IntegrityError` becomes 409). `backend/app/availability.py` (`slot_clashes`: the professor, group and room check, with reasons; shares the helpers of step 2). `backend/app/routers/professors.py` (the endpoint, with a `MoveIn` body). The response has the new one-off's id.
+Audit: every timing read goes through `planning.occurrences()`, which applies exceptions, cancellations and moves, so the vacated slot is free for the free-room search, the timetable, the booking clash check and availability. Direct reads of activity timing outside it: none found (the movable list and the unit count read names and dates, not occurrences). The known gap is Q-018: `occurrences()` ignores `ActivityException.new_classroom_id`. The move never sets that field, so the gap does not affect it. No query was changed.
+Tests: `backend/tests/test_professor_move.py`, 23 tests written before the code. One of them was wrong and was fixed before the first green run: it checked the whole week's timetable for Tuesday, but the moved one-off on Wednesday is in the same week. It now checks Tuesday's entries only. Named here as a change to a test I wrote this session.
+Ledger: C-009 gained the POST endpoint (it is part of the approved step 3 spec, with no consumers yet). D-026's evidence line now says rules 1 to 6 are enforced by the endpoint, instead of "not yet". Ledger lint passes.
+Result: `node scripts/test-all.mjs`: 826 tests in 7 suites, lint and types pass; `docker compose config` and `docker compose build backend` pass. Not committed at the time of this entry.
+
+## 2026-11-26 · Ledger lint: crash on Windows consoles fixed
+Tool: Claude Code, claude-haiku-5-5
+What I asked: fix the ledger lint crash.
+What I got: `docs/agents/tools/ledger-lint.py` switches stdout to UTF-8 at the start of `main()`, so the ✓ ✗ — messages print on a Windows console (cp1252). The lint logic is unchanged.
+Result: `python docs/agents/tools/ledger-lint.py` passes with no environment workaround (two size warnings, as before). `--next D` now gives D-027. Not committed at the time of this entry.
+
+## 2026-11-26 · Ledger: professor reschedule decision D-026 and contract C-009
+Tool: Claude Code, claude-haiku-5-5
+What I asked: update the ledger for the professor reschedule work and commit.
+What I got: `docs/agents/DECISIONS.md`: D-026 (the six business rules: one occurrence, automatic approval, no cancel action, hard block on group and professor conflicts, vacated slot freed, unlinked professors have no activities), approved, confirmed 2026-11-26 on the user's pasted "Business Rules (Approved)". `docs/agents/CONTRACTS.md`: C-009 (`/api/professors/me/timetable`, `/movable-activities`, `/availability`), approved, consumers none yet. `python docs/agents/tools/ledger-lint.py --fix` passes (run with UTF-8 output: the default Windows console cannot print its check mark). It reports two size warnings, DECISIONS.md at 296 lines and CONTRACTS.md at 166 lines; the split into topic folders was not done.
+Result: ledger only; no code changed. Committed on `feature/professor-my-schedule`.
+
+## 2026-11-26 · Professor schedule, step 2: cascading availability for a day (backend)
+Tool: Claude Code, claude-haiku-5-5
+What I asked: step 2 of PR 1: `GET /api/professors/me/availability?date=&group_ids=&exclude_activity_id=`, reusable by PR 2 with several groups. Answers given: the modules are the existing 90-minute `planning.MODULES` (the spec's 2-hour list was not used); `exclude_activity_id` skips only that activity's occurrence on the requested date.
+What I got: `backend/app/availability.py` (`day_availability`): for each of the 8 modules, `available`, `conflict_reason` (professor and group clashes, named) and `free_classrooms` (bookable rooms with no occurrence and no approved booking). `backend/app/routers/professors.py`: the endpoint (403 for non-professors and unlinked professors, 404 for an unknown group, 422 without a date). The room rule is the free-room search's: only bookable rooms; pending bookings do not block.
+Tests: `backend/tests/test_professor_availability.py`, 23 tests written before the code (import error at first). One test was wrong and was fixed before the run: it passed the exclusion on both dates, so the other date was also excluded. It now checks the other date without the exclusion. Named here as a change to a test's request.
+Result: `node scripts/test-all.mjs`: 803 tests in 7 suites, lint and types pass; `docker compose config` and `docker compose build backend` pass. Not committed at the time of this entry.
+
+## 2026-11-26 · Professor schedule, step 1: professor resolution, "My schedule" and movable activities (backend)
+Tool: Claude Code, claude-haiku-5-5
+What I asked: step 1 of PR 1 of the professor reschedule flow: a helper that resolves the signed-in PROFESSOR to a `professors` row by `LOWER(email)`; `GET /api/professors/me/timetable?week_start=` returning `{linked, professor_id, activities}` for the week; and a movable-activities list (weekly plus upcoming one-offs) for the Move Activity dropdown.
+What I got: `backend/app/professors.py` (`get_professor_for_user`); `backend/app/routers/professors.py` (both endpoints, 403 for non-professors, unlinked professors get `linked: false` and empty lists); `backend/app/routers/schedule.py` (the item builder moved into `activity_items` so both timetables share it; response unchanged); `backend/app/main.py` (router registered). The week uses `planning.occurrences`, so parity, exceptions, cancellations and moves apply. The timetable has no single-planning-unit filter: each activity uses its own unit, so a professor teaching in two faculties keeps both. The response has no `week_number`/`parity`, because a professor's week can span faculties with different units.
+Tests: `backend/tests/test_professor_timetable.py`, 14 tests written before the code (import error at first). They cover the week's occurrences, parity, moves, cancellations, one-offs, other professors' and name-only rows, unlinked and non-professor access, week snapping, 422, movable items, and the case-insensitive lookup.
+Result: `node scripts/test-all.mjs`: 779 tests passed in 7 suites, lint and types pass (after `ruff format` on the new files). Branch `feature/professor-my-schedule`, not committed. The frontend part of step 1 is not built here.
+
 ## 2026-11-26 · Email: the brand mark in every HTML email
 Tool: Claude Code, claude-haiku-5-5
 What I asked: add the app logo to all emails.

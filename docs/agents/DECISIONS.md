@@ -31,6 +31,7 @@
 - D-023 · Any signed-in user can request a room; an admin's booking is approved at once
 - D-024 · Admin-managed room fields are never written by the classroom ETL
 - D-025 · Admins invite users by email; an invitation admits a new account; admin-set roles persist
+- D-026 · A professor moves one teaching occurrence; it takes effect at once and blocks on conflicts
 
 ---
 
@@ -277,3 +278,19 @@
 - **Evidence:** backend/app/auth.py (resolve_user, decide_role), backend/app/invitations.py, backend/app/models/user_invitation.py, backend/alembic/versions/20261125_b7e2d4a9c013_user_invitations.py, backend/alembic/versions/20261125_c4d1e8f2a7b9_user_role_set_by_admin.py, backend/alembic/versions/20261125_d5a9f0c3b8e1_invitation_expiry_48_hours.py, backend/alembic/versions/20261125_e6b0a1d4c9f2_users_created_at.py, backend/tests/test_user_invitations.py, backend/tests/test_invitation_sign_in.py, backend/tests/test_admin_users.py
 - **Source:** user (plan answers 1 to 6, 2026-11-25; wording tweaks 2026-11-25) · confidence high
 - **Confirmed:** 2026-11-25
+
+## D-026 · A professor moves one teaching occurrence; it takes effect at once and blocks on conflicts
+- **Status:** approved
+- **Date:** 2026-11-26
+- **Rule:** A PROFESSOR linked to a `professors` row (LOWER(users.email) = LOWER(professors.email)) may move one occurrence of an activity they teach:
+  1. The move takes effect at once (no admin approval). It is an `activity_exceptions` row for that occurrence (D-016).
+  2. Only one occurrence (one date) moves. Permanent, semester-wide changes stay out of scope (D-016: an admin request).
+  3. There is no cancel action. A moved occurrence is the new source of truth; moving it again uses the same flow on the moved occurrence.
+  4. A move is allowed only to a slot where every target group and the professor are free, and where a bookable classroom is free (the availability rules of C-009).
+  5. The vacated occurrence is freed at once: its classroom and time become bookable and free in the availability and free-room checks across the app (Q-017).
+  6. A PROFESSOR user with no matching `professors` row has no activities and cannot move any; the app shows an empty state.
+- **Why:** The user approved these rules for the professor reschedule flow (PR 1), which is also the base of Schedule Exam (PR 2). Single occurrences keep the schedule correct for one week without a permanent change.
+- **Rejected:** a cancel action (a move replaces it); a permanent change from the professor's own screen (admin request, D-016); a move that needs admin approval.
+- **Evidence:** backend/app/professors.py (get_professor_for_user), backend/app/routers/professors.py, backend/app/availability.py, backend/app/planning.py (occurrences), backend/tests/test_professor_timetable.py, backend/tests/test_professor_availability.py. Rules 1 to 6 are enforced by the move endpoint (C-009, backend/app/moves.py, backend/tests/test_professor_move.py). The frontend Move Activity modal is not built yet.
+- **Source:** user (business rules 1 to 6, pasted spec "Business Rules (Approved)", 2026-11-26) · confidence high
+- **Confirmed:** 2026-11-26

@@ -73,6 +73,28 @@
     classrooms: (facultyId) => get("/classrooms", { faculty_id: facultyId }),
     freeClassrooms: (params) => get("/classrooms/free", params),
     schedule: (params) => get("/schedule", params),
+    // The signed-in professor's own week (C-009). Resolves with { linked, professor_id, week_start, week_end, activities }.
+    professorTimetable: (weekStart) =>
+      get("/professors/me/timetable", { week_start: weekStart }),
+    // The activities the professor may move: { linked, activities } (C-009).
+    movableActivities: () => get("/professors/me/movable-activities"),
+    // The modules of a day for the professor and the groups (repeated group_ids, C-009).
+    professorAvailability: (day, groupIds, excludeActivityId) =>
+      call(
+        "/professors/me/availability" +
+          query({ date: day, exclude_activity_id: excludeActivityId }) +
+          (groupIds || [])
+            .map((id) => "&group_ids=" + encodeURIComponent(id))
+            .join(""),
+        { headers: { Accept: "application/json" } },
+      ),
+    // Moves one occurrence (C-009): { original_date, new_date, start_time, end_time, new_classroom_id }.
+    moveActivity: (id, body) =>
+      send(
+        "POST",
+        "/professors/me/activities/" + encodeURIComponent(id) + "/move",
+        body,
+      ),
     // The student's faculty and study formation (D-022). Resolves with the user.
     saveStudyProfile: (facultyId, formationId) =>
       send("PUT", "/me/study-profile", {

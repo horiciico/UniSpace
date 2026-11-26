@@ -13,6 +13,7 @@ from app.routers import (
     classrooms,
     health,
     lookups,
+    professors,
     schedule,
     study_profile,
 )
@@ -39,6 +40,7 @@ app.include_router(auth.router)
 app.include_router(classrooms.router)
 app.include_router(lookups.router)
 app.include_router(schedule.router)
+app.include_router(professors.router)
 app.include_router(study_profile.router)
 app.include_router(bookings.router)
 app.include_router(admin_bookings.router)
