@@ -21,6 +21,7 @@ from sqlalchemy.orm import Session
 from app.auth import get_current_user
 from app.availability import day_availability
 from app.db import get_db
+from app.exams import professor_subjects, schedule_exam
 from app.models import (
     Activity,
     ActivityGroup,
@@ -38,6 +39,15 @@ from app.professors import get_professor_for_user
 from app.routers.schedule import activity_items
 
 router = APIRouter(prefix="/api/professors", tags=["professors"])
+
+
+class ExamIn(BaseModel):
+    subject_name: str
+    group_ids: list[uuid.UUID]
+    exam_date: date
+    start_time: time
+    end_time: time
+    classroom_id: uuid.UUID
 
 
 class MoveIn(BaseModel):
@@ -217,4 +227,50 @@ def move_activity(
         "room_id": str(room.id),
         "room_name": room.name,
         "title": new.name,
+    }
+
+
+@router.get("/me/subjects")
+def my_subjects(user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict:
+    """The subjects the signed-in professor teaches, each with its groups (empty when unlinked)."""
+    _require_professor(user)
+    professor = get_professor_for_user(db, user)
+    if professor is None:
+        return {"linked": False, "subjects": []}
+    return {"linked": True, "subjects": professor_subjects(db, professor)}
+
+
+@router.post("/me/exams", status_code=201)
+def schedule_exam_route(
+    body: ExamIn,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Schedule an exam for some of the professor's groups in one of their subjects."""
+    _require_professor(user)
+    professor = get_professor_for_user(db, user)
+    if professor is None:
+        raise HTTPException(403, "Your account is not linked to a professor record.")
+    exam, room, group_names = schedule_exam(
+        db,
+        professor,
+        user,
+        body.subject_name,
+        body.group_ids,
+        body.exam_date,
+        body.start_time,
+        body.end_time,
+        body.classroom_id,
+        local_today(),
+    )
+    return {
+        "id": str(exam.id),
+        "title": exam.name,
+        "activity_type": exam.type.value,
+        "date": body.exam_date.isoformat(),
+        "start_time": hhmm(exam.start_time),
+        "end_time": hhmm(exam.end_time),
+        "room_id": str(room.id),
+        "room_name": room.name,
+        "groups": group_names,
     }

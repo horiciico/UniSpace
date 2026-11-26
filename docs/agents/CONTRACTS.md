@@ -19,6 +19,7 @@
 - C-008 · Admin users and invitations API (/api/admin/users, /api/admin/invitations) · provided
 - C-009 · Professor's own timetable, movable activities and availability (/api/professors/me/*) · provided
 - C-010 · Academic calendar API (/api/academic-periods, /api/admin/academic-periods) · external
+- C-011 · Professor's subjects and exam scheduling (/api/professors/me/subjects, /me/exams) · provided
 
 ---
 
@@ -148,6 +149,18 @@
 - **Rules:** the professor is found by `LOWER(users.email) = LOWER(professors.email)`. The week and the availability use `planning.occurrences` (Q-017), so they match the timetable and the room search. Times are `HH:MM`.
 - **Evidence:** backend/app/routers/professors.py, backend/app/professors.py, backend/app/availability.py, backend/app/moves.py, backend/tests/test_professor_timetable.py, backend/tests/test_professor_availability.py, backend/tests/test_professor_move.py
 - **Source:** user (PR 1 steps 1 and 2 spec, 2026-11-26; answers on the time grid and exclude_activity_id, 2026-11-26) · code · confidence high
+
+### C-010 · Professor's subjects and exam scheduling (/api/professors/me/subjects, /me/exams)
+- **Status:** approved
+- **Interface:** HTTP JSON on the backend, same origin, through nginx at `/api/`. Signed in as PROFESSOR only (401 signed out, 403 for any other role).
+- **Consumers:** none yet. The Schedule Exam flow in the frontend will call them.
+- **Shape:**
+  - `GET /api/professors/me/subjects` → `{linked, subjects}`. `subjects` is `[{name, groups: [{id, name}]}]`: the distinct subject names of the professor's activities that are not CANCELLED, sorted by name; each subject's groups are the groups taking part in any of its activities, sorted by name. An unlinked professor gets `{linked: false, subjects: []}`.
+  - `POST /api/professors/me/exams` with `{subject_name, group_ids, exam_date, start_time, end_time, classroom_id}` → 201 `{id, title, activity_type: "EXAM", date, start_time, end_time, room_id, room_name, groups}`. Creates one one-off EXAM activity (priority EXAM, status APPROVED, is_manually_modified, the professor and the signed-in user) and one `activity_groups` row per group, in one atomic write.
+- **Rules:** 403 for a non-professor or an unlinked professor. 400 when the subject is not one the professor teaches, `group_ids` is empty or holds a group that is not taught in that subject, the date is before today, the times are not whole modules, or the room is not bookable. 404 for an unknown room. 409 with the clashing reasons when the room, the professor or any chosen group is busy on `exam_date`. Subjects are matched by exact name.
+- **Evidence:** backend/app/exams.py, backend/app/routers/professors.py, backend/tests/test_professor_exams.py
+- **Source:** user (Step 1 and Step 2 spec, Schedule Exam, 2026-11-26) · code · confidence high
+- **Confirmed:** 2026-11-26
 
 ## Consumed
 

@@ -8,6 +8,17 @@ Each entry follows the same shape:
 
 ```
 
+## 2026-11-26 · Schedule exam: subjects and exam endpoints (backend, branch feature/professor-schedule-exam)
+Tool: Claude Code, claude-haiku-5-5
+What I asked: step 1 `GET /api/professors/me/subjects` and step 2 `POST /api/professors/me/exams`, as specified.
+What I got: `backend/app/exams.py` (`professor_subjects`, `schedule_exam`); `backend/app/routers/professors.py` (both routes; the exam returns 201); tests in `backend/tests/test_professor_exams.py` (18, written before the code). Reused: `slot_clashes` (room, professor and every group, with reasons), `booking_window` (whole modules). Exam priority is `Priority.EXAM` and type `ActivityType.EXAM`, as in the existing enums.
+Choices made where the spec was open (to confirm):
+- Subject not taught by the professor, and a group not taught in that subject: 400 (the spec said 400/403).
+- An unknown group id: refused as "not taught in this subject" (400), not 404.
+- Subjects are grouped by exact activity name across all of the professor's units.
+- Past dates are refused by date only, as for moves; a time earlier today is not refused.
+Ledger: C-011 added (approved; the spec is the user's). Result: backend 330 tests, lint and types pass. Frontend not started (not asked for in these steps). Not committed at the time of this entry.
+
 ## 2026-11-27 · No class moves into an exam session (D-029)
 Tool: Claude Code, claude-sonnet-5-5
 What I asked: classes cannot be moved during an exam session, judged per faculty (some have 2 semesters and 2 sessions, others 4 modules and 4); also approved the two new messages.
