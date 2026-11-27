@@ -14,7 +14,12 @@ from datetime import date, time
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.academic_calendar import day_without_classes, teaching_faculty_ids
+from app.academic_calendar import (
+    all_in_exam_session,
+    day_without_classes,
+    get_period_type_for_date,
+    teaching_faculty_ids,
+)
 from app.models import AcademicPeriodType, Activity, ActivityGroup, Classroom, Faculty
 from app.planning import MODULES, hhmm, occurrences
 from app.routers.bookings import approved_busy
@@ -161,10 +166,18 @@ def interval_availability(
     exclude_activity_id: uuid.UUID | None = None,
 ) -> dict:
     """Any start-end interval of the day (an exam can be 2 hours, or start at 14:30). Same shape as
-    a module entry. Overlap decides: a class that starts inside the interval takes it."""
+    a module entry. Overlap decides: a class that starts inside the interval takes it.
+    `exam_session` says whether every group's faculty is in an exam session that day; rooms of a
+    faculty on holiday are left out (D-030)."""
     professor_busy, group_busy, room_busy, rooms = _day_state(
         db, day, professor_id, groups, exclude_activity_id
     )
+    on_holiday = {
+        faculty_id
+        for faculty_id in {room.faculty_id for room, _ in rooms}
+        if get_period_type_for_date(db, day, faculty_id) == AcademicPeriodType.HOLIDAY
+    }
+    rooms = [row for row in rooms if row[0].faculty_id not in on_holiday]
     reason = _reason(start, end, professor_busy, group_busy)
     return {
         "start_time": hhmm(start),
@@ -172,6 +185,7 @@ def interval_availability(
         "available": reason is None,
         "conflict_reason": reason,
         "free_classrooms": _free_rooms(rooms, room_busy, start, end),
+        "exam_session": all_in_exam_session(db, day, [group_id for group_id, _ in groups]),
     }
 
 

@@ -454,7 +454,6 @@ def test_it_needs_a_sign_in(db, world) -> None:
     assert make_client(db).post("/api/professors/me/exams", json=body(world)).status_code == 401
 
 
-
 # --- the exam session, per faculty (D-030) -----------------------------------------------------
 
 NO_SESSION = "The date is not in an exam session for these groups."
@@ -538,9 +537,7 @@ def interval(client, world: dict, day: str = EXAM_DAY) -> dict:
     return response.json()
 
 
-def test_the_interval_says_whether_the_groups_are_in_a_session(
-    db, world, client_signed_in
-) -> None:
+def test_the_interval_says_whether_the_groups_are_in_a_session(db, world, client_signed_in) -> None:
     assert interval(client_signed_in, world)["exam_session"] is True
     assert interval(client_signed_in, world, "2026-12-01")["exam_session"] is False
 

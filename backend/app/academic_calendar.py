@@ -72,6 +72,28 @@ def teaching_faculty_ids(db: Session, activity: Activity) -> set[uuid.UUID | Non
     return set(db.scalars(units.distinct()).all()) or {None}
 
 
+def group_faculty_ids(db: Session, group_id: uuid.UUID) -> set[uuid.UUID | None]:
+    """The faculties that teach the group (its activities' planning units); {None} when unknown."""
+    units = (
+        select(PlanningTimeUnit.faculty_id)
+        .join(Activity, Activity.planning_time_unit_id == PlanningTimeUnit.id)
+        .join(ActivityGroup, ActivityGroup.activity_id == Activity.id)
+        .where(ActivityGroup.group_id == group_id)
+    )
+    return set(db.scalars(units.distinct()).all()) or {None}
+
+
+def all_in_exam_session(db: Session, day: date, group_ids: list[uuid.UUID]) -> bool:
+    """Whether the day is in an exam session for the faculty of every group (D-030)."""
+    faculties: set[uuid.UUID | None] = set()
+    for group_id in group_ids:
+        faculties |= group_faculty_ids(db, group_id)
+    return all(
+        get_period_type_for_date(db, day, faculty_id) == AcademicPeriodType.EXAM_SESSION
+        for faculty_id in faculties or {None}
+    )
+
+
 def day_without_classes(
     db: Session, day: date, faculty_ids: set[uuid.UUID | None], activity: Activity | None = None
 ) -> AcademicPeriodType | None:

@@ -2,7 +2,8 @@
 
 - professor_subjects: the distinct subjects the professor teaches (activities not CANCELLED),
   each with the groups that take part. Subjects are matched by name.
-- schedule_exam: one one-off EXAM activity for the chosen groups, after the room, the professor
+- schedule_exam: one one-off EXAM activity for the chosen groups, on a date that is in an exam
+  session for every group's faculty, in half-hour steps (D-030), after the room, the professor
   and every group are checked free on the day and time (409 with the reasons otherwise).
   One atomic write.
 """
@@ -16,8 +17,10 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.academic_calendar import all_in_exam_session, get_period_type_for_date
 from app.availability import slot_clashes
 from app.models import (
+    AcademicPeriodType,
     Activity,
     ActivityGroup,
     ActivityType,
@@ -29,27 +32,7 @@ from app.models import (
     StudentGroup,
     User,
 )
-
-# Exam times (D-030): start on :00 or :30, length a multiple of 30 minutes and at least 1 hour,
-# between 08:00 and 21:30. Exams are not on the 90-minute module grid.
-EXAM_EARLIEST = time(8, 0)
-EXAM_LATEST = time(21, 30)
-
-
-def exam_window(start: time, end: time) -> tuple[time, time]:
-    """The exam's start and end if they are on the exam grid; raises ValueError otherwise."""
-    if start.second or start.microsecond or end.second or end.microsecond:
-        raise ValueError("An exam starts and ends on the minute.")
-    if start.minute % 30:
-        raise ValueError("An exam starts on the hour or the half hour.")
-    if end <= start:
-        raise ValueError("end_time must be after start_time")
-    length = (end.hour * 60 + end.minute) - (start.hour * 60 + start.minute)
-    if length < 60 or length % 30:
-        raise ValueError("An exam lasts a whole number of half hours, at least one hour.")
-    if start < EXAM_EARLIEST or end > EXAM_LATEST:
-        raise ValueError("An exam runs between 08:00 and 21:30.")
-    return start, end
+from app.planning import session_window
 
 
 def professor_subjects(db: Session, professor: Professor) -> list[dict]:
@@ -104,7 +87,7 @@ def schedule_exam(
     if exam_date < today:
         raise HTTPException(400, "The exam date is in the past.")
     try:
-        start, end = exam_window(start_time, end_time)
+        start, end = session_window(start_time, end_time)
     except ValueError as exc:
         raise HTTPException(400, str(exc)) from exc
     room = db.get(Classroom, classroom_id)
@@ -114,6 +97,10 @@ def schedule_exam(
         raise HTTPException(400, "This room cannot be booked.")
 
     groups = [(uuid.UUID(group_id), allowed[group_id]) for group_id in chosen]
+    if not all_in_exam_session(db, exam_date, [group_id for group_id, _ in groups]):
+        raise HTTPException(400, "The date is not in an exam session for these groups.")
+    if get_period_type_for_date(db, exam_date, room.faculty_id) == AcademicPeriodType.HOLIDAY:
+        raise HTTPException(400, "The room is closed for a holiday on that date.")
     reasons = slot_clashes(db, exam_date, start, end, professor.id, groups, room.id)
     if reasons:
         raise HTTPException(409, " ".join(reasons))
