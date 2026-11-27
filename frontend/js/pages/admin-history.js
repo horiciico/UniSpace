@@ -366,6 +366,7 @@
     document.getElementById("panel-rooms").hidden = name !== "rooms";
     document.getElementById("panel-users").hidden = name !== "users";
     document.getElementById("panel-calendar").hidden = name !== "calendar";
+    document.getElementById("panel-import").hidden = name !== "import";
     panel.hidden = name !== "history";
     if (name === "history" && !state.loaded) {
       state.loaded = true;

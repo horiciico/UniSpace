@@ -99,8 +99,9 @@ class, or a utility when the change is only spacing or alignment. The timetable 
 positions from JavaScript, the one allowed exception.
 
 ## ETL pipeline
-Standalone: not wired into FastAPI. Runs as the compose service `etl` (profile `etl`, so a plain
-`docker compose up` does not start it). Source: the ULBS schedule API.
+Runs as the compose service `etl` (profile `etl`, so a plain `docker compose up` does not start it),
+or from the admin panel (D-031): `backend/app/data_import.py` runs both pipelines in a background
+thread, into a temporary folder. The backend image copies `etl/` to `/opt/etl` (`PYTHONPATH`). Source: the ULBS schedule API.
 
 | Step | What it does | Writes |
 |---|---|---|
@@ -140,8 +141,8 @@ Rules the loader applies (decisions D-014 to D-017 and the ETL answers in OPEN-Q
 - an entry with no study group is stored with no group; an entry with no type is stored as Course and reported as a warning.
 - rooms without a capacity store NULL ("unknown capacity").
 - rows edited by an admin (`is_manually_modified`) are never changed.
-- a row that leaves the feed is deleted, unless an exception or a change request points at it.
-- a second run on the same data inserts and deletes nothing.
+- nothing is deleted (D-031): a row that leaves the feed is set CANCELLED, and APPROVED again if it returns.
+- a second run on the same data inserts and cancels nothing.
 
 ## Data flow
 1. Browser requests a page → nginx checks the session, then serves the page file. Clean URLs map to files explicitly in `infra/nginx/default.conf`: `/timetable` → `pages/student/timetable.html`, `/rooms/` → `pages/student/rooms/index.html`. Unknown paths → `pages/shared/404.html`.
@@ -162,7 +163,7 @@ Rules the loader applies (decisions D-014 to D-017 and the ETL answers in OPEN-Q
 | `BACKEND_PORT`, `FRONTEND_PORT` | `.env` | compose port mapping | |
 
 ## Build, deploy, runtime
-Built from `backend/Dockerfile` (python:3.12-slim) and started by `docker-compose.yml`.
+Built from `backend/Dockerfile` (python:3.12-slim, build context the repo root) and started by `docker-compose.yml`.
 Local only so far. Deploy is not defined (Q-005). See AGENTS.md sections 2 and 5.
 
 ## Boundaries

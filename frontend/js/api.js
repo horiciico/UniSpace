@@ -128,6 +128,9 @@
     // A booking request: { classroom_id, specific_date, start_time, end_time, title }. Resolves with the booking.
     createBooking: (body) => send("POST", "/bookings", body),
     // Cancels your own pending booking. Resolves with the booking, now cancelled.
+    // The admin's data import (C-012): the state of the last run, and starting one (409 while one runs).
+    dataImport: () => get("/admin/data-import"),
+    startDataImport: () => send("POST", "/admin/data-import"),
     // Admin review of booking requests (C-006). Only an administrator gets an answer.
     pendingBookings: () => get("/admin/bookings/pending"),
     // Booking history (admin, C-006): one page of bookings. params: limit, offset, faculty_id, classroom_id, status.

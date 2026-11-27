@@ -9,6 +9,7 @@
     <script src="/js/pages/admin-rooms.js" defer></script>
     <script src="/js/pages/admin-users.js" defer></script>
     <script src="/js/pages/admin-calendar.js" defer></script>
+    <script src="/js/pages/admin-import.js" defer></script>
   </head>
   <body>
     <main id="main" class="container">
@@ -22,6 +23,7 @@
         <button class="tab" role="tab" type="button" id="tab-rooms" data-tab="rooms" aria-controls="panel-rooms" aria-selected="false" data-i18n="admin.tabRooms">Săli</button>
         <button class="tab" role="tab" type="button" id="tab-users" data-tab="users" aria-controls="panel-users" aria-selected="false" data-i18n="admin.tabUsers">Utilizatori</button>
         <button class="tab" role="tab" type="button" id="tab-calendar" data-tab="calendar" aria-controls="panel-calendar" aria-selected="false" data-i18n="admin.tabCalendar">An universitar</button>
+        <button class="tab" role="tab" type="button" id="tab-import" data-tab="import" aria-controls="panel-import" aria-selected="false" data-i18n="admin.import.tab">Import date</button>
       </div>
       <div role="tabpanel" id="panel-pending" aria-labelledby="tab-pending">
         <section class="section" aria-labelledby="queue-title">
@@ -348,6 +350,41 @@
             <div class="btn-group">
               <button class="btn" type="button" id="acal-delete-confirm" data-i18n="acal.deleteConfirm">Șterge</button>
               <button class="btn btn-secondary" type="button" id="acal-delete-keep" data-i18n="acal.deleteKeep">Păstrează</button>
+            </div>
+          </section>
+        </section>
+      </div>
+      <div role="tabpanel" id="panel-import" aria-labelledby="tab-import" hidden>
+        <section class="section" aria-labelledby="imp-title">
+          <h2 id="imp-title" data-i18n="admin.import.title">Importul orarului și al profesorilor</h2>
+          <p class="muted mt-3" data-i18n="admin.import.intro">Preia orarul și lista profesorilor de la universitate. Nu șterge nimic: o oră care nu mai apare în orar este marcată anulată, iar rezervările, mutările și examenele rămân. Poate dura câteva minute.</p>
+          <div class="btn-group mt-3">
+            <button class="btn" type="button" id="imp-start" data-i18n="admin.import.start">Pornește importul</button>
+          </div>
+          <p class="notice mt-3" id="imp-status" role="status" aria-live="polite" hidden></p>
+          <section class="card mt-5" id="imp-result" aria-labelledby="imp-result-title" hidden>
+            <h2 id="imp-result-title" data-i18n="admin.import.resultTitle">Rezultatul ultimului import</h2>
+            <ul id="imp-counts"></ul>
+            <div id="imp-problems-block" hidden>
+              <h3 class="mt-3" data-i18n="admin.import.problemsTitle">Ce nu s-a putut importa</h3>
+              <ul id="imp-problems"></ul>
+            </div>
+            <h3 class="mt-3" data-i18n="admin.import.clashesTitle">Suprapuneri de rezolvat</h3>
+            <p class="muted" data-i18n="admin.import.clashesIntro">Rezervări aprobate, ore mutate și examene care se suprapun cu ore importate. Ambele au fost păstrate.</p>
+            <p id="imp-no-clashes" hidden data-i18n="admin.import.noClashes">Nicio suprapunere.</p>
+            <div class="table-wrap mt-3" id="imp-clashes-wrap" hidden>
+              <table>
+                <thead>
+                  <tr>
+                  <th scope="col" data-i18n="admin.import.colWhen">Data și ora</th>
+                  <th scope="col" data-i18n="admin.import.colRoom">Sala</th>
+                  <th scope="col" data-i18n="admin.import.colWhat">Rezervare, mutare sau examen</th>
+                  <th scope="col" data-i18n="admin.import.colClass">Ora importată</th>
+                  <th scope="col" data-i18n="admin.import.colReason">Suprapunere de</th>
+                  </tr>
+                </thead>
+                <tbody id="imp-clashes"></tbody>
+              </table>
             </div>
           </section>
         </section>

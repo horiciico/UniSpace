@@ -7,10 +7,14 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 
 # Dev image: includes test tools (requirements-dev.txt pulls in requirements.txt).
-COPY requirements.txt requirements-dev.txt ./
+# Built from the repo root (context "."): the admin's data import runs the pipelines in etl/.
+COPY backend/requirements.txt backend/requirements-dev.txt ./
 RUN pip install -r requirements-dev.txt
 
-COPY . .
+COPY backend/ ./
+# Outside /app, so the dev mount of backend/ does not hide it and the checks of app/ skip it.
+COPY etl/ /opt/etl/etl/
+ENV PYTHONPATH=/opt/etl
 
 EXPOSE 8000
 

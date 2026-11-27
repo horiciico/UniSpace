@@ -3,6 +3,10 @@ target-version = "py312"
 line-length = 100
 extend-exclude = ["alembic/versions"]
 
+[tool.ruff.lint.isort]
+# etl/ is this repo's own code (on PYTHONPATH in the backend image).
+known-first-party = ["app", "etl"]
+
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
 ignore = ["B008"]

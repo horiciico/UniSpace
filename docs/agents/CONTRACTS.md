@@ -19,6 +19,7 @@
 - C-008 · Admin users and invitations API (/api/admin/users, /api/admin/invitations) · provided
 - C-009 · Professor's own timetable, movable activities and availability (/api/professors/me/*) · provided
 - C-011 · Professor's subjects and exam scheduling (/api/professors/me/subjects, /me/exams) · provided
+- C-012 · Admin data import API (/api/admin/data-import) · provided
 - C-010 · Academic calendar API (/api/academic-periods, /api/admin/academic-periods) · external
 
 ---
@@ -163,6 +164,19 @@
 - **Change 2026-11-26 (D-030):** the exam times rule is the 30-minute grid, not the module grid; the interval availability endpoint is added. Approved by the user, 2026-11-26.
 - **Change 2026-11-27 (D-030):** exams end by 22:00; the date must be in the groups' exam session; `exam_session` is added to the interval answer. Room bookings (C-005) in a session use the same half-hour rule.
 - **Source:** user (Step 1 and Step 2 spec, Schedule Exam, 2026-11-26; exam times, 2026-11-26) · code · confidence high
+- **Confirmed:** 2026-11-27
+
+### C-012 · Admin data import API (/api/admin/data-import)
+- **Status:** approved
+- **Interface:** HTTP JSON on the backend, same origin, through nginx at `/api/`. ADMIN only (401 signed out, 403 for any other role).
+- **Consumers:** `frontend/js/api.js` (`dataImport`, `startDataImport`); `frontend/js/pages/admin-import.js` (the Data import tab).
+- **Shape:**
+  - `GET /api/admin/data-import` → `{status, step, started_at, finished_at, result}`. `status`: `idle`, `running`, `done`, `failed`. `step`: `faculties`, `planning_units`, `schedules`, `timetable`, `professors`, `clashes` or null.
+  - `POST /api/admin/data-import` (no body) → 202 with the same shape; 409 while a run is going.
+  - `result` (when done): `{schedule: {inserted, updated, unchanged, restored, cancelled, kept_edited, unread_entries}, professors: {stored}, problems: [{faculty, kind}], clashes: [{date, start, end, room, what, title, class_start, class_end, class_room, reasons}]}`. `kind`: `planning`, `download`, `empty`, `load`, `professors`, `professors_save` (`faculty` null). `what`: `booking`, `class`, `exam`. `reasons`: `room`, `professor`, `group`.
+- **Rules:** D-031. The state is kept in memory, so a backend restart forgets it. No error text of a save is returned or logged (it can hold emails).
+- **Evidence:** backend/app/routers/admin_data_import.py, backend/app/data_import.py, backend/tests/test_data_import.py
+- **Source:** user (2026-11-27) · code · confidence high
 - **Confirmed:** 2026-11-27
 
 ## Consumed

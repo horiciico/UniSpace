@@ -1,0 +1,12 @@
+# The backend and etl images are built from the repo root; only backend/ and etl/ are copied.
+.git
+.env
+.venv
+data
+output
+frontend
+docs
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+**/.venv

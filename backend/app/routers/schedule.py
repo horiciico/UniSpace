@@ -14,6 +14,7 @@ from app.models import (
     BookingStatus,
     Classroom,
     PlanningTimeUnit,
+    Status,
     StudentGroup,
 )
 from app.planning import Occurrence, hhmm, local_today, occurrences, week_info, week_monday
@@ -82,6 +83,7 @@ def _timetable_unit(
         .where(
             *conditions,
             Activity.specific_date.is_(None),
+            Activity.status != Status.CANCELLED,
             PlanningTimeUnit.start_date <= sunday,
             PlanningTimeUnit.end_date >= monday,
         )

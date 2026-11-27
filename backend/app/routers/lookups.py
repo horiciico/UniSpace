@@ -5,7 +5,14 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.db import get_db
-from app.models import Activity, ActivityGroup, Faculty, PlanningTimeUnit, StudentGroup
+from app.models import (
+    Activity,
+    ActivityGroup,
+    Faculty,
+    PlanningTimeUnit,
+    Status,
+    StudentGroup,
+)
 
 router = APIRouter(prefix="/api", tags=["lookups"])
 
@@ -25,7 +32,7 @@ def faculty_groups(faculty_id: uuid.UUID):
         .join(ActivityGroup, ActivityGroup.group_id == StudentGroup.id)
         .join(Activity, Activity.id == ActivityGroup.activity_id)
         .join(PlanningTimeUnit, PlanningTimeUnit.id == Activity.planning_time_unit_id)
-        .where(PlanningTimeUnit.faculty_id == faculty_id)
+        .where(PlanningTimeUnit.faculty_id == faculty_id, Activity.status != Status.CANCELLED)
         .distinct()
         .order_by(StudentGroup.name)
     )
@@ -46,7 +53,11 @@ def list_professors(faculty_id: uuid.UUID, db: Session = Depends(get_db)) -> lis
     stmt = (
         select(Activity.professor_name)
         .join(PlanningTimeUnit, PlanningTimeUnit.id == Activity.planning_time_unit_id)
-        .where(PlanningTimeUnit.faculty_id == faculty_id, Activity.professor_name.is_not(None))
+        .where(
+            PlanningTimeUnit.faculty_id == faculty_id,
+            Activity.professor_name.is_not(None),
+            Activity.status != Status.CANCELLED,
+        )
         .distinct()
     )
     names = {

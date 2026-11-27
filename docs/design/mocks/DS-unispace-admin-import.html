@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ro">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MOCK · DS-unispace-admin-import · draft</title>
+    <!-- Mock only: the real page is frontend/pages/admin/index.html ("Import date"). -->
+    <link rel="stylesheet" href="../../../frontend/styles/tokens.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/base.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/buttons.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/tabs-and-chips.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/notice.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/utilities.css" />
+  </head>
+  <body>
+    <main class="container">
+      <p class="notice notice--error"><strong>Draft mock, built.</strong> Awaiting review in the pull request.</p>
+      <section class="section">
+        <h2>Importul orarului și al profesorilor</h2>
+        <p class="muted mt-3">Preia orarul și lista profesorilor de la universitate. Nu șterge nimic.</p>
+        <div class="btn-group mt-3"><button class="btn" type="button">Pornește importul</button></div>
+        <p class="notice mt-3">Import în curs: descărcarea orarelor.</p>
+        <p class="notice notice--error mt-3">Importul a eșuat la pasul: salvarea orarului. Nimic nu a fost șters. Încearcă din nou.</p>
+        <div class="card mt-5">
+          <h2>Rezultatul ultimului import</h2>
+          <ul><li>Ore adăugate: 12</li><li>Ore anulate pentru că nu mai apar în orar: 4</li><li>Profesori salvați: 203</li></ul>
+          <h3 class="mt-3">Ce nu s-a putut importa</h3>
+          <ul><li>ing: orarul nu a fost descărcat; orele au rămas cum erau.</li></ul>
+          <h3 class="mt-3">Suprapuneri de rezolvat</h3>
+          <div class="table-wrap mt-3">
+            <table>
+              <thead><tr><th>Data și ora</th><th>Sala</th><th>Rezervare, mutare sau examen</th><th>Ora importată</th><th>Suprapunere de</th></tr></thead>
+              <tbody><tr><td>2026-12-07 09:00–10:00</td><td>B110</td><td>Rezervare: Seara de jocuri</td><td>B110, 08:00–09:30</td><td>sală</td></tr></tbody>
+            </table>
+          </div>
+          <p class="mt-3">Nicio suprapunere.</p>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

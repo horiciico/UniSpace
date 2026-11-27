@@ -583,6 +583,61 @@ window.UniSpaceI18n.register("ro", {
   "day.sat": "Sâm",
   "day.sun": "Dum",
   "common.campus": "Campus",
+  "admin.import.tab": "Import date",
+  "admin.import.title": "Importul orarului și al profesorilor",
+  "admin.import.intro":
+    "Preia orarul și lista profesorilor de la universitate. Nu șterge nimic: o oră care nu mai apare în orar este marcată anulată, iar rezervările, mutările și examenele rămân. Poate dura câteva minute.",
+  "admin.import.start": "Pornește importul",
+  "admin.import.running": "Import în curs: {step}.",
+  "admin.import.done": "Import încheiat la {time}.",
+  "admin.import.failed":
+    "Importul a eșuat la pasul: {step}. Nimic nu a fost șters. Încearcă din nou.",
+  "admin.import.stateError":
+    "Starea importului nu a putut fi citită. Se încearcă din nou.",
+  "admin.import.startError": "Importul nu a putut fi pornit. Încearcă din nou.",
+  "admin.import.stepFaculties": "conectarea la sursă",
+  "admin.import.stepPlanningUnits": "citirea semestrelor și modulelor",
+  "admin.import.stepSchedules": "descărcarea orarelor",
+  "admin.import.stepTimetable": "salvarea orarului",
+  "admin.import.stepProfessors": "importul profesorilor",
+  "admin.import.stepClashes": "căutarea suprapunerilor",
+  "admin.import.resultTitle": "Rezultatul ultimului import",
+  "admin.import.inserted": "Ore adăugate: {n}",
+  "admin.import.updated": "Ore actualizate: {n}",
+  "admin.import.unchanged": "Ore neschimbate: {n}",
+  "admin.import.restored": "Ore reactivate: {n}",
+  "admin.import.cancelled": "Ore anulate pentru că nu mai apar în orar: {n}",
+  "admin.import.keptEdited": "Ore păstrate așa cum au fost editate aici: {n}",
+  "admin.import.unread": "Intrări din orar care nu au putut fi citite: {n}",
+  "admin.import.professorsSaved": "Profesori salvați: {n}",
+  "admin.import.problemsTitle": "Ce nu s-a putut importa",
+  "admin.import.problemPlanning":
+    "{faculty}: semestrul sau modulul curent nu a putut fi citit.",
+  "admin.import.problemDownload":
+    "{faculty}: orarul nu a fost descărcat; orele au rămas cum erau.",
+  "admin.import.problemEmpty":
+    "{faculty}: orarul primit este gol; orele au rămas cum erau.",
+  "admin.import.problemLoad":
+    "{faculty}: orarul nu a putut fi salvat; orele au rămas cum erau.",
+  "admin.import.problemProfessors":
+    "{faculty}: lista profesorilor nu a fost descărcată.",
+  "admin.import.problemProfessorsSave":
+    "Unii profesori nu au putut fi salvați.",
+  "admin.import.clashesTitle": "Suprapuneri de rezolvat",
+  "admin.import.clashesIntro":
+    "Rezervări aprobate, ore mutate și examene care se suprapun cu ore importate. Ambele au fost păstrate.",
+  "admin.import.noClashes": "Nicio suprapunere.",
+  "admin.import.colWhen": "Data și ora",
+  "admin.import.colRoom": "Sala",
+  "admin.import.colWhat": "Rezervare, mutare sau examen",
+  "admin.import.colClass": "Ora importată",
+  "admin.import.colReason": "Suprapunere de",
+  "admin.import.whatBooking": "Rezervare",
+  "admin.import.whatClass": "Oră mutată",
+  "admin.import.whatExam": "Examen",
+  "admin.import.reasonRoom": "sală",
+  "admin.import.reasonProfessor": "profesor",
+  "admin.import.reasonGroup": "grupă",
   "admin.tabCalendar": "An universitar",
   "acal.title": "An universitar",
   "acal.intro":

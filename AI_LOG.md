@@ -8,6 +8,13 @@ Each entry follows the same shape:
 
 ```
 
+## 2026-11-27 · Admin data import that never deletes (D-031)
+Tool: Claude Code, claude-sonnet-5-5
+What I asked: an admin panel action that runs the schedule and professors pipelines; a rerun must update and not delete activities, bookings, moves or planning. Plan answers: cancel vanished classes; keep and list clashes; review the screen in the pull request.
+What I got: the loader cancels and restores instead of deleting (an empty feed cancels nothing); `POST/GET /api/admin/data-import` running both pipelines in the background with a clash list; the "Data import" admin tab (RO and EN); the backend image now includes `etl/`; cancelled classes left out of the group and professor lists; mock, D-031, C-012.
+Tests changed (named as required): `etl/schedule/tests/test_loader_db.py`: `test_rows_that_left_the_feed_are_deleted_unless_referenced` is now `..._are_cancelled_never_deleted` (both rows cancelled, none deleted), and `test_running_twice_creates_nothing_new` asserts `cancelled == 0` instead of `deleted == 0`.
+Result: `node scripts/test-all.mjs`: all suites pass. Two real imports on a throwaway database: 6142 classes and 203 professors, the second run changed nothing. The screen was viewed in headless Chrome with a stubbed API.
+
 ## 2026-11-27 · Exam-session timetable in whole hours (D-030)
 Tool: Claude Code, claude-sonnet-5-5
 What I asked: exams stay bookable in half-hour steps, but the timetable in exam session mode should be displayed from hour to hour.

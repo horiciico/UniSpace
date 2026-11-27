@@ -7,6 +7,7 @@ from app.config import COOKIE_SECURE, SESSION_MAX_AGE_SECONDS, SESSION_SECRET_KE
 from app.routers import (
     academic_periods,
     admin_bookings,
+    admin_data_import,
     admin_users,
     auth,
     bookings,
@@ -46,6 +47,7 @@ app.include_router(study_profile.router)
 app.include_router(bookings.router)
 app.include_router(admin_bookings.router)
 app.include_router(admin_users.router)
+app.include_router(admin_data_import.router)
 app.include_router(classroom_attributes.router)
 app.include_router(academic_periods.public_router)
 app.include_router(academic_periods.admin_router)
