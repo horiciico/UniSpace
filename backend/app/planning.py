@@ -76,7 +76,22 @@ def booking_window(start: time | None, end: time | None) -> tuple[time, time]:
 
 
 EXAM_DAY_START = time(8, 0)
-EXAM_DAY_END = time(22, 0)  # EXAM_SESSION: whole hours from 08:00 to 22:00 (D-027)
+EXAM_DAY_END = time(22, 0)  # EXAM_SESSION: half-hour steps from 08:00 to 22:00 (D-030)
+
+
+def session_window(start: time, end: time) -> tuple[time, time]:
+    """A booking or an exam in an exam session: starts and ends on :00 or :30, lasts at least one
+    hour, between 08:00 and 22:00 (D-030). Raises ValueError otherwise."""
+    if end <= start:
+        raise ValueError("end_time must be after start_time")
+    for value in (start, end):
+        if value.minute % 30 or value.second or value.microsecond:
+            raise ValueError("in an exam session a time is on the hour or the half hour")
+    if (end.hour * 60 + end.minute) - (start.hour * 60 + start.minute) < 60:
+        raise ValueError("in an exam session the shortest slot is one hour")
+    if start < EXAM_DAY_START or end > EXAM_DAY_END:
+        raise ValueError("in an exam session a slot is between 08:00 and 22:00")
+    return start, end
 
 
 def validate_booking_times(
@@ -84,21 +99,13 @@ def validate_booking_times(
 ) -> tuple[time, time]:
     """The times of a booking on a day of the given period type. Raises ValueError when refused.
 
-    TEACHING: whole modules (booking_window). EXAM_SESSION: whole hours, 08:00 to 22:00, at least
-    one hour. HOLIDAY: no booking.
+    TEACHING: whole modules (booking_window). EXAM_SESSION: session_window. HOLIDAY: no booking.
     """
     if period_type == AcademicPeriodType.HOLIDAY:
         raise ValueError("Bookings are closed on holidays.")
     if period_type == AcademicPeriodType.TEACHING:
         return booking_window(start, end)
-    if end <= start:
-        raise ValueError("end_time must be after start_time")
-    for value in (start, end):
-        if value.minute or value.second or value.microsecond:
-            raise ValueError("during an exam session a booking uses whole hours")
-    if start < EXAM_DAY_START or end > EXAM_DAY_END:
-        raise ValueError("during an exam session a booking is between 08:00 and 22:00")
-    return start, end
+    return session_window(start, end)
 
 
 def local_now() -> datetime:

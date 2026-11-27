@@ -52,6 +52,7 @@ async function setup({
   periods = () => response(PERIODS),
   entity = true,
   language = "en",
+  items = [],
 } = {}) {
   vi.useFakeTimers({ toFake: ["Date"] });
   vi.setSystemTime(NOW);
@@ -73,7 +74,10 @@ async function setup({
     "/api/faculties": () => response(FACULTIES),
     "/api/classrooms": () => response(CLASSROOMS),
     "/api/schedule": (url) =>
-      response(schedule(new URL(url, "http://x").searchParams.get("date"))),
+      response({
+        ...schedule(new URL(url, "http://x").searchParams.get("date")),
+        items,
+      }),
     "/api/academic-periods": periods,
   });
   await loadScript("js/pages/timetable.js");
@@ -108,6 +112,28 @@ describe("timetable.js: the academic calendar", () => {
     expect(freeSlots()).toHaveLength(5 * 14 + 8);
     const first = freeSlots()[0];
     expect(first.getAttribute("aria-label")).toBe("Book 08:00–09:00, Mon");
+  });
+
+  it("offers no free hour that an exam covers only in part", async () => {
+    await setup({
+      date: "2026-12-14",
+      items: [
+        {
+          day_of_week: 1,
+          start_time: "08:30",
+          end_time: "10:00",
+          activity_type: "EXAM",
+          title: "Algebra",
+          room_name: "B110",
+        },
+      ],
+    });
+
+    // Monday loses 08:00-09:00 and 09:00-10:00; the other days keep all 14 hours.
+    expect(freeSlots()).toHaveLength(5 * 14 - 2 + 8);
+    expect(freeSlots()[0].getAttribute("aria-label")).toBe(
+      "Book 10:00–11:00, Mon",
+    );
   });
 
   it("links a free hour to the booking page with the hour as the window", async () => {
@@ -399,7 +425,7 @@ describe("timetable.js: a calendar per faculty", () => {
     await mine([session("f1")], [FACS[0]]);
 
     expect(lines()).toEqual([
-      "Exam session Exam session on Thu, Fri, Sat, Sun: weekly courses are not held then, and rooms are booked by the hour, 08:00 to 22:00.",
+      "Exam session Exam session on Thu, Fri, Sat, Sun: weekly courses are not held then, and rooms are booked in half-hour steps, 08:00 to 22:00.",
     ]);
   });
 

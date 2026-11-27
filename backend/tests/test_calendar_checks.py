@@ -272,7 +272,7 @@ def test_module_times_cannot_be_approved_once_the_date_is_an_exam_session(
     db: Session, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     response, row = decide(
-        db, monkeypatch, make_room(db, None), E, start_time=time(13, 0), end_time=time(14, 30)
+        db, monkeypatch, make_room(db, None), E, start_time=time(9, 40), end_time=time(11, 10)
     )
 
     assert response.status_code == 400

@@ -8,6 +8,48 @@ Each entry follows the same shape:
 
 ```
 
+## 2026-11-27 · Exam-session timetable in whole hours (D-030)
+Tool: Claude Code, claude-sonnet-5-5
+What I asked: exams stay bookable in half-hour steps, but the timetable in exam session mode should be displayed from hour to hour.
+What I got: 14 whole-hour rows and whole-hour free slots in the exam-session grid; booking pickers and exam dialog unchanged.
+Tests changed (named as required): `grid-hourly.test.js` (14 hour labels instead of 28 half hours; a new half-hour exam case) and `timetable-calendar.test.js` (14 rows instead of 28; a new partly-taken hour case).
+Result: `node scripts/test-all.mjs`: all suites pass.
+
+## 2026-11-27 · Schedule Exam flow and half-hour exam sessions (issue #38, D-030)
+Tool: Claude Code, claude-sonnet-5-5
+What I asked: merge PR #37, open an issue for the undelivered part, update main, create a branch for it and resolve it. Answers: exams end by 22:00; session bookings also in half hours; the groups' faculty decides the exam session; go straight to a pull request.
+What I got: the three earlier exam commits brought onto main (their D-027 and C-010 are now D-030 and C-011); the per-faculty exam-session check; one half-hour rule for exams and bookings; the Schedule Exam dialog; half-hour grid and Bookings pickers; RO and EN texts; a mock and registry entry.
+Tests changed (named as required): `test_academic_calendar_planning.py` (`test_validate_booking_times` cases), `test_bookings_academic_periods.py` (the accepted and refused session times), `test_calendar_checks.py` (the module times refused in a session are now 09:40-11:10), `test_professor_exams.py` (the world has an exam session; the busy-slot tests use one-offs; 22:00 cases), `test_i18n.py` (the `exam` namespace added to the key scan), `bookings-calendar.test.js`, `timetable-calendar.test.js`, `grid-hourly.test.js`, `modules-calendar.test.js` (28 half hours instead of 14 hours, and the new wording).
+Result: `node scripts/test-all.mjs`: all suites pass. Browser check: headless Chrome with a stubbed API (dialog, room grid, Bookings). The signed-in stack was not checked.
+
+## 2026-11-26 · Exam time grid (D-027) and the ledger update (backend)
+Tool: Claude Code, claude-haiku-5-5
+What I asked: the proposal approved: exams on a 30-minute grid (start :00 or :30; length a multiple of 30 minutes, at least 1 hour; 08:00 to 21:30); courses, moves and bookings stay on modules. The interval endpoint is approved too.
+What I got:
+- `backend/app/exams.py`: `exam_window` replaces the module rule for exams (the module check `booking_window` is no longer used by exams).
+- Ledger: D-027 (approved, confirmed 2026-11-26 by the user); C-010 rule and shape updated (times rule; the interval endpoint added); a change line records D-027.
+Tests changed (named as required): `backend/tests/test_professor_exams.py`: `test_bad_input_is_400_and_saves_nothing` lost its module-based cases (08:30-10:00 is now valid) and gained the grid cases (08:15, 45 minutes, 30 minutes, 07:30 start, end 21:40, end before start). New test `test_any_half_hour_start_and_length_of_an_hour_or_more_is_accepted` (five cases, 08:00-11:00, 08:30-10:00, 14:30-19:30, 08:00-09:30, 18:00-21:30).
+Result: exam tests 28 passed; lint and types pass. Full suite and commit at the end of the session.
+Not done: the frontend timetable grid still stops at 21:10 (exams can end at 21:30); the exam screen has no mock yet (DESIGN.md requires one before building it).
+
+## 2026-11-26 · Arbitrary-interval availability for exams (backend)
+Tool: Claude Code, claude-haiku-5-5
+What I asked: the exam modal must check any start-end interval live (date, start, end, groups) and list free rooms. Exam times were answered as: 30-minute starts, duration a multiple of 30 minutes (at least 1 hour), 08:00 to 21:30; courses, moves and bookings stay on modules.
+What I got: `GET /api/professors/me/availability/interval` (`backend/app/routers/professors.py`). `backend/app/availability.py`: the room and conflict logic moved into shared helpers (`_day_state`, `_reason`, `_free_rooms`); `day_availability` uses them unchanged in behaviour; `interval_availability` checks any interval by overlap, so a partial overlap blocks a room. Returns the module shape: start_time, end_time, available, conflict_reason, free_classrooms. End not after start: 400. Unknown group: 404.
+Not done, waiting for approval: the exam time rules (30-minute grid, 1h minimum, 08:00-21:30) are NOT enforced yet. The existing exam endpoint still uses modules and refuses 08:00-11:00. The ledger change (C-010 and a new decision) is a PROPOSAL, sent to the user, not written to the ledger.
+Tests: `backend/tests/test_professor_availability.py`, 9 new interval tests (written first, failed before the route existed). Professor tests: 90 passed. Not committed at the time of this entry.
+
+## 2026-11-26 · Schedule exam: subjects and exam endpoints (backend, branch feature/professor-schedule-exam)
+Tool: Claude Code, claude-haiku-5-5
+What I asked: step 1 `GET /api/professors/me/subjects` and step 2 `POST /api/professors/me/exams`, as specified.
+What I got: `backend/app/exams.py` (`professor_subjects`, `schedule_exam`); `backend/app/routers/professors.py` (both routes; the exam returns 201); tests in `backend/tests/test_professor_exams.py` (18, written before the code). Reused: `slot_clashes` (room, professor and every group, with reasons), `booking_window` (whole modules). Exam priority is `Priority.EXAM` and type `ActivityType.EXAM`, as in the existing enums.
+Choices made where the spec was open (to confirm):
+- Subject not taught by the professor, and a group not taught in that subject: 400 (the spec said 400/403).
+- An unknown group id: refused as "not taught in this subject" (400), not 404.
+- Subjects are grouped by exact activity name across all of the professor's units.
+- Past dates are refused by date only, as for moves; a time earlier today is not refused.
+Ledger: C-011 added (approved; the spec is the user's). Result: backend 330 tests, lint and types pass. Frontend not started (not asked for in these steps). Not committed at the time of this entry.
+
 ## 2026-11-27 · No class moves into an exam session (D-029)
 Tool: Claude Code, claude-sonnet-5-5
 What I asked: classes cannot be moved during an exam session, judged per faculty (some have 2 semesters and 2 sessions, others 4 modules and 4); also approved the two new messages.

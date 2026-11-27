@@ -323,3 +323,29 @@ describe("timetable.js: the Orarul meu view", () => {
     expect(mineCalls(fetch).length).toBe(before);
   });
 });
+
+describe("timetable: Schedule Exam from Orarul meu", () => {
+  beforeEach(() => vi.resetModules());
+
+  it("offers it to a linked professor and reloads the timetable afterwards", async () => {
+    window.UniSpaceExam = { open: vi.fn() };
+    const fetch = await setup({ search: "mode=mine" });
+
+    expect($("tt-schedule").hidden).toBe(false);
+    $("tt-schedule").click();
+    const before = mineCalls(fetch).length;
+    window.UniSpaceExam.open.mock.calls[0][0]();
+    await flush();
+
+    expect(mineCalls(fetch).length).toBe(before + 1);
+  });
+
+  it("does not offer it to an unlinked account", async () => {
+    await setup({
+      search: "mode=mine",
+      routes: { "/api/professors/me/timetable": () => response(UNLINKED) },
+    });
+
+    expect($("tt-schedule").hidden).toBe(true);
+  });
+});

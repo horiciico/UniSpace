@@ -155,7 +155,7 @@
 ## Q-019 · Should Free now and the Move dialog use the hourly grid in an exam session?
 - **Status:** open
 - **Found (2026-11-26):** in an exam session (D-027) the timetable grid and the Bookings page use whole hours, but `GET /api/classrooms/free` (C-003), the professor availability and the move endpoint (C-009) still accept only 90-minute modules, and the Free now page and the Move dialog show modules.
-- **Note (user, 2026-11-26):** leave them as they are for now; Tasks 5 and 6 cover the timetable and the Bookings page only.
+- **Note (user, 2026-11-26):** leave them as they are for now; Tasks 5 and 6 cover the timetable and the Bookings page only. Since 2026-11-27 a session uses half-hour steps (D-030).
 - **Note (2026-11-27):** D-029 refuses moving a class into a session, so for the Move dialog this now concerns only moving an exam.
 - **Blocks:** hourly windows in the free-room search and in the move dialog; changing them is a PROPOSAL on C-003 and C-009.
 - **Who answers:** the user

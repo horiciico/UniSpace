@@ -32,16 +32,16 @@ describe("modules.js: the academic calendar helpers", () => {
     modules = window.UniSpaceModules;
   });
 
-  it("has fourteen whole hours from 08:00 to 22:00", () => {
-    expect(modules.hours).toHaveLength(14);
+  it("has 28 half hours from 08:00 to 22:00", () => {
+    expect(modules.hours).toHaveLength(28);
     expect(modules.hours[0]).toMatchObject({
       number: 1,
       startMin: 480,
-      endMin: 540,
+      endMin: 510,
       start: "08:00",
-      end: "09:00",
+      end: "08:30",
     });
-    expect(modules.hours[13]).toMatchObject({ start: "21:00", end: "22:00" });
+    expect(modules.hours[27]).toMatchObject({ start: "21:30", end: "22:00" });
     expect(modules.hoursEndMin).toBe(22 * 60);
   });
 

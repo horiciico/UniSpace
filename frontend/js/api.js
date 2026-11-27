@@ -88,6 +88,18 @@
             .join(""),
         { headers: { Accept: "application/json" } },
       ),
+    // Schedule Exam (C-011). The professor's subjects: { linked, subjects: [{ name, groups }] }.
+    professorSubjects: () => get("/professors/me/subjects"),
+    // Whether a day's start-end suits the groups: exam_session, available, conflict_reason, rooms.
+    professorInterval: (day, start, end, groupIds) =>
+      call(
+        "/professors/me/availability/interval" +
+          query({ date: day, start_time: start, end_time: end }) +
+          groupIds.map((id) => "&group_ids=" + encodeURIComponent(id)).join(""),
+        { headers: { Accept: "application/json" } },
+      ),
+    // body: { subject_name, group_ids, exam_date, start_time, end_time, classroom_id }.
+    scheduleExam: (body) => send("POST", "/professors/me/exams", body),
     // Moves one occurrence (C-009): { original_date, new_date, start_time, end_time, new_classroom_id }.
     moveActivity: (id, body) =>
       send(

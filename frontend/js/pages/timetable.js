@@ -40,6 +40,7 @@
     document.getElementById("tt-move")
   );
   var examButton = document.getElementById("tt-exam");
+  var scheduleButton = document.getElementById("tt-schedule");
   var periodNote = document.getElementById("tt-period");
   var periodPill = document.getElementById("tt-period-pill");
   var periodText = document.getElementById("tt-period-text");
@@ -142,6 +143,8 @@
     periods: [],
     // The faculties of the professor's courses, for "Orarul meu" (C-009).
     mineFaculties: [],
+    // True once "Orarul meu" has loaded for an account linked to a professor.
+    linked: false,
     items: null,
     statusKey: "",
     statusError: false,
@@ -296,6 +299,7 @@
     entityField.hidden = mine;
     moveBar.hidden = !mine;
     moveButton.disabled = state.unlinked;
+    scheduleButton.hidden = !state.linked;
     unlinkedNote.hidden = !(mine && state.unlinked);
   }
 
@@ -445,6 +449,7 @@
       .then((data) => {
         if (request !== state.requestNumber) return;
         state.unlinked = !data.linked;
+        state.linked = data.linked;
         state.mineFaculties = data.faculties || [];
         state.week = null;
         renderWeek();
@@ -508,6 +513,22 @@
   // the hours of an exam-session day (D-027), that no activity covers. The day decides, not the
   // week: a mixed week has both on its hourly grid. A slot that has started is shown but
   // disabled. A holiday has none. Each one opens the Bookings page.
+  // The free blocks of the day that can be booked: each module, or, in an exam session, each whole
+  // hour. A half-hour time is chosen on the Bookings page (D-030).
+  function freeBlocks(type, dayIndex) {
+    var modules = window.UniSpaceModules;
+    var list = type === "EXAM_SESSION" ? modules.hourRows : modules.list;
+    return list.filter(
+      (block) =>
+        !state.items.some(
+          (item) =>
+            Number(item.day_of_week) === dayIndex + 1 &&
+            grid.toMinutes(item.start_time) < block.endMin &&
+            grid.toMinutes(item.end_time) > block.startMin,
+        ),
+    );
+  }
+
   function freeSlots() {
     if (state.mode !== "room" || !state.entity || !state.entity.bookable)
       return [];
@@ -518,14 +539,7 @@
       if (info.days[dayIndex] === "HOLIDAY") return;
       var date = addDays(state.monday, dayIndex);
       var iso = isoDate(date);
-      window.UniSpaceModules.slotsFor(info.days[dayIndex]).forEach((module) => {
-        var taken = state.items.some(
-          (item) =>
-            Number(item.day_of_week) === dayIndex + 1 &&
-            grid.toMinutes(item.start_time) < module.endMin &&
-            grid.toMinutes(item.end_time) > module.startMin,
-        );
-        if (taken) return;
+      freeBlocks(info.days[dayIndex], dayIndex).forEach((module) => {
         var opens = new Date(
           date.getFullYear(),
           date.getMonth(),
@@ -743,6 +757,11 @@
     });
     moveButton.addEventListener("click", () => {
       window.UniSpaceMove.open(() => {
+        loadMine();
+      });
+    });
+    scheduleButton.addEventListener("click", () => {
+      window.UniSpaceExam.open(() => {
         loadMine();
       });
     });

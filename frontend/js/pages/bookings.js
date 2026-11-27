@@ -7,8 +7,8 @@
  * as they arrive (D-012); the words around them come from the dictionaries.
  *
  * The academic calendar of the room's faculty (D-028, C-010) shapes the time pickers by the date: modules on a
- * teaching day (also when no period covers it), whole hours from 08:00 to 22:00 in an exam
- * session, and no booking on a holiday. The backend checks the same rules when the form is sent.
+ * teaching day (also when no period covers it), half-hour steps from 08:00 to 22:00 (at least one
+ * hour, D-030) in an exam session, and no booking on a holiday. The backend checks the same rules when the form is sent.
  * A time from the link that the date does not offer is never replaced: the picker stays unchosen
  * and a note asks for it.
  */
@@ -131,10 +131,12 @@
     return -1;
   }
 
-  // The picker index for a time from the link: the first slot when the link gives none, and -1
-  // (nothing chosen) when the date offers no slot with that time.
+  // The picker index for a time from the link, and -1 (nothing chosen) when the date offers no
+  // slot with that time. With no time in the link: the first slot, or in an exam session the first
+  // hour (two half hours).
   function prefillIndex(clock, field) {
-    return clock ? moduleIndex(clock, field) : 0;
+    if (clock) return moduleIndex(clock, field);
+    return field === "end" && state.dayType === "EXAM_SESSION" ? 1 : 0;
   }
 
   // The chosen index of a picker, or -1 when nothing is chosen.
@@ -150,7 +152,7 @@
     );
   }
 
-  // Fills the two pickers. A module reads "1 · 08:00–09:30"; an hour reads "08:00–09:00".
+  // Fills the two pickers. A module reads "1 · 08:00–09:30"; a half hour reads "08:00–08:30".
   // An index of -1 leaves its picker unchosen.
   function fillModules(fromIndex, toIndex) {
     var hourly = state.dayType === "EXAM_SESSION";
@@ -400,6 +402,9 @@
       return setFormStatus("bookings.errorHoliday", true);
     if (from < 0 || to < 0) return setFormStatus("bookings.errorNoTime", true);
     if (to < from) return setFormStatus("bookings.errorRange", true);
+    // Two half hours at least in an exam session (D-030).
+    if (state.dayType === "EXAM_SESSION" && to === from)
+      return setFormStatus("bookings.errorMinHour", true);
 
     sendButton.disabled = true;
     api

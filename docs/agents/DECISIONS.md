@@ -34,6 +34,7 @@
 - D-026 · A professor moves one teaching occurrence; it takes effect at once and blocks on conflicts
 - D-028 · Each faculty has its own academic calendar, with all-faculties periods as the default
 - D-029 · A class cannot be moved onto a holiday or into an exam session, and an approval follows the calendar
+- D-030 · Exams are scheduled in half hours, only in the groups' exam session
 
 ---
 
@@ -302,7 +303,7 @@
 - **Date:** 2026-11-26
 - **Rule:** An `academic_periods` row belongs to one faculty (`faculty_id`) or to all faculties (`faculty_id` NULL). Periods are set by an admin, `start_date`..`end_date` inclusive, with no overlaps within the same faculty or within the all-faculties rows. For a faculty and a date the type is: the faculty's own covering period, else the all-faculties covering period, else `TEACHING`.
   - `TEACHING`: the 90-minute module grid; weekly recurring courses are active.
-  - `EXAM_SESSION`: hourly grid 08:00 to 22:00, whole hours only, minimum 1 hour; weekly recurring courses are suppressed.
+  - `EXAM_SESSION`: half-hour steps 08:00 to 22:00, minimum 1 hour (D-030, changed 2026-11-27 from whole hours); weekly recurring courses are suppressed.
   - `HOLIDAY`: weekly recurring courses are suppressed; new bookings are disabled.
   Which faculty counts: a weekly course follows the faculty of its planning unit; a room booking follows the room's faculty (a campus room follows the all-faculties periods); the timetable follows the room's faculty in the room view and the selected faculty in the group and professor views; in "Orarul meu" each course follows its own faculty, the banner names the affected faculties, and the grid is hourly when any of them is in an exam session. Overlap is enforced by the application helper; the database only checks `start_date <= end_date`.
 - **Why:** The faculties do not have the same year structure (user, 2026-11-26).
@@ -319,4 +320,13 @@
 - **Rejected:** none stated
 - **Evidence:** backend/app/moves.py, backend/app/availability.py, backend/app/academic_calendar.py, backend/app/routers/admin_bookings.py, backend/tests/test_calendar_checks.py
 - **Source:** user (2026-11-27) · confidence high
+- **Confirmed:** 2026-11-27
+## D-030 · Exams are scheduled in half hours, only in the groups' exam session
+- **Status:** approved
+- **Date:** 2026-11-27
+- **Rule:** In an exam session a time is on the hour or the half hour, a slot lasts at least one hour and lies between 08:00 and 22:00. The same rule covers exams and room bookings (`planning.session_window`). The timetable draws an exam-session week in whole-hour rows and offers a free slot only for a whole free hour; a half-hour time is chosen in the booking form or the exam dialog. A professor schedules an exam only for their own subject and one or more of its groups, on a date that is today or later and is an `EXAM_SESSION` for the faculty teaching every chosen group (D-028). The room's faculty need not be in a session but must not be on holiday. The professor, every group and the bookable room must be free for the whole interval (overlap). The exam is a one-off `EXAM` activity, approved at once. Outside a session, courses, moves and bookings stay on the 90-minute modules.
+- **Why:** Exams are not 90-minute courses, and one grid for the whole session leaves no half-hour gaps between exams and bookings. The user decided this on 2026-11-26 and 2026-11-27 (answers on the end time, bookings and faculty).
+- **Rejected:** an end time of 21:30; whole-hour room bookings beside half-hour exams; requiring the room's faculty to be in a session too.
+- **Evidence:** backend/app/planning.py (session_window), backend/app/exams.py, backend/app/academic_calendar.py (all_in_exam_session), backend/tests/test_professor_exams.py, backend/tests/test_bookings_academic_periods.py
+- **Source:** user (2026-11-26, 2026-11-27) · confidence high
 - **Confirmed:** 2026-11-27

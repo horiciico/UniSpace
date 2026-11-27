@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { loadI18n, loadScript } from "../helpers.js";
 
-// The exam-session grid (D-027): hourly rows from 08:00 to 22:00, drawn by grid.js.
+// The exam-session grid (D-027): hourly rows from 08:00 to 22:00, drawn by grid.js. Times inside a row can be half hours (D-030).
 describe("grid.js: the hourly grid", () => {
   let grid;
   let container;
@@ -66,6 +66,17 @@ describe("grid.js: the hourly grid", () => {
     expect(first.style.top).toContain("14.28");
     expect(late.style.top).toContain("92.85");
     expect(late.style.height).toContain("7.14");
+  });
+
+  it("places a half-hour exam inside the hourly rows", () => {
+    grid.render(container, [item("08:30", "10:00")], undefined, [], {
+      hourly: true,
+    });
+
+    const block = container.querySelector(".tt-block");
+    // 30 of 840 minutes down, 90 minutes tall.
+    expect(block.style.top).toContain("3.57");
+    expect(block.style.height).toContain("10.71");
   });
 
   it("cuts a block at 22:00 in the hourly grid and leaves it out of the module grid", () => {
