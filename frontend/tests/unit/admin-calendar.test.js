@@ -556,3 +556,42 @@ describe("admin calendar tab: a calendar per faculty", () => {
     );
   });
 });
+
+describe("admin calendar tab: messages and the language switch", () => {
+  beforeEach(() => vi.resetModules());
+
+  const toRomanian = async () => {
+    window.UniSpaceI18n.setLanguage("ro");
+    await flush();
+  };
+
+  it("translates a load error and does not claim there are no periods", async () => {
+    await openTab({
+      routes: { "/api/admin/academic-periods": () => httpError(500) },
+    });
+    const english = $("acal-status").textContent;
+
+    await toRomanian();
+
+    expect($("acal-status").textContent).not.toBe(english);
+    expect($("acal-status").textContent).toBe(
+      window.UniSpaceI18n.t("acal.loadError"),
+    );
+    expect($("acal-empty").hidden).toBe(true);
+  });
+
+  it("translates a delete error", async () => {
+    await openTab({
+      routes: { "/api/admin/academic-periods/p1": () => httpError(500) },
+    });
+    rows()[0].querySelectorAll("button")[1].click();
+    $("acal-delete-confirm").click();
+    await flush();
+
+    await toRomanian();
+
+    expect($("acal-status").textContent).toBe(
+      window.UniSpaceI18n.t("acal.deleteError"),
+    );
+  });
+});

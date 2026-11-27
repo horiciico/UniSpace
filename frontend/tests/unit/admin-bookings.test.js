@@ -334,3 +334,24 @@ describe("admin page without its queue", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 });
+
+describe("admin page: a request whose date changed in the calendar", () => {
+  beforeEach(() => vi.resetModules());
+
+  it("says why it cannot be approved, and keeps the request", async () => {
+    await setup({
+      routes: {
+        "/api/admin/bookings/b1/decision": () =>
+          response({ detail: "Bookings are closed on holidays." }, 400),
+      },
+    });
+
+    rows()[0].querySelector("button").click();
+    await flush();
+
+    expect(document.body.textContent).toContain(
+      "The academic calendar changed for this date, so these times cannot be booked any more. Reject the request, or ask the requester to make a new one.",
+    );
+    expect(rows()).toHaveLength(2);
+  });
+});
