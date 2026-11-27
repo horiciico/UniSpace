@@ -319,6 +319,8 @@ window.UniSpaceI18n.register("en", {
   "bookings.decisionNote": "Note from the administrator: {message}",
   "admin.loadError": "Could not load the requests. Try again.",
   "admin.errorGeneric": "Something went wrong. Try again.",
+  "admin.errorCalendar":
+    "The academic calendar changed for this date, so these times cannot be booked any more. Reject the request, or ask the requester to make a new one.",
   "admin.errorClash":
     "The room is taken at that time. Reject this request, or ask the requester to choose another time.",
   "admin.rejected": "The request was rejected.",

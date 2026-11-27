@@ -33,6 +33,7 @@
 - D-025 · Admins invite users by email; an invitation admits a new account; admin-set roles persist
 - D-026 · A professor moves one teaching occurrence; it takes effect at once and blocks on conflicts
 - D-028 · Each faculty has its own academic calendar, with all-faculties periods as the default
+- D-029 · A class cannot be moved onto a holiday, and an approval follows the calendar
 
 ---
 
@@ -309,3 +310,13 @@
 - **Evidence:** backend/app/academic_calendar.py, backend/app/planning.py, backend/app/routers/academic_periods.py, backend/tests/test_academic_calendar_faculty.py
 - **Source:** user (request, answers and plan approval, 2026-11-26) · confidence high
 - **Confirmed:** 2026-11-26
+
+## D-029 · A class cannot be moved onto a holiday, and an approval follows the calendar
+- **Status:** approved
+- **Date:** 2026-11-27
+- **Rule:** A professor cannot move a class to a date that is a `HOLIDAY` (D-028) for the faculty that teaches it or for the faculty of the new room (a campus room follows the all-faculties periods). The teaching faculty is the planning unit's; for a class already moved (no unit), the units of its groups' other activities. The move endpoint refuses it (400), and the availability of that date shows every module as unavailable ("Holiday.") and leaves out rooms of a faculty on holiday. A pending booking cannot be approved when its date has since become a holiday, or an exam session its times do not fit (400); it can still be rejected. Moving a class into an exam session is not restricted (Q-020).
+- **Why:** The user: a professor should not be able to move a class into a holiday (2026-11-27). Approvals: review finding 9 on PR #37, which the user asked to address.
+- **Rejected:** none stated
+- **Evidence:** backend/app/moves.py, backend/app/availability.py, backend/app/academic_calendar.py, backend/app/routers/admin_bookings.py, backend/tests/test_calendar_checks.py
+- **Source:** user (2026-11-27) · confidence high
+- **Confirmed:** 2026-11-27

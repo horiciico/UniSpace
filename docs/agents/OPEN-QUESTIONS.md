@@ -28,6 +28,7 @@
 - Q-017 · Should a cancelled or moved occurrence still block a room in the free-room search and in booking? · _answered_
 - Q-018 · Does a move of an occurrence to another room need to block that room?
 - Q-019 · Should Free now and the Move dialog use the hourly grid in an exam session?
+- Q-020 · May a professor move a class into an exam session?
 
 ---
 
@@ -156,4 +157,10 @@
 - **Found (2026-11-26):** in an exam session (D-027) the timetable grid and the Bookings page use whole hours, but `GET /api/classrooms/free` (C-003), the professor availability and the move endpoint (C-009) still accept only 90-minute modules, and the Free now page and the Move dialog show modules.
 - **Note (user, 2026-11-26):** leave them as they are for now; Tasks 5 and 6 cover the timetable and the Bookings page only.
 - **Blocks:** hourly windows in the free-room search and in the move dialog; changing them is a PROPOSAL on C-003 and C-009.
+- **Who answers:** the user
+
+## Q-020 · May a professor move a class into an exam session?
+- **Status:** open
+- **Found (2026-11-27):** D-029 refuses a move onto a holiday. A move onto an exam-session date is still accepted and creates a 90-minute class there, while weekly classes are hidden that day.
+- **Blocks:** any exam-session rule for the move endpoint and the Move dialog (C-009).
 - **Who answers:** the user

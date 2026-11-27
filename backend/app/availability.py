@@ -14,6 +14,7 @@ from datetime import date, time
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.academic_calendar import is_holiday, teaching_faculty_ids
 from app.models import Activity, ActivityGroup, Classroom, Faculty
 from app.planning import MODULES, hhmm, occurrences
 from app.routers.bookings import approved_busy
@@ -51,7 +52,10 @@ def day_availability(
     exclude_activity_id: uuid.UUID | None = None,
 ) -> list[dict]:
     """One entry per module of the day: whether the professor and every group are free in it,
-    the reason when not, and the bookable rooms free in it."""
+    the reason when not, and the bookable rooms free in it. On a holiday of the moved activity's
+    faculty no module is available; rooms of a faculty on holiday are left out (D-029)."""
+    moved = db.get(Activity, exclude_activity_id) if exclude_activity_id else None
+    holiday = moved is not None and is_holiday(db, day, teaching_faculty_ids(db, moved))
     professor_busy = _busy_of(db, day, exclude_activity_id, Activity.professor_id == professor_id)
     group_busy: list[tuple[str, list[Busy]]] = []
     for group_id, group_name in groups:
@@ -76,10 +80,15 @@ def day_availability(
         .where(Classroom.is_bookable.is_(True))
         .order_by(Classroom.name)
     ).all()
+    closed = {
+        faculty_id
+        for faculty_id in {room.faculty_id for room, _ in rooms}
+        if is_holiday(db, day, {faculty_id})
+    }
 
     modules = []
     for start, end in MODULES:
-        reasons: list[str] = []
+        reasons: list[str] = ["Holiday."] if holiday else []
         clash = _first_clash(professor_busy, start, end)
         if clash is not None:
             reasons.append(f"Professor busy: {clash[0]} {hhmm(clash[1])}-{hhmm(clash[2])}.")
@@ -99,7 +108,8 @@ def day_availability(
                 "faculty_name": faculty_name,
             }
             for room, faculty_name in rooms
-            if not any(_overlaps(start, end, s, e) for s, e in room_busy.get(room.id, []))
+            if room.faculty_id not in closed
+            and not any(_overlaps(start, end, s, e) for s, e in room_busy.get(room.id, []))
         ]
         modules.append(
             {

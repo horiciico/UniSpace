@@ -10,7 +10,13 @@ from datetime import date
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
-from app.models import AcademicPeriod, AcademicPeriodType
+from app.models import (
+    AcademicPeriod,
+    AcademicPeriodType,
+    Activity,
+    ActivityGroup,
+    PlanningTimeUnit,
+)
 
 
 class PeriodOverlapError(ValueError):
@@ -45,6 +51,32 @@ def get_period_type_for_date(
     """The type that counts for the faculty on the date; TEACHING when no period covers it."""
     period = get_period_for_date(db, target_date, faculty_id)
     return period.type if period else AcademicPeriodType.TEACHING
+
+
+def teaching_faculty_ids(db: Session, activity: Activity) -> set[uuid.UUID | None]:
+    """The faculties whose calendar a class follows: its planning unit's. A moved one-off has no
+    unit, so the units of its groups' other activities tell. {None} (no faculty) when unknown."""
+    if activity.planning_time_unit_id is not None:
+        units = select(PlanningTimeUnit.faculty_id).where(
+            PlanningTimeUnit.id == activity.planning_time_unit_id
+        )
+    else:
+        groups = select(ActivityGroup.group_id).where(ActivityGroup.activity_id == activity.id)
+        units = (
+            select(PlanningTimeUnit.faculty_id)
+            .join(Activity, Activity.planning_time_unit_id == PlanningTimeUnit.id)
+            .join(ActivityGroup, ActivityGroup.activity_id == Activity.id)
+            .where(ActivityGroup.group_id.in_(groups))
+        )
+    return set(db.scalars(units.distinct()).all()) or {None}
+
+
+def is_holiday(db: Session, day: date, faculty_ids: set[uuid.UUID | None]) -> bool:
+    """Whether the day is a holiday for any of the faculties."""
+    return any(
+        get_period_type_for_date(db, day, faculty_id) == AcademicPeriodType.HOLIDAY
+        for faculty_id in faculty_ids
+    )
 
 
 def find_overlapping_period(

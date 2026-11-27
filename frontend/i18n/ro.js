@@ -329,6 +329,8 @@ window.UniSpaceI18n.register("ro", {
   "bookings.decisionNote": "Mesaj de la administrator: {message}",
   "admin.loadError": "Nu am putut încărca cererile. Încearcă din nou.",
   "admin.errorGeneric": "Ceva nu a mers. Încearcă din nou.",
+  "admin.errorCalendar":
+    "Calendarul universitar s-a schimbat pentru această dată, deci acest interval nu mai poate fi rezervat. Respinge cererea sau cere solicitantului una nouă.",
   "admin.errorClash":
     "Sala este ocupată la acest interval. Respinge cererea sau cere solicitantului alt interval.",
   "admin.rejected": "Cererea a fost respinsă.",

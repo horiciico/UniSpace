@@ -7,11 +7,20 @@ from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.academic_calendar import get_period_type_for_date
 from app.auth import get_current_user
 from app.db import get_db
 from app.email_service import send_booking_approved_email, send_booking_rejected_email
-from app.models import Booking, BookingStatus, Classroom, Faculty, Role, User
-from app.planning import LOCAL_TZ, local_now
+from app.models import (
+    AcademicPeriodType,
+    Booking,
+    BookingStatus,
+    Classroom,
+    Faculty,
+    Role,
+    User,
+)
+from app.planning import LOCAL_TZ, local_now, validate_booking_times
 from app.routers.bookings import booking_out, clash
 from app.routers.classrooms import faculty_condition
 
@@ -61,6 +70,18 @@ def pending_requests(
     return out
 
 
+def _check_calendar(db: Session, booking: Booking) -> None:
+    room = db.get(Classroom, booking.classroom_id)
+    assert room is not None
+    period_type = get_period_type_for_date(db, booking.specific_date, room.faculty_id)
+    if period_type == AcademicPeriodType.TEACHING:
+        return
+    try:
+        validate_booking_times(period_type, booking.start_time, booking.end_time)
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
+
+
 @router.post("/{booking_id}/decision")
 def decide(
     booking_id: uuid.UUID,
@@ -71,7 +92,9 @@ def decide(
 ) -> dict:
     """Accept (approve) or reject a pending request, with an optional message to the requester.
 
-    An approval is checked for clashes again, since a clash may have appeared since the request.
+    An approval is checked for clashes again, since a clash may have appeared since the request,
+    and against the room's calendar: a date that became a holiday or an exam session may no
+    longer allow these times (400, D-029).
     The requester is emailed once the decision is saved.
     """
     booking = db.get(Booking, booking_id)
@@ -80,6 +103,7 @@ def decide(
     if booking.status != BookingStatus.PENDING:
         raise HTTPException(409, "Only a pending request can be decided.")
     if body.decision == "approve":
+        _check_calendar(db, booking)
         reason = clash(
             db, booking.classroom_id, booking.specific_date, booking.start_time, booking.end_time
         )

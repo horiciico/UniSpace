@@ -8,6 +8,13 @@ Each entry follows the same shape:
 
 ```
 
+## 2026-11-27 · No class moves onto a holiday, and the other PR #37 review findings (D-029)
+Tool: Claude Code, claude-sonnet-5-5
+What I asked: a professor should not be able to move a class onto a holiday; address that and the other issues mentioned.
+What I got: the move endpoint refuses a holiday of the teaching faculty or the new room's faculty, and the Move dialog's modules say "Holiday." (review finding 8); approving a pending booking re-checks the calendar, with an RO and EN message on the admin page (9); a time with a time zone is a 422 (4); period saves take an advisory lock (5); a period ending 9999-12-31 no longer overflows (6); the admin calendar's messages follow a language switch (7).
+Tests changed (named as required): none changed; new `backend/tests/test_calendar_checks.py` and new cases in `admin-bookings.test.js` and `admin-calendar.test.js`.
+Result: `node scripts/test-all.mjs`: all suites pass, 1072 tests and 4 checks. No browser check (no layout change). The new admin message has no mock yet.
+
 ## 2026-11-26 · Academic calendar per faculty: screens (D-028)
 Tool: Claude Code, claude-sonnet-5-5
 What I asked: approved the updated mocks ("go for it"): build the per-faculty screens.

@@ -61,10 +61,15 @@
     editing: null, // the period being edited, or "new"
     deleting: null,
     request: 0,
+    loaded: false,
+    statusKey: "",
+    statusError: false,
     formErrorKey: "",
   };
 
   function setStatus(key, isError) {
+    state.statusKey = key;
+    state.statusError = Boolean(isError);
     statusLine.hidden = !key;
     statusLine.textContent = key ? t(key) : "";
     statusLine.className = isError ? "notice notice--error" : "notice";
@@ -83,6 +88,7 @@
       .then((periods) => {
         if (request !== state.request) return;
         state.periods = periods;
+        state.loaded = true;
         setStatus("");
         render();
       })
@@ -320,7 +326,9 @@
 
   // Labels built by the script are built again in the new language.
   document.addEventListener("unispace:langchange", () => {
-    render();
+    // Nothing loaded yet: an empty table would claim there are no periods.
+    if (state.loaded) render();
+    setStatus(state.statusKey, state.statusError);
     if (state.editing) {
       renderEditorTitle();
       setFormError(state.formErrorKey);

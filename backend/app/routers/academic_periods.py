@@ -9,7 +9,7 @@ from datetime import date
 
 from fastapi import APIRouter, Depends, HTTPException, Response
 from pydantic import BaseModel, Field, field_validator
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.academic_calendar import find_overlapping_period
@@ -20,6 +20,10 @@ from app.routers.admin_bookings import require_admin
 
 public_router = APIRouter(prefix="/api/academic-periods", tags=["academic calendar"])
 admin_router = APIRouter(prefix="/api/admin/academic-periods", tags=["admin academic calendar"])
+
+
+# The advisory lock that makes "check for an overlap, then save" one step (any fixed number).
+PERIODS_LOCK = 2026112701
 
 
 class PeriodBody(BaseModel):
@@ -70,6 +74,8 @@ def check_body(db: Session, body: PeriodBody, own_id: uuid.UUID | None = None) -
         faculty = db.get(Faculty, body.faculty_id)
         if faculty is None:
             raise HTTPException(404, "Faculty not found.")
+    # Held until commit, so two saves at once cannot both pass the check.
+    db.execute(select(func.pg_advisory_xact_lock(PERIODS_LOCK)))
     other = find_overlapping_period(
         db, body.start_date, body.end_date, ignore_id=own_id, faculty_id=body.faculty_id
     )

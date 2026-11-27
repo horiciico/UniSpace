@@ -5,6 +5,7 @@
 - A one-off moves by a new one-off row, and the old row is set CANCELLED. An imported one-off is
   marked is_manually_modified, so the ETL does not overwrite it.
 - Whole 90-minute modules only; the room must be bookable; a new date before today is refused.
+- A new date that is a holiday for the teaching faculty or the room's faculty is refused (D-029).
 - The new slot must be free for the room, the professor and every group of the activity.
 """
 
@@ -16,6 +17,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.academic_calendar import is_holiday, teaching_faculty_ids
 from app.availability import slot_clashes
 from app.models import (
     Activity,
@@ -60,6 +62,8 @@ def move_occurrence(
         raise HTTPException(404, "Room not found.")
     if not room.is_bookable:
         raise HTTPException(400, "This room cannot be booked.")
+    if is_holiday(db, new_date, teaching_faculty_ids(db, activity) | {room.faculty_id}):
+        raise HTTPException(400, "The new date is a holiday. A class cannot be moved to it.")
 
     is_one_off = activity.specific_date is not None
     if is_one_off:

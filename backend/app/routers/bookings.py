@@ -40,6 +40,13 @@ class BookingIn(BaseModel):
             raise ValueError("title must be at most 255 characters")
         return value
 
+    @field_validator("start_time", "end_time")
+    @classmethod
+    def local_time_only(cls, value: time) -> time:
+        if value.tzinfo is not None:
+            raise ValueError("a time is local, without a time zone")
+        return value
+
 
 def _overlaps(start: time, end: time, other_start: time, other_end: time) -> bool:
     return start < other_end and other_start < end

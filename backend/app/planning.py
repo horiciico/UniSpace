@@ -259,10 +259,11 @@ def _weekly_suppression(
     ).all()
     off: dict[tuple[uuid.UUID | None, date], bool] = {}
     for period in periods:
-        day = max(period.start_date, first)
-        while day <= min(period.end_date, last):
+        start = max(period.start_date, first)
+        # By offset: stepping a date past the last possible one would overflow.
+        for offset in range((min(period.end_date, last) - start).days + 1):
+            day = start + timedelta(days=offset)
             off[period.faculty_id, day] = period.type != AcademicPeriodType.TEACHING
-            day += timedelta(days=1)
 
     def is_off(day: date, faculty_id: uuid.UUID | None) -> bool:
         # The faculty's own period wins, also a teaching one over a shared holiday.
