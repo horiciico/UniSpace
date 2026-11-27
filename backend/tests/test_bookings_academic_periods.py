@@ -1,6 +1,6 @@
 """POST /api/bookings follows the academic calendar (D-027, Task 4).
 
-TEACHING (also when no period covers the date): whole modules. EXAM_SESSION: whole hours, 08:00
+TEACHING (also when no period covers the date): whole modules. EXAM_SESSION: half-hour steps, 08:00
 to 22:00, at least one hour. HOLIDAY: closed. The clock is fixed so no date is in the past.
 """
 
@@ -86,9 +86,16 @@ def test_teaching_keeps_the_module_boundaries(student, room: Classroom) -> None:
 
 @pytest.mark.parametrize(
     ("start", "end"),
-    [("09:00", "10:00"), ("08:00", "22:00"), ("10:00", "13:00"), ("21:00", "22:00")],
+    [
+        ("09:00", "10:00"),
+        ("08:00", "22:00"),
+        ("10:00", "13:00"),
+        ("21:00", "22:00"),
+        ("08:30", "10:00"),
+        ("20:30", "22:00"),
+    ],
 )
-def test_an_exam_session_accepts_whole_hours(student, room: Classroom, start, end) -> None:
+def test_an_exam_session_accepts_half_hour_steps(student, room: Classroom, start, end) -> None:
     r = student.post("/api/bookings", json=body(room, EXAM_DAY, start, end))
     assert r.status_code == 201
     assert (r.json()["start_time"], r.json()["end_time"]) == (start, end)
@@ -97,8 +104,8 @@ def test_an_exam_session_accepts_whole_hours(student, room: Classroom, start, en
 @pytest.mark.parametrize(
     ("start", "end"),
     [
-        ("08:00", "09:30"),  # a module, not whole hours
-        ("08:30", "10:00"),
+        ("09:40", "11:10"),  # a module, not half-hour steps
+        ("08:30", "09:00"),
         ("10:00", "10:00"),  # under one hour
         ("11:00", "10:00"),
         ("07:00", "09:00"),  # before 08:00

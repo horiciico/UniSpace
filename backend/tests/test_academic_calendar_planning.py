@@ -1,7 +1,7 @@
 """The academic calendar in planning (D-027, Tasks 3 and 4).
 
 Task 3: weekly activities are suppressed on EXAM_SESSION and HOLIDAY dates; one-offs stay.
-Task 4: the booking times follow the period type (modules, whole hours, or closed).
+Task 4: the booking times follow the period type (modules, half hours, or closed).
 DB tests: they need PostgreSQL (compose `db`); see conftest.py.
 """
 
@@ -179,8 +179,11 @@ T, E, H = (
         (E, time(9, 0), time(10, 0), True),
         (E, time(8, 0), time(22, 0), True),
         (E, time(10, 0), time(13, 0), True),
-        (E, time(8, 0), time(9, 30), False),  # module end, not a whole hour
-        (E, time(8, 30), time(10, 0), False),
+        (E, time(8, 0), time(9, 30), True),  # half-hour steps
+        (E, time(8, 30), time(10, 0), True),
+        (E, time(8, 15), time(10, 0), False),
+        (E, time(8, 0), time(9, 40), False),
+        (E, time(9, 0), time(9, 30), False),  # under one hour
         (E, time(10, 0), time(10, 0), False),  # under one hour
         (E, time(11, 0), time(10, 0), False),
         (E, time(7, 0), time(9, 0), False),  # before 08:00

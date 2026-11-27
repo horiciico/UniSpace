@@ -6,7 +6,8 @@
   (409) when the room, the professor or any group is busy. Whole modules, bookable room,
   no past date.
 
-Today is fixed at 2026-11-20. The exam day is Tuesday 2026-12-08.
+Today is fixed at 2026-11-20. The exam day is Tuesday 2026-12-08, in an exam session of the
+faculty, so its weekly courses are not held then: a busy slot on that day is a one-off.
 """
 
 import uuid
@@ -22,6 +23,8 @@ from app.auth import oauth
 from app.db import get_db
 from app.main import app
 from app.models import (
+    AcademicPeriod,
+    AcademicPeriodType,
     Activity,
     ActivityGroup,
     ActivityType,
@@ -128,6 +131,42 @@ def world(db: Session) -> dict:
     db.add(Professor(id=ulbs_id, name=f"Prof {tag}", email=email))
     db.flush()
 
+    session = AcademicPeriod(
+        name="Sesiune",
+        type=AcademicPeriodType.EXAM_SESSION,
+        start_date=date(2026, 12, 7),
+        end_date=date(2026, 12, 20),
+        faculty_id=faculty.id,
+    )
+    db.add(session)
+    db.flush()
+
+    def busy(
+        name: str,
+        *,
+        professor: uuid.UUID | None = None,
+        room: Classroom | None = None,
+        groups_of: tuple[StudentGroup, ...] = (),
+    ) -> None:
+        activity = Activity(
+            name=name,
+            type=ActivityType.EXAM,
+            priority=Priority.EXAM,
+            classroom_id=(room or room_a).id,
+            day_of_week=2,
+            start_time=time(8, 0),
+            end_time=time(9, 30),
+            parity=Parity.ALL,
+            specific_date=date(2026, 12, 8),
+            professor_id=professor or uuid.uuid4(),
+            status=Status.APPROVED,
+        )
+        db.add(activity)
+        db.flush()
+        for group in groups_of:
+            db.add(ActivityGroup(activity_id=activity.id, group_id=group.id))
+        db.flush()
+
     def weekly(
         name: str,
         span: tuple[time, time],
@@ -180,6 +219,8 @@ def world(db: Session) -> dict:
         "groups": groups,
         "os_course": os_course,
         "weekly": weekly,
+        "busy": busy,
+        "session": session,
         "tag": tag,
     }
 
@@ -312,6 +353,7 @@ def test_the_exam_shows_in_the_group_timetable(db, world, client_signed_in) -> N
         {"start_time": "08:00", "end_time": "08:30"},
         {"start_time": "07:30", "end_time": "09:30"},
         {"start_time": "20:30", "end_time": "21:40"},
+        {"start_time": "21:00", "end_time": "22:30"},
         {"start_time": "10:00", "end_time": "09:00"},
     ],
 )
@@ -330,6 +372,7 @@ def test_bad_input_is_400_and_saves_nothing(db, world, client_signed_in, overrid
         ("14:30", "19:30"),
         ("08:00", "09:30"),
         ("18:00", "21:30"),
+        ("20:00", "22:00"),
     ],
 )
 def test_any_half_hour_start_and_length_of_an_hour_or_more_is_accepted(
@@ -369,7 +412,7 @@ def test_an_unknown_room_is_404_and_an_unbookable_one_400(db, world, client_sign
 
 
 def test_a_busy_room_is_409(db, world, client_signed_in) -> None:
-    world["weekly"]("Other class", M0_SPAN, day=2, professor=uuid.uuid4(), room=world["room_b"])
+    world["busy"]("Other class", room=world["room_b"])
 
     response = client_signed_in.post("/api/professors/me/exams", json=body(world))
 
@@ -379,7 +422,7 @@ def test_a_busy_room_is_409(db, world, client_signed_in) -> None:
 
 
 def test_a_busy_professor_is_409(db, world, client_signed_in) -> None:
-    world["weekly"]("Own class", M0_SPAN, day=2, professor=world["ulbs_id"], room=world["room_b"])
+    world["busy"]("Own class", professor=world["ulbs_id"], room=world["room_b"])
 
     response = client_signed_in.post("/api/professors/me/exams", json=body(world))
 
@@ -388,14 +431,7 @@ def test_a_busy_professor_is_409(db, world, client_signed_in) -> None:
 
 
 def test_any_busy_group_is_409_and_names_it(db, world, client_signed_in) -> None:
-    world["weekly"](
-        "Lab 3B",
-        M0_SPAN,
-        day=2,
-        professor=uuid.uuid4(),
-        room=world["room_a"],
-        groups_of=(world["groups"]["3B"],),
-    )
+    world["busy"]("Lab 3B", room=world["room_a"], groups_of=(world["groups"]["3B"],))
 
     response = client_signed_in.post("/api/professors/me/exams", json=body(world))
 
@@ -418,4 +454,103 @@ def test_it_needs_a_sign_in(db, world) -> None:
     assert make_client(db).post("/api/professors/me/exams", json=body(world)).status_code == 401
 
 
-M0_SPAN = (time(8, 0), time(9, 30))
+
+# --- the exam session, per faculty (D-030) -----------------------------------------------------
+
+NO_SESSION = "The date is not in an exam session for these groups."
+
+
+def schedule(client, world: dict, **overrides):
+    return client.post("/api/professors/me/exams", json=body(world, **overrides))
+
+
+def other_faculty(db) -> Faculty:
+    row = Faculty(code=f"o{uuid.uuid4().hex[:8]}", name="Alta facultate")
+    db.add(row)
+    db.flush()
+    return row
+
+
+def set_period(db, kind, faculty: Faculty | None, day: date) -> None:
+    db.add(
+        AcademicPeriod(
+            name=kind.value,
+            type=kind,
+            start_date=day,
+            end_date=day,
+            faculty_id=faculty.id if faculty else None,
+        )
+    )
+    db.flush()
+
+
+def test_a_date_outside_the_exam_session_is_400(db, world, client_signed_in) -> None:
+    response = schedule(client_signed_in, world, exam_date="2026-12-01")
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == NO_SESSION
+    assert exams_named(db, "Sisteme de Operare") == 0
+
+
+def test_another_faculty_s_session_does_not_count(db, world, client_signed_in) -> None:
+    set_period(db, AcademicPeriodType.EXAM_SESSION, other_faculty(db), date(2026, 12, 1))
+
+    assert schedule(client_signed_in, world, exam_date="2026-12-01").status_code == 400
+
+
+def test_a_session_for_all_faculties_counts(db, world, client_signed_in) -> None:
+    set_period(db, AcademicPeriodType.EXAM_SESSION, None, date(2026, 12, 1))
+
+    response = schedule(client_signed_in, world, exam_date="2026-12-01")
+
+    assert response.status_code == 201, response.text
+
+
+def test_the_room_s_faculty_need_not_be_in_a_session(db, world, client_signed_in) -> None:
+    world["room_b"].faculty_id = other_faculty(db).id
+    db.flush()
+
+    assert schedule(client_signed_in, world).status_code == 201
+
+
+def test_a_room_whose_faculty_is_on_holiday_is_refused(db, world, client_signed_in) -> None:
+    faculty = other_faculty(db)
+    world["room_b"].faculty_id = faculty.id
+    set_period(db, AcademicPeriodType.HOLIDAY, faculty, date(2026, 12, 8))
+
+    response = schedule(client_signed_in, world)
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "The room is closed for a holiday on that date."
+
+
+def interval(client, world: dict, day: str = EXAM_DAY) -> dict:
+    response = client.get(
+        "/api/professors/me/availability/interval",
+        params={
+            "date": day,
+            "start_time": "10:00",
+            "end_time": "12:00",
+            "group_ids": str(world["groups"]["3A"].id),
+        },
+    )
+    assert response.status_code == 200, response.text
+    return response.json()
+
+
+def test_the_interval_says_whether_the_groups_are_in_a_session(
+    db, world, client_signed_in
+) -> None:
+    assert interval(client_signed_in, world)["exam_session"] is True
+    assert interval(client_signed_in, world, "2026-12-01")["exam_session"] is False
+
+
+def test_the_interval_leaves_out_rooms_on_holiday(db, world, client_signed_in) -> None:
+    faculty = other_faculty(db)
+    world["room_b"].faculty_id = faculty.id
+    set_period(db, AcademicPeriodType.HOLIDAY, faculty, date(2026, 12, 8))
+
+    free = {r["id"] for r in interval(client_signed_in, world)["free_classrooms"]}
+
+    assert str(world["room_b"].id) not in free
+    assert str(world["room_a"].id) in free
