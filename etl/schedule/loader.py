@@ -9,8 +9,9 @@ Reads data/schedules/*.json (written by step 3) and writes:
 Rules:
 - an entry with no room, or an online entry, is not stored
 - rows edited by an admin (is_manually_modified) are never changed
-- a row of the planning unit that no longer appears in the feed is deleted, unless an
-  exception or a change request points at it (those rows are kept and reported)
+- nothing is deleted (D-031): a row of the planning unit that no longer appears in the feed
+  is set CANCELLED, and set APPROVED again if it comes back. A file with no class to store
+  cancels nothing. Bookings, moves and exams are never written
 - a file that cannot be read or loaded is reported and does not stop the other files
 
 Run through the compose profile (or as step 4 of the full pipeline):
@@ -35,7 +36,6 @@ from sqlalchemy.orm import Session
 from app.db import SessionLocal
 from app.models import (
     Activity,
-    ActivityException,
     ActivityGroup,
     ActivityType,
     Classroom,
@@ -43,7 +43,6 @@ from app.models import (
     Parity,
     PlanningTimeUnit,
     Priority,
-    RuleChangeRequest,
     Status,
     StudentGroup,
 )
@@ -312,8 +311,10 @@ class LoadReport:
     updated: int = 0
     unchanged: int = 0
     skipped_manual: int = 0
-    deleted: int = 0
-    kept_referenced: int = 0
+    cancelled: int = 0  # left the feed: kept, but no longer held
+    restored: int = 0  # back in the feed after being cancelled
+    empty: list[str] = field(default_factory=list)  # faculty codes whose file had no class to store
+    failed: list[str] = field(default_factory=list)  # faculty codes whose file was not loaded
     deduplicated: int = 0
     no_room: int = 0
     unparsed: list[tuple[str, object, str, str]] = field(default_factory=list)  # file, id, subject, reason
@@ -416,6 +417,9 @@ def upsert_activity(db: Session, unit_id: uuid.UUID, external_id: str, values: d
         report.skipped_manual += 1
         return None
     changed = False
+    if existing.status == Status.CANCELLED:  # only this loader cancels an imported weekly row
+        existing.status = Status.APPROVED
+        report.restored += 1
     for name, value in target.items():
         if getattr(existing, name) != value:
             setattr(existing, name, value)
@@ -435,10 +439,10 @@ def sync_activity_groups(db: Session, activity_id: uuid.UUID, group_ids: list[uu
     db.flush()
 
 
-def remove_stale(db: Session, unit_id: uuid.UUID, seen: set[str], report: LoadReport) -> None:
-    """Delete ETL rows of this planning unit that are no longer in the feed.
+def cancel_stale(db: Session, unit_id: uuid.UUID, seen: set[str], report: LoadReport) -> None:
+    """Cancel the ETL rows of this planning unit that are no longer in the feed (D-031).
 
-    Admin-edited rows, one-off rows and rows with an exception or a change request stay.
+    Nothing is deleted. Admin-edited rows and one-off rows are left as they are.
     """
     rows = db.scalars(
         select(Activity).where(
@@ -446,22 +450,14 @@ def remove_stale(db: Session, unit_id: uuid.UUID, seen: set[str], report: LoadRe
             Activity.external_id.is_not(None),
             Activity.specific_date.is_(None),
             Activity.is_manually_modified.is_(False),
+            Activity.status != Status.CANCELLED,
         )
     ).all()
     for row in rows:
         if row.external_id in seen:
             continue
-        has_exception = db.scalar(
-            select(ActivityException.id).where(ActivityException.activity_id == row.id).limit(1)
-        ) is not None
-        has_request = db.scalar(
-            select(RuleChangeRequest.id).where(RuleChangeRequest.activity_id == row.id).limit(1)
-        ) is not None
-        if has_exception or has_request:
-            report.kept_referenced += 1
-            continue
-        db.delete(row)
-        report.deleted += 1
+        row.status = Status.CANCELLED
+        report.cancelled += 1
     db.flush()
 
 
@@ -515,7 +511,10 @@ def load_envelope(db: Session, envelope: dict, ctx: LoadContext, report: LoadRep
             report.unparsed.append((source, members[0].item_id, members[0].subject,
                                     f"database error: {type(exc).__name__}: {exc}"))
 
-    remove_stale(db, unit.id, seen, report)
+    if groups:
+        cancel_stale(db, unit.id, seen, report)
+    else:  # an empty or unreadable feed must not cancel a whole faculty's timetable
+        report.empty.append(faculty_code)
     db.commit()
     report.files_loaded.append(source)
 
@@ -558,6 +557,7 @@ async def load_all(faculty_code: str | None = None, schedules_dir: Path = SCHEDU
             except Exception as exc:
                 db.rollback()
                 ctx.forget_unsaved()
+                report.failed.append(str(envelope.get("faculty_code")))
                 report.errors.append(f"{source}: {type(exc).__name__}: {exc}")
     return report
 
@@ -567,8 +567,8 @@ def format_report(report: LoadReport) -> str:
         f"files loaded: {len(report.files_loaded)}   errors: {len(report.errors)}",
         f"entries read: {report.entries}",
         f"activities: inserted {report.inserted}, updated {report.updated}, unchanged {report.unchanged}, "
-        f"skipped (admin-edited) {report.skipped_manual}, deleted {report.deleted}, "
-        f"kept (exception or request) {report.kept_referenced}",
+        f"skipped (admin-edited) {report.skipped_manual}, cancelled {report.cancelled}, "
+        f"restored {report.restored}",
         f"deduplicated (entries merged into existing rows): {report.deduplicated}",
         f"not stored, no room or online: {report.no_room}",
         f"classrooms stored: {report.rooms_stored} (unknown capacity: {report.rooms_unknown_capacity}, "

@@ -35,6 +35,7 @@
 - D-028 · Each faculty has its own academic calendar, with all-faculties periods as the default
 - D-029 · A class cannot be moved onto a holiday or into an exam session, and an approval follows the calendar
 - D-030 · Exams are scheduled in half hours, only in the groups' exam session
+- D-031 · An import updates and never deletes; an admin starts it from the panel
 
 ---
 
@@ -329,4 +330,14 @@
 - **Rejected:** an end time of 21:30; whole-hour room bookings beside half-hour exams; requiring the room's faculty to be in a session too.
 - **Evidence:** backend/app/planning.py (session_window), backend/app/exams.py, backend/app/academic_calendar.py (all_in_exam_session), backend/tests/test_professor_exams.py, backend/tests/test_bookings_academic_periods.py
 - **Source:** user (2026-11-26, 2026-11-27) · confidence high
+- **Confirmed:** 2026-11-27
+
+## D-031 · An import updates and never deletes; an admin starts it from the panel
+- **Status:** approved
+- **Date:** 2026-11-27
+- **Rule:** The schedule and professors pipelines delete nothing, from the command line or the panel. An imported weekly class of the loaded planning unit that is no longer in the feed is set `CANCELLED` (also when a move or a change request points at it) and set `APPROVED` again if it returns; a file with no class to store cancels nothing. Admin-edited classes, admin room fields (D-024), bookings, moves and exams are not written. An admin starts both pipelines, schedule then professors, for all faculties from the admin panel; the backend runs them in the background, one run at a time, loading only the files downloaded in that run. The professor load counts as full only when every faculty's file arrived. Afterwards the run lists the imported classes that clash with an approved booking, a moved class or an exam, and keeps both.
+- **Why:** Rerunning an import must not lose saved activities, bookings or moves. The user decided this on 2026-11-27 (plan approved; vanished classes: cancel; clashes: keep and list).
+- **Rejected:** deleting vanished rows; leaving them visible (a rescheduled class would show twice); resolving clashes automatically.
+- **Evidence:** etl/schedule/loader.py (cancel_stale), backend/app/data_import.py, backend/tests/test_data_import.py, etl/schedule/tests/test_loader_db.py
+- **Source:** user (2026-11-27) · confidence high
 - **Confirmed:** 2026-11-27

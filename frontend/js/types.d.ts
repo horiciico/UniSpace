@@ -42,6 +42,8 @@ interface Window {
     }>;
     changeUserRole(id: string, role: string): Promise<any>;
     adminInvitations(): Promise<any[]>;
+    dataImport(): Promise<any>;
+    startDataImport(): Promise<any>;
     createInvitation(body: Record<string, any>): Promise<any>;
     revokeInvitation(id: string): Promise<null>;
     professorTimetable(weekStart: string): Promise<any>;

@@ -1,4 +1,4 @@
-"""Loader against PostgreSQL: idempotence, admin protection, stale rows. Runs in the etl image.
+"""Loader against PostgreSQL: idempotence, admin protection, rows that left the feed. Runs in the etl image.
 
 Each test rolls back its own writes, the same way backend/tests/conftest.py does.
 """
@@ -18,11 +18,16 @@ from app.models import (
     ActivityException,
     ActivityGroup,
     ActivityType,
+    Booking,
+    BookingStatus,
     Classroom,
     Faculty,
     PlanningTimeUnit,
     PlanningUnitType,
+    Role,
+    Status,
     StudentGroup,
+    User,
 )
 from etl.schedule.loader import LoadContext, LoadReport, RoomInfo, load_envelope
 
@@ -149,7 +154,7 @@ def test_running_twice_creates_nothing_new(db: Session) -> None:
     assert again.inserted == 0
     assert again.updated == 0
     assert again.unchanged == 1
-    assert again.deleted == 0
+    assert again.cancelled == 0
     assert len(db.scalars(select(Activity).where(Activity.planning_time_unit_id == unit.id)).all()) == 1
 
 
@@ -172,7 +177,7 @@ def test_admin_edited_rows_are_never_overwritten(db: Session) -> None:
     assert row.start_time == time(9, 0)
 
 
-def test_rows_that_left_the_feed_are_deleted_unless_referenced(db: Session) -> None:
+def test_rows_that_left_the_feed_are_cancelled_never_deleted(db: Session) -> None:
     faculty, unit = setup_faculty_and_unit(db, "tst6")
     room = str(uuid.uuid4())
     classroom = Classroom(name="Sala Z", capacity=20, external_id=room, faculty_id=faculty.id)
@@ -196,10 +201,77 @@ def test_rows_that_left_the_feed_are_deleted_unless_referenced(db: Session) -> N
     ctx = LoadContext(rooms={room: RoomInfo("Sala Z", 20, "tst6")}, faculty_ids={"tst6": faculty.id})
     report = run(db, envelope("tst6", unit.id, {"Monday": [entry(1, room)]}), ctx)
 
-    assert report.deleted == 1
-    assert report.kept_referenced == 1
-    assert db.get(Activity, gone.id) is None
-    assert db.get(Activity, referenced.id) is not None
+    assert report.cancelled == 2
+    assert db.get(Activity, gone.id).status == Status.CANCELLED
+    assert db.get(Activity, referenced.id).status == Status.CANCELLED
+    assert db.scalar(select(ActivityException).where(ActivityException.activity_id == referenced.id)) is not None
+
+    again = run(db, envelope("tst6", unit.id, {"Monday": [entry(1, room)]}), ctx)
+    assert again.cancelled == 0  # already cancelled: not counted twice
+
+
+def one_row_faculty(db: Session, code: str) -> tuple[PlanningTimeUnit, str, LoadContext]:
+    faculty, unit = setup_faculty_and_unit(db, code)
+    room = str(uuid.uuid4())
+    ctx = LoadContext(rooms={room: RoomInfo("Sala A", 30, code)}, faculty_ids={code: faculty.id})
+    run(db, envelope(code, unit.id, {"Monday": [entry(1, room)]}), ctx)
+    return unit, room, ctx
+
+
+def test_a_cancelled_class_that_returns_to_the_feed_is_restored(db: Session) -> None:
+    unit, room, ctx = one_row_faculty(db, "tsta")
+    moved = {"Tuesday": [entry(2, room, day="Tuesday")]}
+    run(db, envelope("tsta", unit.id, moved), ctx)
+
+    report = run(db, envelope("tsta", unit.id, {"Monday": [entry(1, room)]}), ctx)
+
+    assert (report.restored, report.cancelled, report.inserted) == (1, 1, 0)
+    rows = db.scalars(select(Activity).where(Activity.planning_time_unit_id == unit.id)).all()
+    assert {r.day_of_week: r.status for r in rows} == {1: Status.APPROVED, 2: Status.CANCELLED}
+
+
+def test_an_empty_feed_cancels_nothing(db: Session) -> None:
+    unit, _, ctx = one_row_faculty(db, "tstb")
+
+    report = run(db, envelope("tstb", unit.id, {"Monday": []}), ctx)
+
+    assert report.cancelled == 0
+    assert report.empty == ["tstb"]
+    row = db.scalars(select(Activity).where(Activity.planning_time_unit_id == unit.id)).one()
+    assert row.status == Status.APPROVED
+
+
+def test_a_reload_leaves_bookings_moves_and_exams_alone(db: Session) -> None:
+    unit, room, ctx = one_row_faculty(db, "tstc")
+    course = db.scalars(select(Activity).where(Activity.planning_time_unit_id == unit.id)).one()
+    user = User(email=f"{uuid.uuid4().hex[:8]}@ulbsibiu.ro", name="U", role=Role.STUDENT)
+    db.add(user)
+    db.flush()
+    booking = Booking(
+        user_id=user.id, classroom_id=course.classroom_id, specific_date=date(2026, 11, 27),
+        start_time=time(8, 0), end_time=time(9, 30), title="Club", status=BookingStatus.APPROVED,
+    )
+    one_offs = [
+        Activity(
+            name=name, type=kind, priority=5, classroom_id=course.classroom_id, day_of_week=5,
+            start_time=time(12, 0), end_time=time(13, 0), specific_date=date(2026, 11, 27),
+            is_manually_modified=True,
+        )
+        for name, kind in (("Moved", ActivityType.COURSE), ("Exam", ActivityType.EXAM))
+    ]
+    move = ActivityException(activity_id=course.id, original_date=date(2026, 11, 23), is_cancelled=True)
+    db.add_all([booking, move, *one_offs])
+    db.flush()
+
+    # The class left its slot: the feed now has it on Tuesday.
+    run(db, envelope("tstc", unit.id, {"Tuesday": [entry(2, room, day="Tuesday")]}), ctx)
+
+    db.expire_all()
+    assert db.get(Booking, booking.id).status == BookingStatus.APPROVED
+    assert db.get(ActivityException, move.id) is not None
+    for row in one_offs:
+        kept = db.get(Activity, row.id)
+        assert (kept.status, kept.start_time) == (Status.APPROVED, time(12, 0))
 
 
 def test_a_file_for_another_faculty_is_refused(db: Session) -> None:

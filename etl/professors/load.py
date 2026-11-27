@@ -174,16 +174,19 @@ def sync_professors(db: Session, docs: list[tuple[str, dict]], full_run: bool, r
     upsert_professors(db, merged.records, report)
 
 
-def load_professors(directory: Path = PROFESSORS_DIR, faculty: str | None = None) -> LoadReport:
+def load_professors(
+    directory: Path = PROFESSORS_DIR, faculty: str | None = None, complete: bool = True
+) -> LoadReport:
     """Read the files (all, or one faculty) and sync them in one commit.
 
     A run counts as full only when it covers every faculty and every file could be read.
+    `complete=False` says that a faculty's file is missing, so the run is not full.
     """
     report = LoadReport()
     docs, errors = read_documents(directory, faculty)
     report.errors.extend(errors)
     report.files = [name for name, _ in docs]
-    full_run = faculty is None and not errors
+    full_run = complete and faculty is None and not errors
     try:
         with SessionLocal() as db:
             sync_professors(db, docs, full_run, report)

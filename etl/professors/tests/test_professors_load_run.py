@@ -69,6 +69,18 @@ def test_an_unreadable_file_is_reported_and_the_run_goes_on(run_db: Session, tmp
     assert any(error.startswith("bad.json: cannot read") for error in report.errors)
 
 
+@pytest.mark.parametrize(("complete", "expected"), [(True, 1), (False, 0)])
+def test_only_a_complete_run_moves_a_professor_to_a_new_id(run_db: Session, tmp_path, complete, expected) -> None:
+    email = f"rekey-{uuid.uuid4().hex[:8]}@ulbsibiu.ro"
+    run_db.add(Professor(id=uuid.uuid4(), name="Old", email=email))
+    run_db.flush()
+    write_faculty(tmp_path, "ing", [{"id": str(uuid.uuid4()), "name": "New", "email": email}])
+
+    report = load_professors(directory=tmp_path, complete=complete)
+
+    assert len(report.rekeyed) == expected
+
+
 def test_a_database_error_is_reported_not_raised(run_db: Session, tmp_path, monkeypatch) -> None:
     write_faculty(tmp_path, "ing", [{"id": str(uuid.uuid4()), "name": "X", "email": "x@ulbsibiu.ro"}])
 
