@@ -8,6 +8,13 @@ Each entry follows the same shape:
 
 ```
 
+## 2026-11-27 · Schedule Exam flow and half-hour exam sessions (issue #38, D-030)
+Tool: Claude Code, claude-sonnet-5-5
+What I asked: merge PR #37, open an issue for the undelivered part, update main, create a branch for it and resolve it. Answers: exams end by 22:00; session bookings also in half hours; the groups' faculty decides the exam session; go straight to a pull request.
+What I got: the three earlier exam commits brought onto main (their D-027 and C-010 are now D-030 and C-011); the per-faculty exam-session check; one half-hour rule for exams and bookings; the Schedule Exam dialog; half-hour grid and Bookings pickers; RO and EN texts; a mock and registry entry.
+Tests changed (named as required): `test_academic_calendar_planning.py` (`test_validate_booking_times` cases), `test_bookings_academic_periods.py` (the accepted and refused session times), `test_calendar_checks.py` (the module times refused in a session are now 09:40-11:10), `test_professor_exams.py` (the world has an exam session; the busy-slot tests use one-offs; 22:00 cases), `test_i18n.py` (the `exam` namespace added to the key scan), `bookings-calendar.test.js`, `timetable-calendar.test.js`, `grid-hourly.test.js`, `modules-calendar.test.js` (28 half hours instead of 14 hours, and the new wording).
+Result: `node scripts/test-all.mjs`: all suites pass. Browser check: headless Chrome with a stubbed API (dialog, room grid, Bookings). The signed-in stack was not checked.
+
 ## 2026-11-26 · Exam time grid (D-027) and the ledger update (backend)
 Tool: Claude Code, claude-haiku-5-5
 What I asked: the proposal approved: exams on a 30-minute grid (start :00 or :30; length a multiple of 30 minutes, at least 1 hour; 08:00 to 21:30); courses, moves and bookings stay on modules. The interval endpoint is approved too.

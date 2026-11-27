@@ -96,7 +96,7 @@ describe("timetable.js: the academic calendar", () => {
     expect($("tt-period-pill").textContent).toBe("Exam session");
     expect($("tt-period-pill").className).toBe("pill pill--pending");
     expect($("tt-period-text").textContent).toContain("08:00 to 22:00");
-    expect(hourLabels()).toHaveLength(14);
+    expect(hourLabels()).toHaveLength(28);
     expect($("tt-grid").classList.contains("tt-grid--hourly")).toBe(true);
   });
 
@@ -144,7 +144,7 @@ describe("timetable.js: the academic calendar", () => {
   it("shows the hourly grid for a week that only starts the session", async () => {
     await setup({ date: "2026-12-07" });
 
-    expect(hourLabels()).toHaveLength(14);
+    expect(hourLabels()).toHaveLength(28);
     expect($("tt-period-pill").textContent).toBe("Exam session");
   });
 
@@ -227,7 +227,7 @@ describe("timetable.js: the academic calendar", () => {
       .filter((c) => String(c[0]).includes("/api/schedule"))
       .at(-1);
     expect(String(last[0])).toContain("date=2026-12-07");
-    expect(hourLabels()).toHaveLength(14);
+    expect(hourLabels()).toHaveLength(28);
   });
 
   it("hides the chip when no exam session is left", async () => {
@@ -273,7 +273,7 @@ describe("timetable.js: the academic calendar", () => {
     await flush();
     await flush();
 
-    expect(hourLabels()).toHaveLength(14);
+    expect(hourLabels()).toHaveLength(28);
     expect($("tt-period").hidden).toBe(false);
   });
 
@@ -294,7 +294,7 @@ describe("timetable.js: a calendar per faculty", () => {
   it("draws a room by the calendar of its faculty", async () => {
     await setup({ periods: () => response([session("f1")]) });
 
-    expect(hourLabels()).toHaveLength(14);
+    expect(hourLabels()).toHaveLength(28);
     expect($("tt-period").hidden).toBe(false);
   });
 
@@ -380,7 +380,7 @@ describe("timetable.js: a calendar per faculty", () => {
       "Exam session Drept: exam session on Thu, Fri, Sat, Sun. Its weekly courses are not held then.",
       "Holiday Inginerie: holiday on Mon. Its weekly courses are not held then.",
     ]);
-    expect(hourLabels()).toHaveLength(14);
+    expect(hourLabels()).toHaveLength(28);
     // Monday is a holiday for one faculty only, so the day is not marked.
     expect(document.querySelectorAll("#tt-grid .tt-off")).toHaveLength(0);
     expect($("tt-exam").hidden).toBe(false);
@@ -399,14 +399,14 @@ describe("timetable.js: a calendar per faculty", () => {
     await mine([session("f1")], [FACS[0]]);
 
     expect(lines()).toEqual([
-      "Exam session Exam session on Thu, Fri, Sat, Sun: weekly courses are not held then, and rooms are booked by the hour, 08:00 to 22:00.",
+      "Exam session Exam session on Thu, Fri, Sat, Sun: weekly courses are not held then, and rooms are booked in half-hour steps, 08:00 to 22:00.",
     ]);
   });
 
   it("follows the all-faculties periods when the professor has no courses", async () => {
     await mine([session(null)], []);
 
-    expect(hourLabels()).toHaveLength(14);
+    expect(hourLabels()).toHaveLength(28);
   });
 
   it("translates the faculty lines when the language changes", async () => {

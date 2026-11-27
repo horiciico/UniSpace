@@ -21,7 +21,7 @@ DYNAMIC_KEYS = (
 )
 # A key is a dotted name such as "nav.timetable" in quotes.
 KEY_IN_SCRIPT = re.compile(
-    r'"((?:nav|header|footer|theme|role|toast|placeholder|login|onboarding|status|kind|day|timetable|common|home|announce|calendar|acal|changes|admin|adminHistory|usersPage|bookings|rooms|roomDetail|free|notFound)\.[A-Za-z0-9_.]+)"'
+    r'"((?:nav|header|footer|theme|role|toast|placeholder|login|onboarding|status|kind|day|timetable|common|home|announce|calendar|acal|changes|admin|adminHistory|usersPage|bookings|rooms|roomDetail|free|notFound|exam)\.[A-Za-z0-9_.]+)"'
 )
 
 

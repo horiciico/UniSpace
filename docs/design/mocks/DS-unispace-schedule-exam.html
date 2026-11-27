@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ro">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MOCK · DS-unispace-schedule-exam · draft</title>
+    <!-- Mock only: the real page is frontend/pages/student/timetable.html ("Orarul meu"). -->
+    <link rel="stylesheet" href="../../../frontend/styles/tokens.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/base.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/buttons.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/forms.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/tabs-and-chips.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/notice.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/components/timetable.css" />
+    <link rel="stylesheet" href="../../../frontend/styles/utilities.css" />
+    <style>
+      /* Mock scaffolding only. */
+      .mock-bar { padding: var(--space-3) var(--space-4); background: var(--color-warning-bg); color: var(--color-warning-text); }
+      .mock-frame { border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); padding: var(--space-5); max-width: 40rem; margin: var(--space-5) auto; }
+    </style>
+  </head>
+  <body>
+    <div class="mock-bar"><strong>Draft mock, built.</strong> Awaiting review in the pull request.</div>
+    <div class="mock-frame">
+      <button class="btn" type="button">Mută activitatea</button>
+      <button class="btn btn-secondary" type="button">Planifică examen</button>
+    </div>
+    <div class="mock-frame">
+      <h2>Planifică examen</h2>
+      <div class="form-grid">
+        <label class="field"><span class="field__label">Materie</span><select><option>Drept civil</option></select></label>
+        <fieldset class="field">
+          <legend class="field__label">Grupe</legend>
+          <div class="chips">
+            <label class="check"><input type="checkbox" checked /> <span>3A</span></label>
+            <label class="check"><input type="checkbox" /> <span>3B</span></label>
+          </div>
+        </fieldset>
+        <label class="field"><span class="field__label">Data examenului</span><input type="date" value="2026-12-10" /></label>
+        <div class="form-grid form-grid--2">
+          <label class="field"><span class="field__label">De la</span><select><option>08:30</option></select></label>
+          <label class="field"><span class="field__label">Până la</span><select><option>10:00</option></select></label>
+        </div>
+        <p class="notice">Profesorul și grupele sunt libere.</p>
+        <label class="field"><span class="field__label">Sală liberă</span><select><option>Sala 1 · 30 locuri</option></select></label>
+        <div class="mv-actions"><button class="btn btn-small" type="button">Anulează</button><button class="btn" type="button">Planifică examenul</button></div>
+      </div>
+    </div>
+    <div class="mock-frame">
+      <p class="notice">Alege cel puțin o grupă și o dată.</p>
+      <p class="notice">Data aceea nu este în sesiunea de examene a acestor grupe.</p>
+      <p class="notice">Ocupat: Group 3A busy: Colocviu.</p>
+      <p class="notice">Nicio sală nu este liberă în acest interval.</p>
+      <p class="notice notice--error">Examenul nu a fost planificat. Room busy.</p>
+    </div>
+  </body>
+</html>

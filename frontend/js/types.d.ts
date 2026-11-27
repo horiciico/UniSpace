@@ -52,6 +52,14 @@ interface Window {
       excludeActivityId?: string | null,
     ): Promise<any>;
     moveActivity(id: string, body: Record<string, any>): Promise<any>;
+    professorSubjects(): Promise<any>;
+    professorInterval(
+      day: string,
+      start: string,
+      end: string,
+      groupIds: string[],
+    ): Promise<any>;
+    scheduleExam(body: Record<string, any>): Promise<any>;
   };
   UniSpaceAuth: {
     ready: Promise<any>;
@@ -111,5 +119,8 @@ interface Window {
   UniSpaceUI: Record<string, any>;
   UniSpaceMove: {
     open(onMoved?: () => void): void;
+  };
+  UniSpaceExam: {
+    open(onDone?: () => void): void;
   };
 }

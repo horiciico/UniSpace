@@ -228,3 +228,10 @@ designs:
     screenshots: []
     design_ref: docs/design/mocks/DS-unispace-timetable-calendar.html
     status: implemented  # mock confirmed 2026-11-26 with the note "reuse the existing timetable design" (the real page uses the existing grid, chips, pill and notice, not the mock-grid scaffolding); tests in frontend/tests/unit/timetable-calendar.test.js, grid-hourly.test.js, bookings-calendar.test.js, modules-calendar.test.js; no screenshots yet. 2026-11-26 (PR #37 review): holiday days marked in the grid (mock section 4); partial-week banner texts and the Bookings "time does not fit" note are not in the mock, added to the mock (sections 7 and 8) and confirmed 2026-11-26. Per faculty (D-028, section 6) built 2026-11-26
+
+  - id: DS-unispace-schedule-exam
+    kind: screen
+    source: frontend/pages/student/timetable.html  # "Orarul meu": the Schedule Exam button and dialog (D-030)
+    screenshots: []
+    design_ref: docs/design/mocks/DS-unispace-schedule-exam.html
+    status: implemented  # built 2026-11-27 before the mock was confirmed (user: "Straight to PR"; mock and screen are reviewed in the pull request); tests in frontend/tests/unit/exam.test.js, timetable-my-schedule.test.js

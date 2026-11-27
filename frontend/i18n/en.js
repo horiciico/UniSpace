@@ -383,6 +383,27 @@ window.UniSpaceI18n.register("en", {
   "bookings.errorNoRoom": "Choose a room.",
   "bookings.errorNoDate": "Choose a date.",
   "bookings.errorNoTitle": "Write a title or a reason.",
+  "timetable.scheduleExam": "Schedule exam",
+  "exam.subject": "Subject",
+  "exam.groups": "Groups",
+  "exam.date": "Exam date",
+  "exam.start": "From",
+  "exam.end": "To",
+  "exam.room": "Free room",
+  "exam.submit": "Schedule the exam",
+  "exam.chooseFirst": "Choose at least one group and a date.",
+  "exam.notInSession": "That date is not in an exam session for these groups.",
+  "exam.busy": "Not free: {reason}",
+  "exam.noRoom": "No room is free for these times.",
+  "exam.free": "The professor and the groups are free.",
+  "exam.past": "The exam date cannot be in the past.",
+  "exam.checkError": "Could not check what is free. Try again.",
+  "exam.loadError": "Could not load your subjects. Try again.",
+  "exam.noSubjects": "You have no subject to schedule an exam for.",
+  "exam.done": "Exam scheduled.",
+  "exam.failed": "The exam was not scheduled.",
+  "bookings.errorMinHour":
+    "In an exam session a booking lasts at least one hour.",
   "bookings.errorRange": "The last module must be after the first one.",
   "bookings.sentPending":
     "The request was sent. It waits for an admin to approve it.",
@@ -578,7 +599,7 @@ window.UniSpaceI18n.register("en", {
   "acal.allFaculties": "All faculties",
   "acal.type": "Type",
   "acal.typeHint":
-    "Exam session: weekly courses are hidden and rooms are booked by whole hours, 08:00 to 22:00. Holiday: weekly courses are hidden and bookings are closed.",
+    "Exam session: weekly courses are hidden and rooms are booked in half-hour steps, 08:00 to 22:00. Holiday: weekly courses are hidden and bookings are closed.",
   "acal.start": "Start date",
   "acal.end": "End date",
   "acal.save": "Save",
@@ -607,9 +628,9 @@ window.UniSpaceI18n.register("en", {
   "timetable.examSession": "Exam session",
   "timetable.periodExamPill": "Exam session",
   "timetable.periodExamText":
-    "Exam session: weekly courses are not held. Rooms are booked by the hour, 08:00 to 22:00.",
+    "Exam session: weekly courses are not held. Rooms are booked in half-hour steps, 08:00 to 22:00.",
   "timetable.periodExamPartText":
-    "Exam session on {days}: weekly courses are not held then, and rooms are booked by the hour, 08:00 to 22:00.",
+    "Exam session on {days}: weekly courses are not held then, and rooms are booked in half-hour steps, 08:00 to 22:00.",
   "timetable.periodExamFaculty":
     "{faculty}: exam session on {days}. Its weekly courses are not held then.",
   "timetable.periodHolidayFaculty":
@@ -622,7 +643,7 @@ window.UniSpaceI18n.register("en", {
   "timetable.periodHolidayPartText":
     "Holiday on {days}: no weekly courses and no new bookings then.",
   "bookings.examNote":
-    "Exam session: rooms are booked by whole hours, 08:00 to 22:00, at least one hour.",
+    "Exam session: rooms are booked in half-hour steps, 08:00 to 22:00, at least one hour.",
   "bookings.holidayNote":
     "Holiday: bookings are closed on this day. Choose another date.",
   "bookings.timeNotOffered":

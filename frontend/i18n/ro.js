@@ -394,6 +394,27 @@ window.UniSpaceI18n.register("ro", {
   "bookings.errorNoRoom": "Alege o sală.",
   "bookings.errorNoDate": "Alege o dată.",
   "bookings.errorNoTitle": "Scrie un titlu sau un motiv.",
+  "timetable.scheduleExam": "Planifică examen",
+  "exam.subject": "Materie",
+  "exam.groups": "Grupe",
+  "exam.date": "Data examenului",
+  "exam.start": "De la",
+  "exam.end": "Până la",
+  "exam.room": "Sală liberă",
+  "exam.submit": "Planifică examenul",
+  "exam.chooseFirst": "Alege cel puțin o grupă și o dată.",
+  "exam.notInSession":
+    "Data aceea nu este în sesiunea de examene a acestor grupe.",
+  "exam.busy": "Ocupat: {reason}",
+  "exam.noRoom": "Nicio sală nu este liberă în acest interval.",
+  "exam.free": "Profesorul și grupele sunt libere.",
+  "exam.past": "Data examenului nu poate fi în trecut.",
+  "exam.checkError": "Nu am putut verifica ce este liber. Încearcă din nou.",
+  "exam.loadError": "Nu am putut încărca materiile tale. Încearcă din nou.",
+  "exam.noSubjects": "Nu ai materii pentru care să planifici un examen.",
+  "exam.done": "Examenul a fost planificat.",
+  "exam.failed": "Examenul nu a fost planificat.",
+  "bookings.errorMinHour": "În sesiune o rezervare durează cel puțin o oră.",
   "bookings.errorRange":
     "Modulul de sfârșit trebuie să fie după cel de început.",
   "bookings.sentPending":
@@ -591,7 +612,7 @@ window.UniSpaceI18n.register("ro", {
   "acal.allFaculties": "Toate facultățile",
   "acal.type": "Tip",
   "acal.typeHint":
-    "Sesiune: cursurile săptămânale sunt ascunse, iar sălile se rezervă pe ore întregi, între 08:00 și 22:00. Vacanță: cursurile săptămânale sunt ascunse și rezervările sunt închise.",
+    "Sesiune: cursurile săptămânale sunt ascunse, iar sălile se rezervă din jumătate în jumătate de oră, între 08:00 și 22:00. Vacanță: cursurile săptămânale sunt ascunse și rezervările sunt închise.",
   "acal.start": "Data de început",
   "acal.end": "Data de sfârșit",
   "acal.save": "Salvează",
@@ -620,9 +641,9 @@ window.UniSpaceI18n.register("ro", {
   "timetable.examSession": "Sesiune",
   "timetable.periodExamPill": "Sesiune de examene",
   "timetable.periodExamText":
-    "Sesiune de examene: cursurile săptămânale nu se țin. Sălile se rezervă pe ore, între 08:00 și 22:00.",
+    "Sesiune de examene: cursurile săptămânale nu se țin. Sălile se rezervă din jumătate în jumătate de oră, între 08:00 și 22:00.",
   "timetable.periodExamPartText":
-    "Sesiune de examene ({days}): în aceste zile nu se țin cursurile săptămânale, iar sălile se rezervă pe ore, între 08:00 și 22:00.",
+    "Sesiune de examene ({days}): în aceste zile nu se țin cursurile săptămânale, iar sălile se rezervă din jumătate în jumătate de oră, între 08:00 și 22:00.",
   "timetable.periodExamFaculty":
     "{faculty}: sesiune de examene ({days}). Cursurile săptămânale ale facultății nu se țin atunci.",
   "timetable.periodHolidayFaculty":
@@ -635,7 +656,7 @@ window.UniSpaceI18n.register("ro", {
   "timetable.periodHolidayPartText":
     "Vacanță ({days}): în aceste zile nu sunt cursuri săptămânale și nu se fac rezervări noi.",
   "bookings.examNote":
-    "Sesiune de examene: sălile se rezervă pe ore întregi, între 08:00 și 22:00, cel puțin o oră.",
+    "Sesiune de examene: sălile se rezervă din jumătate în jumătate de oră, între 08:00 și 22:00, cel puțin o oră.",
   "bookings.holidayNote":
     "Vacanță: rezervările sunt închise în această zi. Alege altă dată.",
   "bookings.timeNotOffered":

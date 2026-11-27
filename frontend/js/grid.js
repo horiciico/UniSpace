@@ -9,8 +9,8 @@
  * that overlap in time (a subgroup, an optional course) share the day's width side by side
  * ("lanes"), so the grid keeps its shape.
  *
- * In an exam session (D-027) the grid is hourly instead: 84 rows, 08:00 to 22:00, the time column
- * shows one range per hour, and the day lines fall at each hour (render option hourly).
+ * In an exam session (D-028) the grid runs to 22:00 instead: 84 rows, the time column shows one
+ * range per half hour, and the day lines fall at each half hour (render option hourly, D-030).
  *
  * Text comes from the backend as it arrives (D-012). Labels are from the i18n dictionaries.
  */

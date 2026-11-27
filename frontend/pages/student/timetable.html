@@ -8,6 +8,7 @@
     <script src="/js/grid.js" defer></script>
     <script src="/js/bookings.js" defer></script>
     <script src="/js/move.js" defer></script>
+    <script src="/js/exam.js" defer></script>
     <script src="/js/pages/timetable.js" defer></script>
   </head>
   <body>
@@ -78,6 +79,7 @@
 
       <div class="card__actions mt-3" id="tt-move-bar" hidden>
         <button class="btn" id="tt-move" type="button" disabled data-i18n="timetable.moveButton">Mută activitatea</button>
+        <button class="btn btn-secondary" id="tt-schedule" type="button" hidden data-i18n="timetable.scheduleExam">Planifică examen</button>
       </div>
     </main>
 
@@ -165,6 +167,45 @@
       </div>
 
       <p class="notice notice--error" id="mv-error" role="alert" hidden><span id="mv-error-text"></span></p>
+    </dialog>
+
+    <dialog class="tt-dialog mv-dialog" id="ex-dialog" aria-labelledby="ex-title">
+      <h2 id="ex-title" data-i18n="timetable.scheduleExam">Planifică examen</h2>
+      <p class="notice" id="ex-empty" hidden data-i18n="exam.noSubjects">Nu ai materii pentru care să planifici un examen.</p>
+      <form id="ex-form" class="form-grid">
+        <label class="field">
+          <span class="field__label" data-i18n="exam.subject">Materie</span>
+          <select id="ex-subject"></select>
+        </label>
+        <fieldset class="field">
+          <legend class="field__label" data-i18n="exam.groups">Grupe</legend>
+          <div class="chips" id="ex-groups"></div>
+        </fieldset>
+        <label class="field">
+          <span class="field__label" data-i18n="exam.date">Data examenului</span>
+          <input type="date" id="ex-date" />
+        </label>
+        <div class="form-grid form-grid--2">
+          <label class="field">
+            <span class="field__label" data-i18n="exam.start">De la</span>
+            <select id="ex-start"></select>
+          </label>
+          <label class="field">
+            <span class="field__label" data-i18n="exam.end">Până la</span>
+            <select id="ex-end"></select>
+          </label>
+        </div>
+        <p class="notice" id="ex-status" role="status" aria-live="polite"></p>
+        <label class="field">
+          <span class="field__label" data-i18n="exam.room">Sală liberă</span>
+          <select id="ex-room"></select>
+        </label>
+        <p class="notice notice--error" id="ex-error" role="alert" hidden><span id="ex-error-text"></span></p>
+        <div class="mv-actions">
+          <button class="btn btn-small" id="ex-cancel" type="button" data-i18n="timetable.moveCancel">Anulează</button>
+          <button class="btn" id="ex-submit" type="submit" disabled data-i18n="exam.submit">Planifică examenul</button>
+        </div>
+      </form>
     </dialog>
   </body>
 </html>

@@ -111,18 +111,18 @@ describe("bookings page: the academic calendar", () => {
     expect($("bk-send").disabled).toBe(false);
   });
 
-  it("offers whole hours with its own labels and note on an exam-session day", async () => {
+  it("offers half hours with its own labels and note on an exam-session day", async () => {
     await setup();
 
     pickDate("2026-12-14");
 
-    expect($("bk-from").options).toHaveLength(14);
-    expect(options("bk-from")[0]).toBe("08:00–09:00");
-    expect(options("bk-to")[13]).toBe("21:00–22:00");
+    expect($("bk-from").options).toHaveLength(28);
+    expect(options("bk-from")[0]).toBe("08:00–08:30");
+    expect(options("bk-to")[27]).toBe("21:30–22:00");
     expect(labelOf("bk-from").textContent).toBe("From hour");
     expect(labelOf("bk-to").textContent).toBe("To hour");
     expect($("bk-period-note").hidden).toBe(false);
-    expect($("bk-period-note").textContent).toContain("whole hours");
+    expect($("bk-period-note").textContent).toContain("half-hour steps");
     expect($("bk-send").disabled).toBe(false);
   });
 
@@ -162,8 +162,8 @@ describe("bookings page: the academic calendar", () => {
   it("sends the hour range chosen in an exam session", async () => {
     const { fetch } = await setup();
     await fill("2026-12-14");
-    $("bk-from").value = "2";
-    $("bk-to").value = "4";
+    $("bk-from").value = "4";
+    $("bk-to").value = "9";
 
     submit();
     await flush();
@@ -213,9 +213,9 @@ describe("bookings page: the academic calendar", () => {
         "&date=2026-12-14&start=10:00&end=11:00",
     });
 
-    expect($("bk-from").options).toHaveLength(14);
-    expect($("bk-from").value).toBe("2");
-    expect($("bk-to").value).toBe("2");
+    expect($("bk-from").options).toHaveLength(28);
+    expect($("bk-from").value).toBe("4");
+    expect($("bk-to").value).toBe("5");
   });
 
   const link = (date, start, end) =>
@@ -297,7 +297,7 @@ describe("bookings page: the academic calendar", () => {
     await flush();
     await flush();
 
-    expect($("bk-from").value).toBe("2");
+    expect($("bk-from").value).toBe("4");
     expect($("bk-time-note").hidden).toBe(true);
   });
 
@@ -331,7 +331,7 @@ describe("bookings page: the academic calendar", () => {
     await flush();
     await flush();
 
-    expect($("bk-from").options).toHaveLength(14);
+    expect($("bk-from").options).toHaveLength(28);
   });
 
   it("translates the labels and the note when the language changes", async () => {
@@ -342,8 +342,8 @@ describe("bookings page: the academic calendar", () => {
     await flush();
 
     expect(labelOf("bk-from").textContent).toBe("De la ora");
-    expect($("bk-period-note").textContent).toContain("ore întregi");
-    expect($("bk-from").options).toHaveLength(14);
+    expect($("bk-period-note").textContent).toContain("jumătate de oră");
+    expect($("bk-from").options).toHaveLength(28);
   });
 });
 
@@ -364,7 +364,7 @@ describe("bookings page: a calendar per faculty", () => {
     expect($("bk-from").options).toHaveLength(8);
 
     await choose(FACULTY);
-    expect($("bk-from").options).toHaveLength(14);
+    expect($("bk-from").options).toHaveLength(28);
 
     await choose("campus");
     expect($("bk-from").options).toHaveLength(8);
@@ -376,8 +376,27 @@ describe("bookings page: a calendar per faculty", () => {
       url: `/bookings/?faculty_id=${FACULTY}&room=${ROOM}&date=2026-12-14&start=10:00&end=11:00`,
     });
 
-    expect($("bk-from").options).toHaveLength(14);
-    expect($("bk-from").value).toBe("2");
+    expect($("bk-from").options).toHaveLength(28);
+    expect($("bk-from").value).toBe("4");
     expect($("bk-time-note").hidden).toBe(true);
+  });
+});
+
+describe("bookings page: half hours in an exam session", () => {
+  beforeEach(() => vi.resetModules());
+
+  it("starts on the first hour and refuses a half-hour booking", async () => {
+    const { fetch } = await setup();
+    await fill("2026-12-14");
+    expect([$("bk-from").value, $("bk-to").value]).toEqual(["0", "1"]);
+    $("bk-to").value = "0";
+
+    submit();
+    await flush();
+
+    expect(posted(fetch)).toHaveLength(0);
+    expect($("bk-form-status").textContent).toBe(
+      "In an exam session a booking lasts at least one hour.",
+    );
   });
 });

@@ -25,14 +25,14 @@ describe("grid.js: the hourly grid", () => {
     room_name: "B110",
   });
 
-  it("draws one time label per hour, 14 in all", () => {
+  it("draws one time label per half hour, 28 in all", () => {
     grid.render(container, [], undefined, [], { hourly: true });
 
     const labels = [...container.querySelectorAll(".tt-time")];
-    expect(labels).toHaveLength(14);
-    expect(labels[0].textContent).toBe("08:00–09:00");
-    expect(labels[13].textContent).toBe("21:00–22:00");
-    expect(labels[1].style.gridRow).toBe("8 / span 6");
+    expect(labels).toHaveLength(28);
+    expect(labels[0].textContent).toBe("08:00–08:30");
+    expect(labels[27].textContent).toBe("21:30–22:00");
+    expect(labels[1].style.gridRow).toBe("5 / span 3");
     expect(container.classList.contains("tt-grid--hourly")).toBe(true);
     expect(container.querySelector(".tt-day").style.gridRow).toBe("2 / 86");
   });
