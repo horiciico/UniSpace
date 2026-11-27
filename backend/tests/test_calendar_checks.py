@@ -168,6 +168,79 @@ def test_rooms_of_a_faculty_on_holiday_are_not_offered(
     assert str(world["room_b"].id) in offered
 
 
+# --- no classes in an exam session ----------------------------------------------------
+
+EXAM_DETAIL = "The new date is in an exam session. A class cannot be moved to it."
+
+
+def test_a_class_cannot_move_into_its_faculty_s_exam_session(
+    db,
+    world,  # noqa: F811
+    client_signed_in,  # noqa: F811
+) -> None:
+    period(db, E, TUE, TUE, teaching_faculty(db, world))
+
+    response = move(client_signed_in, world["algebra"], move_body(world["room_b"]))
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == EXAM_DETAIL
+    assert exceptions_of(db, world["algebra"]) == []
+
+
+def test_a_class_cannot_move_into_a_room_whose_faculty_is_in_an_exam_session(
+    db,
+    world,  # noqa: F811
+    client_signed_in,  # noqa: F811
+) -> None:
+    other = make_faculty(db, "Alta")
+    room = make_room(db, other)
+    room.is_bookable = True
+    period(db, E, TUE, TUE, other)
+
+    assert move(client_signed_in, world["algebra"], move_body(room)).status_code == 400
+
+
+def test_another_faculty_s_exam_session_does_not_block_a_move(
+    db,
+    world,  # noqa: F811
+    client_signed_in,  # noqa: F811
+) -> None:
+    period(db, E, TUE, TUE, make_faculty(db, "Alta"))
+
+    response = move(client_signed_in, world["algebra"], move_body(world["room_b"]))
+
+    assert response.status_code == 200, response.text
+
+
+def test_the_move_dialog_says_an_exam_session_is_why_no_module_is_free(
+    db,
+    world,  # noqa: F811
+    client_signed_in,  # noqa: F811
+) -> None:
+    period(db, E, TUE, TUE, teaching_faculty(db, world))
+
+    modules = availability(client_signed_in, world["algebra"])
+
+    assert [m["available"] for m in modules] == [False] * 8
+    assert {m["conflict_reason"] for m in modules} == {"Exam session."}
+
+
+def test_an_exam_itself_can_still_be_moved_within_the_session(
+    db,
+    world,  # noqa: F811
+    client_signed_in,  # noqa: F811
+) -> None:
+    exam = world["one_off"]("Colocviu", date(2026, 11, 23), (time(8, 0), time(9, 30)))
+    period(db, E, date(2026, 11, 23), TUE, teaching_faculty(db, world))
+
+    modules = availability(client_signed_in, exam)
+    assert modules[1]["available"] is True
+
+    response = move(client_signed_in, exam, move_body(world["room_b"]))
+
+    assert response.status_code == 200, response.text
+
+
 # --- approving a pending booking ------------------------------------------------------
 
 

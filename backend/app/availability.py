@@ -14,12 +14,13 @@ from datetime import date, time
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.academic_calendar import is_holiday, teaching_faculty_ids
-from app.models import Activity, ActivityGroup, Classroom, Faculty
+from app.academic_calendar import day_without_classes, teaching_faculty_ids
+from app.models import AcademicPeriodType, Activity, ActivityGroup, Classroom, Faculty
 from app.planning import MODULES, hhmm, occurrences
 from app.routers.bookings import approved_busy
 
 Busy = tuple[str, time, time]  # (what is on, start, end)
+BLOCKED = {AcademicPeriodType.HOLIDAY: "Holiday.", AcademicPeriodType.EXAM_SESSION: "Exam session."}
 
 
 def _overlaps(start: time, end: time, other_start: time, other_end: time) -> bool:
@@ -52,10 +53,13 @@ def day_availability(
     exclude_activity_id: uuid.UUID | None = None,
 ) -> list[dict]:
     """One entry per module of the day: whether the professor and every group are free in it,
-    the reason when not, and the bookable rooms free in it. On a holiday of the moved activity's
-    faculty no module is available; rooms of a faculty on holiday are left out (D-029)."""
+    the reason when not, and the bookable rooms free in it. On a holiday or exam session of the
+    moved activity's faculty no module is available, and rooms of such a faculty are left out; an
+    exam is only stopped by a holiday (D-029)."""
     moved = db.get(Activity, exclude_activity_id) if exclude_activity_id else None
-    holiday = moved is not None and is_holiday(db, day, teaching_faculty_ids(db, moved))
+    blocked = (
+        day_without_classes(db, day, teaching_faculty_ids(db, moved), moved) if moved else None
+    )
     professor_busy = _busy_of(db, day, exclude_activity_id, Activity.professor_id == professor_id)
     group_busy: list[tuple[str, list[Busy]]] = []
     for group_id, group_name in groups:
@@ -83,12 +87,12 @@ def day_availability(
     closed = {
         faculty_id
         for faculty_id in {room.faculty_id for room, _ in rooms}
-        if is_holiday(db, day, {faculty_id})
+        if day_without_classes(db, day, {faculty_id}, moved) is not None
     }
 
     modules = []
     for start, end in MODULES:
-        reasons: list[str] = ["Holiday."] if holiday else []
+        reasons: list[str] = [BLOCKED[blocked]] if blocked else []
         clash = _first_clash(professor_busy, start, end)
         if clash is not None:
             reasons.append(f"Professor busy: {clash[0]} {hhmm(clash[1])}-{hhmm(clash[2])}.")

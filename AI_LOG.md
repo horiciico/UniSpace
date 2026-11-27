@@ -8,6 +8,13 @@ Each entry follows the same shape:
 
 ```
 
+## 2026-11-27 · No class moves into an exam session (D-029)
+Tool: Claude Code, claude-sonnet-5-5
+What I asked: classes cannot be moved during an exam session, judged per faculty (some have 2 semesters and 2 sessions, others 4 modules and 4); also approved the two new messages.
+What I got: the move endpoint and the Move dialog's availability refuse an exam session of the teaching faculty or the new room's faculty; an EXAM activity may still move within a session; D-029, C-009 and Q-020 updated.
+Tests changed (named as required): none changed; five new cases in `backend/tests/test_calendar_checks.py`.
+Result: `node scripts/test-all.mjs`: all suites pass.
+
 ## 2026-11-27 · No class moves onto a holiday, and the other PR #37 review findings (D-029)
 Tool: Claude Code, claude-sonnet-5-5
 What I asked: a professor should not be able to move a class onto a holiday; address that and the other issues mentioned.

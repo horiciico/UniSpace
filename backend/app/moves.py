@@ -5,7 +5,8 @@
 - A one-off moves by a new one-off row, and the old row is set CANCELLED. An imported one-off is
   marked is_manually_modified, so the ETL does not overwrite it.
 - Whole 90-minute modules only; the room must be bookable; a new date before today is refused.
-- A new date that is a holiday for the teaching faculty or the room's faculty is refused (D-029).
+- A new date that is a holiday or an exam session for the teaching faculty or the room's faculty
+  is refused (D-029). An exam may move within a session, not onto a holiday.
 - The new slot must be free for the room, the professor and every group of the activity.
 """
 
@@ -17,9 +18,10 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.academic_calendar import is_holiday, teaching_faculty_ids
+from app.academic_calendar import day_without_classes, teaching_faculty_ids
 from app.availability import slot_clashes
 from app.models import (
+    AcademicPeriodType,
     Activity,
     ActivityException,
     ActivityGroup,
@@ -31,6 +33,13 @@ from app.models import (
     User,
 )
 from app.planning import booking_window, occurrences
+
+REFUSALS = {
+    AcademicPeriodType.HOLIDAY: "The new date is a holiday. A class cannot be moved to it.",
+    AcademicPeriodType.EXAM_SESSION: (
+        "The new date is in an exam session. A class cannot be moved to it."
+    ),
+}
 
 
 def move_occurrence(
@@ -62,8 +71,10 @@ def move_occurrence(
         raise HTTPException(404, "Room not found.")
     if not room.is_bookable:
         raise HTTPException(400, "This room cannot be booked.")
-    if is_holiday(db, new_date, teaching_faculty_ids(db, activity) | {room.faculty_id}):
-        raise HTTPException(400, "The new date is a holiday. A class cannot be moved to it.")
+    faculties = teaching_faculty_ids(db, activity) | {room.faculty_id}
+    closed = day_without_classes(db, new_date, faculties, activity)
+    if closed is not None:
+        raise HTTPException(400, REFUSALS[closed])
 
     is_one_off = activity.specific_date is not None
     if is_one_off:

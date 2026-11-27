@@ -15,6 +15,7 @@ from app.models import (
     AcademicPeriodType,
     Activity,
     ActivityGroup,
+    ActivityType,
     PlanningTimeUnit,
 )
 
@@ -71,12 +72,18 @@ def teaching_faculty_ids(db: Session, activity: Activity) -> set[uuid.UUID | Non
     return set(db.scalars(units.distinct()).all()) or {None}
 
 
-def is_holiday(db: Session, day: date, faculty_ids: set[uuid.UUID | None]) -> bool:
-    """Whether the day is a holiday for any of the faculties."""
-    return any(
-        get_period_type_for_date(db, day, faculty_id) == AcademicPeriodType.HOLIDAY
-        for faculty_id in faculty_ids
-    )
+def day_without_classes(
+    db: Session, day: date, faculty_ids: set[uuid.UUID | None], activity: Activity | None = None
+) -> AcademicPeriodType | None:
+    """Why no class can be put on the day for any of the faculties (D-029): HOLIDAY, else
+    EXAM_SESSION, else None. An exam belongs in a session, so only a holiday stops one."""
+    types = {get_period_type_for_date(db, day, faculty_id) for faculty_id in faculty_ids}
+    if AcademicPeriodType.HOLIDAY in types:
+        return AcademicPeriodType.HOLIDAY
+    is_exam = activity is not None and activity.type == ActivityType.EXAM
+    if AcademicPeriodType.EXAM_SESSION in types and not is_exam:
+        return AcademicPeriodType.EXAM_SESSION
+    return None
 
 
 def find_overlapping_period(
