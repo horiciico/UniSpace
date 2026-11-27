@@ -1,11 +1,13 @@
 """ORM models. Import each model module here so Alembic sees it in Base.metadata."""
 
+from app.models.academic_period import AcademicPeriod
 from app.models.activity import Activity
 from app.models.activity_exception import ActivityException
 from app.models.activity_group import ActivityGroup
 from app.models.booking import Booking
 from app.models.classroom import Classroom
 from app.models.enums import (
+    AcademicPeriodType,
     ActivityType,
     BoardType,
     BookingStatus,
@@ -27,6 +29,8 @@ from app.models.user import User
 from app.models.user_invitation import UserInvitation
 
 __all__ = [
+    "AcademicPeriod",
+    "AcademicPeriodType",
     "Activity",
     "ActivityException",
     "ActivityGroup",

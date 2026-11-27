@@ -214,3 +214,17 @@ designs:
       - docs/design/screens/DS-unispace-admin-login.dark.png
     design_ref: docs/design/mocks/DS-unispace-admin-login.html
     status: implemented  # mock confirmed by the user 2026-11-23; tests in frontend/tests/unit/admin-login.test.js
+
+  - id: DS-unispace-admin-calendar
+    kind: screen
+    source: frontend/pages/admin/index.html  # "Academic calendar" tab (D-027, Task 5)
+    screenshots: []
+    design_ref: docs/design/mocks/DS-unispace-admin-calendar.html
+    status: implemented  # mock confirmed 2026-11-26; built 2026-11-26; tests in frontend/tests/unit/admin-calendar.test.js, api-calendar.test.js; no screenshots yet. Faculty column and field (D-028): mock confirmed and built 2026-11-26
+
+  - id: DS-unispace-timetable-calendar
+    kind: screen
+    source: frontend/pages/student/timetable.html  # exam-session hourly grid, holiday banner, Exam session jump, hourly booking pickers (D-027, Task 6)
+    screenshots: []
+    design_ref: docs/design/mocks/DS-unispace-timetable-calendar.html
+    status: implemented  # mock confirmed 2026-11-26 with the note "reuse the existing timetable design" (the real page uses the existing grid, chips, pill and notice, not the mock-grid scaffolding); tests in frontend/tests/unit/timetable-calendar.test.js, grid-hourly.test.js, bookings-calendar.test.js, modules-calendar.test.js; no screenshots yet. 2026-11-26 (PR #37 review): holiday days marked in the grid (mock section 4); partial-week banner texts and the Bookings "time does not fit" note are not in the mock, added to the mock (sections 7 and 8) and confirmed 2026-11-26. Per faculty (D-028, section 6) built 2026-11-26

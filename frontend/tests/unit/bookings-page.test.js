@@ -327,13 +327,14 @@ describe("bookings page: the form", () => {
     expect($("bk-to").value).toBe("1");
   });
 
-  it("falls back to the first module when a link time is not a module boundary", async () => {
+  it("chooses no module when a link time is not a module boundary", async () => {
     await setup({ url: "/bookings/?faculty_id=campus&start=12:00&end=12:00" });
 
     expect($("bk-faculty").value).toBe("campus");
     expect($("bk-prefill-note").hidden).toBe(false);
-    expect($("bk-from").value).toBe("0");
-    expect($("bk-to").value).toBe("0");
+    expect($("bk-from").value).toBe("");
+    expect($("bk-to").value).toBe("");
+    expect($("bk-time-note").hidden).toBe(false);
     expect($("bk-date").value).toBe("2026-11-24");
   });
 

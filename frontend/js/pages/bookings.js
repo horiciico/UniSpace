@@ -5,6 +5,12 @@
  * upcoming first, and a pending one can be cancelled. The link from the timetable or Free Now
  * fills the form in (see js/bookings.js for the link). Names and times from the backend are shown
  * as they arrive (D-012); the words around them come from the dictionaries.
+ *
+ * The academic calendar of the room's faculty (D-028, C-010) shapes the time pickers by the date: modules on a
+ * teaching day (also when no period covers it), whole hours from 08:00 to 22:00 in an exam
+ * session, and no booking on a holiday. The backend checks the same rules when the form is sent.
+ * A time from the link that the date does not offer is never replaced: the picker stays unchosen
+ * and a note asks for it.
  */
 (() => {
   var t = window.UniSpaceI18n.t;
@@ -41,6 +47,10 @@
   var form = document.getElementById("bk-form");
   var prefillNote = document.getElementById("bk-prefill-note");
   var adminNote = document.getElementById("bk-admin-note");
+  var fromLabel = document.querySelector('label[for="bk-from"]');
+  var toLabel = document.querySelector('label[for="bk-to"]');
+  var periodNote = document.getElementById("bk-period-note");
+  var timeNote = document.getElementById("bk-time-note");
 
   var prefill = bookings.readPrefill(window.location.search);
   var state = {
@@ -51,6 +61,12 @@
     formError: false,
     facultyRequest: 0,
     roomRequest: 0,
+    // The academic periods (C-010); empty until loaded or when they cannot be: a teaching day.
+    periods: [],
+    // True once the periods have arrived or failed: only then is the date's type final.
+    periodsSettled: false,
+    // The type of the day the pickers are filled for.
+    dayType: "TEACHING",
   };
 
   function pad(value) {
@@ -101,28 +117,102 @@
     formStatus.className = state.formError ? "notice notice--error" : "notice";
   }
 
-  // The index of the module whose start (or end) is this clock time, or -1.
+  // The slots of the chosen date: hours in an exam session, modules otherwise.
+  function slots() {
+    return modules.slotsFor(state.dayType);
+  }
+
+  // The index of the slot whose start (or end) is this clock time, or -1.
   function moduleIndex(clock, field) {
-    for (let index = 0; index < modules.list.length; index++) {
-      if (modules.list[index][field] === clock) return index;
+    var list = slots();
+    for (let index = 0; index < list.length; index++) {
+      if (list[index][field] === clock) return index;
     }
     return -1;
   }
 
-  // Fills the two module pickers, each option reads "1 · 08:00–09:30".
+  // The picker index for a time from the link: the first slot when the link gives none, and -1
+  // (nothing chosen) when the date offers no slot with that time.
+  function prefillIndex(clock, field) {
+    return clock ? moduleIndex(clock, field) : 0;
+  }
+
+  // The chosen index of a picker, or -1 when nothing is chosen.
+  function chosenIndex(select) {
+    return select.value === "" ? -1 : Number(select.value);
+  }
+
+  function showTimeNote() {
+    timeNote.hidden = !(
+      state.periodsSettled &&
+      state.dayType !== "HOLIDAY" &&
+      (chosenIndex(fromSelect) < 0 || chosenIndex(toSelect) < 0)
+    );
+  }
+
+  // Fills the two pickers. A module reads "1 · 08:00–09:30"; an hour reads "08:00–09:00".
+  // An index of -1 leaves its picker unchosen.
   function fillModules(fromIndex, toIndex) {
+    var hourly = state.dayType === "EXAM_SESSION";
     [fromSelect, toSelect].forEach((select) => {
       select.textContent = "";
-      modules.list.forEach((module, index) => {
+      slots().forEach((module, index) => {
         var option = document.createElement("option");
         option.value = String(index);
-        option.textContent =
-          module.number + " · " + module.start + "–" + module.end;
+        var range = module.start + "–" + module.end;
+        option.textContent = hourly ? range : module.number + " · " + range;
         select.appendChild(option);
       });
     });
-    fromSelect.value = String(fromIndex);
-    toSelect.value = String(toIndex);
+    fromSelect.selectedIndex = fromIndex;
+    toSelect.selectedIndex = toIndex;
+  }
+
+  function setLabel(label, key) {
+    label.setAttribute("data-i18n", key);
+    label.textContent = t(key);
+  }
+
+  // The faculty whose calendar counts: the one whose rooms are listed ("campus" has none of its
+  // own). Until the faculties are listed, the one from the link.
+  function calendarFaculty() {
+    return facultySelect.options.length > 1
+      ? facultySelect.value
+      : prefill.faculty_id;
+  }
+
+  // The pickers, their labels and the note follow the type of the chosen date for that faculty. On
+  // a holiday the form cannot be sent. Called when the date or the faculty changes and when the
+  // periods or the faculties arrive.
+  function refreshDay() {
+    var type = window.UniSpaceModules.typeOnDate(
+      state.periods,
+      dateInput.value,
+      calendarFaculty(),
+    );
+    var hourlyChanged =
+      (type === "EXAM_SESSION") !== (state.dayType === "EXAM_SESSION");
+    state.dayType = type;
+    if (hourlyChanged) {
+      fillModules(
+        prefillIndex(prefill.start, "start"),
+        prefillIndex(prefill.end, "end"),
+      );
+    }
+    var hourly = type === "EXAM_SESSION";
+    setLabel(fromLabel, hourly ? "bookings.fromHour" : "bookings.from");
+    setLabel(toLabel, hourly ? "bookings.toHour" : "bookings.to");
+    var noteKey = {
+      EXAM_SESSION: "bookings.examNote",
+      HOLIDAY: "bookings.holidayNote",
+    }[type];
+    periodNote.hidden = !noteKey;
+    if (noteKey) {
+      periodNote.setAttribute("data-i18n", noteKey);
+      periodNote.textContent = t(noteKey);
+    }
+    sendButton.disabled = type === "HOLIDAY";
+    showTimeNote();
   }
 
   function placeholder(text) {
@@ -151,6 +241,7 @@
           facultySelect.appendChild(option);
         });
         facultySelect.value = chosen;
+        refreshDay();
       })
       .catch(() => {
         setFormStatus("bookings.loadError", true);
@@ -299,12 +390,15 @@
 
   function send(event) {
     event.preventDefault();
-    var from = Number(fromSelect.value);
-    var to = Number(toSelect.value);
+    var from = chosenIndex(fromSelect);
+    var to = chosenIndex(toSelect);
     if (!roomSelect.value) return setFormStatus("bookings.errorNoRoom", true);
     if (!dateInput.value) return setFormStatus("bookings.errorNoDate", true);
     if (!titleInput.value.trim())
       return setFormStatus("bookings.errorNoTitle", true);
+    if (state.dayType === "HOLIDAY")
+      return setFormStatus("bookings.errorHoliday", true);
+    if (from < 0 || to < 0) return setFormStatus("bookings.errorNoTime", true);
     if (to < from) return setFormStatus("bookings.errorRange", true);
 
     sendButton.disabled = true;
@@ -312,12 +406,12 @@
       .createBooking({
         classroom_id: roomSelect.value,
         specific_date: dateInput.value,
-        start_time: modules.list[from].start,
-        end_time: modules.list[to].end,
+        start_time: slots()[from].start,
+        end_time: slots()[to].end,
         title: titleInput.value.trim(),
       })
       .then(() => {
-        sendButton.disabled = false;
+        refreshDay();
         titleInput.value = "";
         setFormStatus(
           state.user && state.user.role === "ADMIN"
@@ -327,7 +421,7 @@
         return loadMine();
       })
       .catch((error) => {
-        sendButton.disabled = false;
+        refreshDay();
         setFormStatus(errorKey(error.status), true);
       });
   }
@@ -343,8 +437,8 @@
     prefillNote.hidden = !given;
     dateInput.value = prefill.date || todayIso();
     fillModules(
-      prefill.start ? Math.max(moduleIndex(prefill.start, "start"), 0) : 0,
-      prefill.end ? Math.max(moduleIndex(prefill.end, "end"), 0) : 0,
+      prefillIndex(prefill.start, "start"),
+      prefillIndex(prefill.end, "end"),
     );
   }
 
@@ -355,9 +449,26 @@
       // A new faculty starts with no room chosen; the room from the link applies only once.
       prefill.room = "";
       roomSelect.value = "";
+      refreshDay();
       loadRooms();
     });
+    dateInput.addEventListener("change", refreshDay);
+    fromSelect.addEventListener("change", showTimeNote);
+    toSelect.addEventListener("change", showTimeNote);
     form.addEventListener("submit", send);
+    // The periods can arrive after the form is filled in; the pickers follow the date.
+    api
+      .academicPeriods()
+      .then((periods) => {
+        state.periods = periods;
+        state.periodsSettled = true;
+        refreshDay();
+      })
+      .catch(() => {
+        state.periods = [];
+        state.periodsSettled = true;
+        showTimeNote();
+      });
     window.UniSpaceAuth.ready.then((user) => {
       state.user = user;
       adminNote.hidden = !(user && user.role === "ADMIN");
@@ -369,9 +480,8 @@
   // Everything built by the script is translated again when the language changes; the
   // choices on screen stay as they are.
   document.addEventListener("unispace:langchange", () => {
-    var from = Number(fromSelect.value);
-    var to = Number(toSelect.value);
-    fillModules(from, to);
+    fillModules(chosenIndex(fromSelect), chosenIndex(toSelect));
+    refreshDay();
     setFormStatus(state.formKey, state.formError);
     setMineStatus(state.mineKey, state.mineError);
     loadFaculties().then(loadRooms).then(loadMine);

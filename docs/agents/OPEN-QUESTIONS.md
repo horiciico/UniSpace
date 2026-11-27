@@ -26,7 +26,9 @@
 - Q-015 · Where do the professors and their emails come from? · _answered_
 - Q-016 · Two professor ids share one email: which record is kept? · _answered_
 - Q-017 · Should a cancelled or moved occurrence still block a room in the free-room search and in booking? · _answered_
-- Q-018 · Does a move of an occurrence to another room need to block that room? 
+- Q-018 · Does a move of an occurrence to another room need to block that room?
+- Q-019 · Should Free now and the Move dialog use the hourly grid in an exam session?
+- Q-020 · May a professor move a class into an exam session? · _answered_
 
 ---
 
@@ -80,6 +82,7 @@
 - **Who answers:** the user (the user will answer later; the rest is still open)
 - **Answer (user, 2026-11-19, partly):** The active period (start and end) comes from the ULBS API, per planning unit (`planning_time_units`). Parity works by week, and the mapping is in Q-013. Still open: holidays, breaks, and inverted-parity weeks; and whether the CUSTOM parity and a weeks list are needed.
 - **Note (user, 2026-11-22):** will be configured later. Stays open until then.
+- **Proposed answer (agent, 2026-11-26, not confirmed):** holidays and breaks are `academic_periods` rows set by an admin (types TEACHING, EXAM_SESSION, HOLIDAY; per faculty or for all faculties, D-028). Inverted-parity weeks, CUSTOM parity and a weeks list stay open. D-028 is approved; the question stays `investigating`-open until you confirm.
 
 ## Q-009 · How does a university (@ulbsibiu.ro) user get a role above STUDENT?
 - **Status:** answered
@@ -147,4 +150,19 @@
 - **Status:** open
 - **Found (2026-11-24):** `ActivityException.new_classroom_id` exists, but `planning.occurrences()` ignores it. A course moved to another room still shows in its old room, and its new room is not blocked.
 - **Blocks:** the room view, the free-room search and the booking check for a relocated occurrence.
+- **Who answers:** the user
+
+## Q-019 · Should Free now and the Move dialog use the hourly grid in an exam session?
+- **Status:** open
+- **Found (2026-11-26):** in an exam session (D-027) the timetable grid and the Bookings page use whole hours, but `GET /api/classrooms/free` (C-003), the professor availability and the move endpoint (C-009) still accept only 90-minute modules, and the Free now page and the Move dialog show modules.
+- **Note (user, 2026-11-26):** leave them as they are for now; Tasks 5 and 6 cover the timetable and the Bookings page only.
+- **Note (2026-11-27):** D-029 refuses moving a class into a session, so for the Move dialog this now concerns only moving an exam.
+- **Blocks:** hourly windows in the free-room search and in the move dialog; changing them is a PROPOSAL on C-003 and C-009.
+- **Who answers:** the user
+
+## Q-020 · May a professor move a class into an exam session?
+- **Status:** answered
+- **Found (2026-11-27):** D-029 refuses a move onto a holiday. A move onto an exam-session date is still accepted and creates a 90-minute class there, while weekly classes are hidden that day.
+- **Blocks:** any exam-session rule for the move endpoint and the Move dialog (C-009).
+- **Answer (user, 2026-11-27):** no: there are no classes in an exam session. Judged per faculty (D-029).
 - **Who answers:** the user

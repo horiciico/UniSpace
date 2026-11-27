@@ -74,3 +74,11 @@ class Priority(enum.IntEnum):
     OFFICIAL_FACULTY = 3
     EXAM = 4
     COURSE = 5
+
+
+class AcademicPeriodType(enum.StrEnum):
+    """What a date range of the academic calendar is (D-027)."""
+
+    TEACHING = "TEACHING"
+    EXAM_SESSION = "EXAM_SESSION"
+    HOLIDAY = "HOLIDAY"

@@ -18,6 +18,7 @@
 - C-007 · Admin room attributes API (/api/admin/classrooms) · provided
 - C-008 · Admin users and invitations API (/api/admin/users, /api/admin/invitations) · provided
 - C-009 · Professor's own timetable, movable activities and availability (/api/professors/me/*) · provided
+- C-010 · Academic calendar API (/api/academic-periods, /api/admin/academic-periods) · external
 
 ---
 
@@ -66,7 +67,7 @@
 - **Change 2026-11-24 (3), Q-017:** the timetable (`GET /api/schedule`) no longer shows a CANCELLED activity or an occurrence cancelled by an exception, and shows a moved occurrence on its new date and at its new time, with `day_of_week` = its new weekday. The free-room search and the booking check use the same rules. Consumers: `frontend/js/pages/timetable.js`, `frontend/js/grid.js` (places by `day_of_week`). Moves to another room are not handled yet (Q-018).
 - **Change 2026-11-24:** approved bookings (C-005) hide a room from the free-room search, and each result gains `start_time` and `end_time` (the searched window). `free_until` is unchanged and also counts approved booking starts. Consumer: `frontend/js/pages/free.js` (no change needed; the new fields are additive).
 - **Change 2026-11-24 (6), approved proposal P2:** `GET /api/classrooms` rows carry `has_projector` (nullable: NULL = unspecified), `board_type`, `access_notes` and `equipment_notes`. `GET /api/classrooms/free` keeps `has_projector` nullable (NULL is not "has a projector") and carries `board_type`, `access_notes` and `equipment_notes`. Consumers: `frontend/js/pages/timetable.js` (the room description, access notes only), `frontend/js/pages/admin-rooms.js`. Free Now (`frontend/js/pages/free.js`) no longer sends `only_verified` from the page; the parameter stays in the API. Access notes are not shown on the Free Now card.
-- **Confirmed:** 2026-11-24
+- **Confirmed:** 2026-11-26
 
 ### C-004 · PUT /api/me/study-profile
 - **Status:** approved
@@ -86,12 +87,12 @@
   - `POST /api/bookings` with `{classroom_id, specific_date, start_time, end_time, title}` → 201 with the booking. Any signed-in role can book. An ADMIN's booking is `approved` at once; any other role's is `pending`. `title` is trimmed, 1 to 255 characters.
   - `GET /api/bookings/my` → `[{id, classroom_id, room_name, faculty_name, specific_date, start_time, end_time, title, status, created_at}]`. Upcoming first (date and start ascending, newest created on a tie), then past ones, most recent first. `faculty_name` is the room's faculty name, or `null` when the room has none (the frontend shows "Campus", D-012).
   - `DELETE /api/bookings/{id}` → 200 with the booking, status `cancelled`. Only the owner, and only while `pending`; the row is kept.
+- **Times:** local, without a time zone; a time with one is a 422.
 - **Rules:** Times are `HH:MM` and must be whole ULBS modules (planning.MODULES), start before end. A start earlier than now (Europe/Bucharest) is refused. A room that is not bookable is 400; an unknown room is 404. A clash with a recurring activity (on its weeks and parity) or with an `approved` booking is 409 with the clashing times in `detail`; cancelled activities and occurrences cancelled by an exception do not clash (Q-017). `pending` bookings never clash. Errors: 400 bad input, 401 signed out, 403 another user's booking, 404 unknown id, 409 state or clash.
 - **Evidence:** backend/app/routers/bookings.py, backend/app/models/booking.py, backend/tests/test_bookings_api.py
 - **Source:** user (2026-11-24: any signed-in user books; admins auto-approve; the defaults for errors, cancel, ordering and fields) · code · confidence high
 - **Link:** the Bookings page reads `/bookings/?faculty_id=UUID|campus&room=UUID&date=YYYY-MM-DD&start=HH:MM&end=HH:MM` (values optional, malformed ones dropped; `frontend/js/bookings.js`).
 - **Change 2026-11-24 (2):** `faculty_name` is `null` for a room with no faculty (user request, D-012), not the text "Campus".
-- **Confirmed:** 2026-11-24
 
 ### C-006 · Admin booking review API (/api/admin/bookings)
 - **Status:** approved
@@ -102,7 +103,7 @@
   - `GET /api/admin/bookings?faculty_id=UUID|campus&classroom_id=UUID&status=pending|approved|rejected|cancelled&limit=1..200 (default 50)&offset=0` → `{items, total, limit, offset}`. Every booking, newest first (date, start time, then when it was made). `faculty_id=campus` is the rooms with no faculty. Items: `{id, classroom_id, classroom_name, faculty_id, faculty_name, specific_date, start_time, end_time, title, status, created_at, user_id, user_email, user_role}`. `total` counts all matches. Bad filter → 400 (faculty_id) or 422.
   - `POST /api/admin/bookings/{id}/cancel` with optional `{message}` (up to 100 characters; blank means none) → 200 with the booking, status `rejected`, `decision_message` and `decided_by_id`/`decided_at` set. Any user's booking that is `approved` and has not started yet (409 otherwise). 403 for non-admins. The admin's cancel is a rejection, so the requester sees the status and the message on `GET /api/bookings/my`.
 
-  - `POST /api/admin/bookings/{id}/decision` with `{decision: "approve" | "reject", message?: string}` (message up to 100 characters; blank means none) → 200 with the booking. Only a `pending` booking can be decided (409 otherwise). An approval is checked for clashes again (409 with the clashing times). The decision keeps who decided (`decided_by_id`), when (`decided_at`) and the message (`decision_message`).
+  - `POST /api/admin/bookings/{id}/decision` with `{decision: "approve" | "reject", message?: string}` (message up to 100 characters; blank means none) → 200 with the booking. Only a `pending` booking can be decided (409 otherwise). An approval is checked for clashes again (409 with the clashing times). The decision keeps who decided (`decided_by_id`), when (`decided_at`) and the message (`decision_message`). An approval is also checked against the room's calendar: 400 when the date is a holiday, or an exam session the times do not fit (D-029).
 - **Rules:** the requester sees the final status and `decision_message` on `GET /api/bookings/my` (C-005).
 - **Evidence:** backend/app/routers/admin_bookings.py, backend/app/models/booking.py, backend/alembic/versions/20261124_3b4860b5bd9c_booking_decisions.py, backend/tests/test_admin_bookings.py
 - **Source:** issue #23 (Add an admin page to review booking requests), user request · code · confidence high
@@ -139,14 +140,14 @@
 - **Interface:** HTTP JSON on the backend, same origin, through nginx at `/api/`. Signed in as PROFESSOR only (401 signed out, 403 for any other role). A PROFESSOR with no `professors` row is unlinked (D-026): the first two return `linked: false` with empty lists, the availability endpoint is 403.
 - **Consumers:** `frontend/js/api.js` (the wrappers); `frontend/js/pages/timetable.js` ("Orarul meu" view: the timetable and the movable list's button); `frontend/js/move.js` (the Move Activity dialog: the movable list, the availability, the move). Schedule Exam (PR 2) will reuse the availability endpoint.
 - **Shape:**
-  - `GET /api/professors/me/timetable?week_start=YYYY-MM-DD` (optional, default today; any date snaps to its Monday) → `{linked, professor_id, week_start, week_end, activities}`. `activities` are the timetable items of `GET /api/schedule` (C-003): `{id, title, activity_type, priority, day_of_week, date, start_time, end_time, parity, room_id, room_name, professor, groups, is_recurring}`. Parity, exceptions, cancellations and moves apply. No week number (a professor's week can span faculties).
+  - `GET /api/professors/me/timetable?week_start=YYYY-MM-DD` (optional, default today; any date snaps to its Monday) → `{linked, professor_id, week_start, week_end, activities, faculties}`. `faculties` is `[{id, name}]`, by name: the faculties of the professor's weekly courses, also when the calendar hides them that week (D-028); empty when unlinked. `activities` are the timetable items of `GET /api/schedule` (C-003): `{id, title, activity_type, priority, day_of_week, date, start_time, end_time, parity, room_id, room_name, professor, groups, is_recurring}`. Parity, exceptions, cancellations and moves apply. No week number (a professor's week can span faculties).
   - `GET /api/professors/me/movable-activities` → `{linked, activities}`; activities are `{id, title, activity_type, day_of_week, start_time, end_time, room_name, is_recurring, specific_date, group_ids, groups}`. `group_ids` (UUIDs) feed the availability call; `groups` are the names, sorted. Weekly activities whose planning unit has not ended, and one-offs not yet past, not cancelled.
   - `POST /api/professors/me/activities/{activity_id}/move` with `{original_date, new_date, start_time, end_time, new_classroom_id}` → 200 `{id, original_date, date, start_time, end_time, room_id, room_name, title}`; `id` is the new one-off, the occurrence's new source of truth. A weekly occurrence gets an `activity_exceptions` row with `is_cancelled = true` and a new one-off row; a one-off gets a new one-off row and its old row is set `CANCELLED` (both marked `is_manually_modified`). The move is one atomic write. 400 when the occurrence does not exist, is already moved, the date is before today, the times are not whole modules, or the room is not bookable; 403 when the activity is not the professor's; 404 for an unknown activity or room; 409 with the clashing reasons when the room, the professor or a group is busy on `new_date`. Only the professor's own activities; the activity's groups are copied to the new one-off.
   - `GET /api/professors/me/availability?date=YYYY-MM-DD&group_ids=UUID&group_ids=UUID&exclude_activity_id=UUID` → `{date, professor_id, modules}`. `modules` is one entry per planning module of the day (`planning.MODULES`, 90 minutes, 08:00-21:10): `{start_time, end_time, available, conflict_reason, free_classrooms}`. `available` is false when the professor or any requested group has an occurrence in the module; `conflict_reason` names them, or is null. `free_classrooms` is `[{id, name, capacity, has_projector, is_field_verified, faculty_id, faculty_name}]` (`faculty_id` and `faculty_name` are null for a campus room; the modal's faculty filter uses them): bookable rooms with no occurrence and no approved booking in the module (pending bookings do not block). `exclude_activity_id` skips that activity's occurrence on `date` only. 404 for an unknown group. 422 without a date.
+- **Calendar (D-029):** the move answers 400 when `new_date` is a holiday or an exam session for the teaching faculty or the new room's faculty (an EXAM activity: holiday only). In the availability, a holiday or exam session of the `exclude_activity_id` activity's faculty makes every module unavailable with `conflict_reason` starting "Holiday." or "Exam session.", and rooms of a faculty with no classes that day are not in `free_classrooms`.
 - **Rules:** the professor is found by `LOWER(users.email) = LOWER(professors.email)`. The week and the availability use `planning.occurrences` (Q-017), so they match the timetable and the room search. Times are `HH:MM`.
 - **Evidence:** backend/app/routers/professors.py, backend/app/professors.py, backend/app/availability.py, backend/app/moves.py, backend/tests/test_professor_timetable.py, backend/tests/test_professor_availability.py, backend/tests/test_professor_move.py
 - **Source:** user (PR 1 steps 1 and 2 spec, 2026-11-26; answers on the time grid and exclude_activity_id, 2026-11-26) · code · confidence high
-- **Confirmed:** 2026-11-26
 
 ## Consumed
 
@@ -165,3 +166,15 @@ None yet.
 - **We rely on:** static file serving of `frontend/` on port 80 inside the container.
 - **Known quirks:** none recorded.
 - **Evidence:** docker-compose.yml (service `frontend`)
+
+### C-010 · Academic calendar API (/api/academic-periods, /api/admin/academic-periods)
+- **Status:** approved
+- **Interface:** HTTP JSON on the backend, same origin, through nginx at `/api/`.
+- **Consumers:** `frontend/js/api.js` (`academicPeriods`, `adminAcademicPeriods`, `createAcademicPeriod`, `updateAcademicPeriod`, `deleteAcademicPeriod`); `frontend/js/pages/admin-calendar.js` (the Academic calendar tab on the admin page); `frontend/js/pages/timetable.js` and `frontend/js/grid.js` (hourly grid, banner, jump); `frontend/js/pages/bookings.js` (hour or module pickers); `frontend/js/modules.js` (the date and week helpers).
+- **Shape:**
+  - `GET /api/academic-periods` (any signed-in user; 401 signed out) → `[{id, name, type, start_date, end_date, faculty_id, faculty_name}]` ordered by `start_date`. `faculty_id` and `faculty_name` are null for a period of all faculties. `type` is `TEACHING`, `EXAM_SESSION` or `HOLIDAY`; dates are `YYYY-MM-DD`, both inclusive.
+  - ADMIN only (403 for any other role, 401 signed out): `GET /api/admin/academic-periods` (same list); `POST` with `{name, type, start_date, end_date, faculty_id}` (`faculty_id` optional, null for all faculties) → 201 with the period; `PUT /{id}` with the same body → 200; `DELETE /{id}` → 204.
+  - Errors: 400 when `start_date` is after `end_date`; 409 when the range shares a day with another period of the same faculty, or of all faculties for an all-faculties period (an update ignores itself); 404 for an unknown period or faculty id; 422 for a bad body (unknown type, blank name, name over 150 characters, bad date). Two saves at once are serialised by an advisory lock, so they cannot create an overlap.
+- **Rules:** D-028. Names are trimmed. For a faculty and a date: its own period, else the all-faculties period, else `TEACHING` (the helper `get_period_type_for_date`, not this API).
+- **Evidence:** backend/app/routers/academic_periods.py, backend/tests/test_academic_periods_api.py, backend/tests/test_academic_calendar_faculty.py
+- **Source:** user (spec Task 2, 2026-11-26) · code · confidence high

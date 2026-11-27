@@ -5,6 +5,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from app.config import COOKIE_SECURE, SESSION_MAX_AGE_SECONDS, SESSION_SECRET_KEY
 from app.routers import (
+    academic_periods,
     admin_bookings,
     admin_users,
     auth,
@@ -46,3 +47,5 @@ app.include_router(bookings.router)
 app.include_router(admin_bookings.router)
 app.include_router(admin_users.router)
 app.include_router(classroom_attributes.router)
+app.include_router(academic_periods.public_router)
+app.include_router(academic_periods.admin_router)

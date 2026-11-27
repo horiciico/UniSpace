@@ -39,6 +39,11 @@
   var moveButton = /** @type {HTMLButtonElement} */ (
     document.getElementById("tt-move")
   );
+  var examButton = document.getElementById("tt-exam");
+  var periodNote = document.getElementById("tt-period");
+  var periodPill = document.getElementById("tt-period-pill");
+  var periodText = document.getElementById("tt-period-text");
+  var periodMore = document.getElementById("tt-period-more");
 
   var ENTITY_LABEL_KEYS = {
     group: "timetable.entityGroup",
@@ -59,6 +64,24 @@
     "day.sat",
     "day.sun",
   ];
+  // The banner of a week that is not a teaching week (D-027): the pill, the pill class, the text
+  // when every day has the type, and the text that names the days when only some do.
+  var PERIOD_BANNERS = {
+    EXAM_SESSION: {
+      pill: "timetable.periodExamPill",
+      pillClass: "pill pill--pending",
+      text: "timetable.periodExamText",
+      partText: "timetable.periodExamPartText",
+      facultyText: "timetable.periodExamFaculty",
+    },
+    HOLIDAY: {
+      pill: "timetable.periodHolidayPill",
+      pillClass: "pill pill--busy",
+      text: "timetable.periodHolidayText",
+      partText: "timetable.periodHolidayPartText",
+      facultyText: "timetable.periodHolidayFaculty",
+    },
+  };
   var KIND_KEYS = {
     COURSE: "kind.course",
     SEMINAR: "kind.seminar",
@@ -114,6 +137,11 @@
         : new Date(),
     ),
     week: null,
+    // The academic periods (C-010). Empty until loaded, or when they cannot be: every week is then
+    // a teaching week.
+    periods: [],
+    // The faculties of the professor's courses, for "Orarul meu" (C-009).
+    mineFaculties: [],
     items: null,
     statusKey: "",
     statusError: false,
@@ -149,6 +177,110 @@
     } else {
       weekLabel.textContent = range;
     }
+    renderPeriod();
+  }
+
+  // The faculties whose calendar the view follows (D-028): the professor's in "Orarul meu", the
+  // room's in the room view, otherwise the selected one. "" is no faculty: only the periods of
+  // all faculties count.
+  function viewFaculties() {
+    if (state.mode === "mine")
+      return state.mineFaculties.length ? state.mineFaculties : [{ id: "" }];
+    if (state.mode === "room" && state.entity)
+      return [{ id: state.entity.facultyId || "" }];
+    return [{ id: state.facultyId }];
+  }
+
+  // The week for each of those faculties, and what the grid shows: hourly when any of them is in
+  // an exam session; a day has a type only when all of them agree on it.
+  function weekInfo() {
+    var weeks = viewFaculties().map((faculty) =>
+      Object.assign(
+        { name: faculty.name },
+        window.UniSpaceModules.weekInfo(
+          state.periods,
+          isoDate(state.monday),
+          faculty.id,
+        ),
+      ),
+    );
+    var days = weeks[0].days.map((type, index) =>
+      weeks.every((week) => week.days[index] === type) ? type : "TEACHING",
+    );
+    return { weeks: weeks, days: days, hourly: weeks.some((w) => w.hourly) };
+  }
+
+  function dayNames(days, type) {
+    return DAY_KEYS.filter((_, index) => days[index] === type)
+      .map((key) => t(key))
+      .join(", ");
+  }
+
+  // The banner lines. When the faculties share the week, one line as for a single faculty;
+  // otherwise one line for each faculty and each type it has this week.
+  function bannerLines(info) {
+    var first = info.weeks[0];
+    if (info.weeks.every((week) => week.days.join() === first.days.join())) {
+      const banner = PERIOD_BANNERS[first.type];
+      if (!banner) return [];
+      const whole = first.days.every((type) => type === first.type);
+      const text = whole
+        ? t(banner.text)
+        : t(banner.partText, { days: dayNames(first.days, first.type) });
+      return [{ banner: banner, text: text }];
+    }
+    var lines = [];
+    info.weeks.forEach((week) => {
+      Object.keys(PERIOD_BANNERS).forEach((type) => {
+        if (week.days.indexOf(type) === -1) return;
+        const banner = PERIOD_BANNERS[type];
+        lines.push({
+          banner: banner,
+          text: t(banner.facultyText, {
+            faculty: week.name,
+            days: dayNames(week.days, type),
+          }),
+        });
+      });
+    });
+    return lines;
+  }
+
+  function extraLine(line) {
+    var paragraph = document.createElement("p");
+    paragraph.className = "m-0 mt-3";
+    var pill = document.createElement("span");
+    pill.className = line.banner.pillClass;
+    pill.textContent = t(line.banner.pill);
+    var text = document.createElement("span");
+    text.textContent = line.text;
+    paragraph.append(pill, " ", text);
+    return paragraph;
+  }
+
+  function nextSession() {
+    return window.UniSpaceModules.nextExamSession(
+      state.periods,
+      isoDate(new Date()),
+      viewFaculties().map((faculty) => faculty.id),
+    );
+  }
+
+  // The banner for an exam-session or holiday week, and the "Sesiune" jump while a current or
+  // upcoming exam session exists.
+  function renderPeriod() {
+    var lines = bannerLines(weekInfo());
+    periodNote.hidden = !lines.length;
+    periodMore.textContent = "";
+    if (lines.length) {
+      periodPill.className = lines[0].banner.pillClass;
+      periodPill.textContent = t(lines[0].banner.pill);
+      periodText.textContent = lines[0].text;
+      lines.slice(1).forEach((line) => {
+        periodMore.appendChild(extraLine(line));
+      });
+    }
+    examButton.hidden = !nextSession();
   }
 
   function renderEntityLabel() {
@@ -252,6 +384,7 @@
           id: row.id,
           name: row.name,
           bookable: row.is_bookable,
+          facultyId: row.faculty_id,
           accessNotes: row.access_notes,
         })),
       );
@@ -312,6 +445,7 @@
       .then((data) => {
         if (request !== state.requestNumber) return;
         state.unlinked = !data.linked;
+        state.mineFaculties = data.faculties || [];
         state.week = null;
         renderWeek();
         renderMineControls();
@@ -370,17 +504,21 @@
       });
   }
 
-  // The free modules of a bookable room, for each day of the week: a module with no activity
-  // over it. A module that has started is shown but disabled. Each one opens the Bookings page.
+  // The free slots of a bookable room, for each day of the week: the modules of a teaching day, or
+  // the hours of an exam-session day (D-027), that no activity covers. The day decides, not the
+  // week: a mixed week has both on its hourly grid. A slot that has started is shown but
+  // disabled. A holiday has none. Each one opens the Bookings page.
   function freeSlots() {
     if (state.mode !== "room" || !state.entity || !state.entity.bookable)
       return [];
     var now = new Date();
     var slots = [];
+    var info = weekInfo();
     DAY_KEYS.forEach((dayKey, dayIndex) => {
+      if (info.days[dayIndex] === "HOLIDAY") return;
       var date = addDays(state.monday, dayIndex);
       var iso = isoDate(date);
-      window.UniSpaceModules.list.forEach((module) => {
+      window.UniSpaceModules.slotsFor(info.days[dayIndex]).forEach((module) => {
         var taken = state.items.some(
           (item) =>
             Number(item.day_of_week) === dayIndex + 1 &&
@@ -425,7 +563,11 @@
 
   // Callers draw only when there are items. The helper line shows for a bookable room only.
   function drawGrid() {
-    grid.render(gridElement, state.items, openDetails, freeSlots());
+    var info = weekInfo();
+    grid.render(gridElement, state.items, openDetails, freeSlots(), {
+      hourly: info.hourly,
+      holidays: info.days.map((type) => type === "HOLIDAY"),
+    });
     bookHint.hidden = !(
       state.mode === "room" &&
       state.entity &&
@@ -510,6 +652,7 @@
     populateFaculties();
     updateUrl();
     renderMineControls();
+    renderWeek(); // the view decides whose calendar the banner follows
     if (mode === "mine") {
       loadMine();
       return;
@@ -528,6 +671,21 @@
       mineTab.hidden = false;
       if (state.wantMine) setMode("mine");
     });
+  }
+
+  // The academic periods decide the grid of each week. When they cannot be loaded every week is a
+  // teaching week, as before.
+  function loadPeriods() {
+    return api
+      .academicPeriods()
+      .then((periods) => {
+        state.periods = periods;
+        renderWeek();
+        if (state.items && !body.hidden) drawGrid();
+      })
+      .catch(() => {
+        state.periods = [];
+      });
   }
 
   function init() {
@@ -573,6 +731,13 @@
       updateUrl();
       loadSchedule();
     });
+    // The first week of the current or next exam session.
+    examButton.addEventListener("click", () => {
+      var session = nextSession();
+      state.monday = mondayOf(parseIso(session.start_date));
+      updateUrl();
+      loadSchedule();
+    });
     document.getElementById("tt-d-close").addEventListener("click", () => {
       dialog.close();
     });
@@ -582,6 +747,7 @@
       });
     });
     showMineTabIfProfessor();
+    loadPeriods();
 
     api
       .faculties()

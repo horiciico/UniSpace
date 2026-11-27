@@ -41,6 +41,7 @@
               </select>
               <span class="muted" id="bk-room-note" data-i18n="bookings.onlyBookable">Sunt afișate doar sălile care pot fi rezervate.</span>
             </div>
+            <p class="notice" id="bk-period-note" role="status" hidden></p>
             <div class="form-grid form-grid--2">
               <div class="field">
                 <label for="bk-date" data-i18n="bookings.date">Data</label>
@@ -55,6 +56,7 @@
                 <select id="bk-to" name="to"></select>
               </div>
             </div>
+            <p class="notice" id="bk-time-note" role="status" hidden data-i18n="bookings.timeNotOffered">Ora din link nu se potrivește cu această dată. Alege începutul și sfârșitul.</p>
             <div class="field">
               <label for="bk-title" data-i18n="bookings.titleField">Titlu sau motiv</label>
               <input id="bk-title" name="title" type="text" maxlength="255" required data-i18n-attr="placeholder:bookings.titlePlaceholder" placeholder="Seara jocurilor de societate" />

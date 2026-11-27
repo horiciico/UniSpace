@@ -43,10 +43,15 @@
           <span class="chip tt-week-label" id="tt-week-label" aria-live="polite"></span>
           <button class="chip" id="tt-next" type="button" data-i18n="timetable.next">Următoarea →</button>
           <button class="chip" id="tt-today" type="button" data-i18n="timetable.today">Azi</button>
+          <button class="chip" id="tt-exam" type="button" hidden data-i18n="timetable.examSession">Sesiune</button>
         </div>
       </div>
 
       <p class="muted" id="tt-status" role="status" aria-live="polite"></p>
+      <div class="notice mb-3" id="tt-period" role="status" hidden>
+        <p class="m-0"><span class="pill" id="tt-period-pill"></span> <span id="tt-period-text"></span></p>
+        <div id="tt-period-more"></div>
+      </div>
       <p class="notice" id="tt-unlinked" hidden data-i18n="timetable.mineNotLinked">Contul tău nu este legat de un profil de profesor, deci nu are cursuri de mutat. Dacă crezi că este o greșeală, contactează secretariatul.</p>
 
       <div class="card tt-empty" id="tt-empty">

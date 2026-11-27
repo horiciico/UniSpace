@@ -319,6 +319,8 @@ window.UniSpaceI18n.register("en", {
   "bookings.decisionNote": "Note from the administrator: {message}",
   "admin.loadError": "Could not load the requests. Try again.",
   "admin.errorGeneric": "Something went wrong. Try again.",
+  "admin.errorCalendar":
+    "The academic calendar changed for this date, so these times cannot be booked any more. Reject the request, or ask the requester to make a new one.",
   "admin.errorClash":
     "The room is taken at that time. Reject this request, or ask the requester to choose another time.",
   "admin.rejected": "The request was rejected.",
@@ -547,5 +549,85 @@ window.UniSpaceI18n.register("en", {
   "kind.booking": "Booking",
   "day.sat": "Sat",
   "day.sun": "Sun",
-  "common.campus": "Campus"
+  "common.campus": "Campus",
+  "admin.tabCalendar": "Academic calendar",
+  "acal.title": "Academic calendar",
+  "acal.intro":
+    "Set the semesters, exam sessions and holidays, for all faculties or for one. They decide which weekly courses run and which time grid bookings use.",
+  "acal.add": "Add period",
+  "acal.colName": "Name",
+  "acal.colFaculty": "Faculty",
+  "acal.colType": "Type",
+  "acal.colStart": "Start",
+  "acal.colEnd": "End",
+  "acal.typeTEACHING": "Semester",
+  "acal.typeEXAM_SESSION": "Exam session",
+  "acal.typeHOLIDAY": "Holiday",
+  "acal.edit": "Edit",
+  "acal.editAria": "Edit {name}",
+  "acal.delete": "Delete",
+  "acal.deleteAria": "Delete {name}",
+  "acal.defaultNote":
+    "A faculty's own period wins over one for all faculties. Dates with no period are teaching weeks.",
+  "acal.emptyTitle": "No periods yet",
+  "acal.emptyText": "Every date is a teaching week until you add a period.",
+  "acal.addTitle": "New period",
+  "acal.editTitle": "Edit period",
+  "acal.name": "Name",
+  "acal.faculty": "Faculty",
+  "acal.allFaculties": "All faculties",
+  "acal.type": "Type",
+  "acal.typeHint":
+    "Exam session: weekly courses are hidden and rooms are booked by whole hours, 08:00 to 22:00. Holiday: weekly courses are hidden and bookings are closed.",
+  "acal.start": "Start date",
+  "acal.end": "End date",
+  "acal.save": "Save",
+  "acal.cancel": "Cancel",
+  "acal.errorName": "Write a name for the period.",
+  "acal.errorMissingDates": "Choose a start date and an end date.",
+  "acal.errorDates":
+    "Check the dates. The end date must be on or after the start date.",
+  "acal.errorOverlap":
+    "These dates overlap another period of the same faculty. Change the dates or edit that period.",
+  "acal.errorInvalid":
+    "The period is not valid. Check the name (at most 150 characters), the type and the dates.",
+  "acal.facultiesError": "Could not load the faculties. Try again.",
+  "acal.saveError": "The period could not be saved. Try again.",
+  "acal.loadError": "Could not load the periods. Try again.",
+  "acal.deleteTitle": "Delete “{name}”?",
+  "acal.deleteText":
+    "After this, {start} – {end} count as teaching weeks for faculties without their own period.",
+  "acal.deleteTextFaculty":
+    "After this, {faculty} follows the calendar for all faculties from {start} to {end}.",
+  "acal.deleteConfirm": "Delete",
+  "acal.deleteKeep": "Keep",
+  "acal.deleteError": "The period could not be deleted. Try again.",
+  "acal.saved": "Period saved.",
+  "acal.deleted": "Period deleted.",
+  "timetable.examSession": "Exam session",
+  "timetable.periodExamPill": "Exam session",
+  "timetable.periodExamText":
+    "Exam session: weekly courses are not held. Rooms are booked by the hour, 08:00 to 22:00.",
+  "timetable.periodExamPartText":
+    "Exam session on {days}: weekly courses are not held then, and rooms are booked by the hour, 08:00 to 22:00.",
+  "timetable.periodExamFaculty":
+    "{faculty}: exam session on {days}. Its weekly courses are not held then.",
+  "timetable.periodHolidayFaculty":
+    "{faculty}: holiday on {days}. Its weekly courses are not held then.",
+  "timetable.periodHolidayPill": "Holiday",
+  "timetable.periodHolidayText":
+    "Holiday: there are no weekly courses and new bookings are closed.",
+  "bookings.fromHour": "From hour",
+  "bookings.toHour": "To hour",
+  "timetable.periodHolidayPartText":
+    "Holiday on {days}: no weekly courses and no new bookings then.",
+  "bookings.examNote":
+    "Exam session: rooms are booked by whole hours, 08:00 to 22:00, at least one hour.",
+  "bookings.holidayNote":
+    "Holiday: bookings are closed on this day. Choose another date.",
+  "bookings.timeNotOffered":
+    "The time from your link does not fit this date. Choose the start and the end.",
+  "bookings.errorNoTime": "Choose the start and the end.",
+  "bookings.errorHoliday":
+    "Bookings are closed on holidays. Choose another date."
 });

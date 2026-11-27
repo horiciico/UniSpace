@@ -29,6 +29,7 @@ from app.models import (
 def test_all_tables_and_enums_registered() -> None:
     assert set(Base.metadata.tables) == {
         "users",
+        "academic_periods",
         "student_groups",
         "classrooms",
         "activities",

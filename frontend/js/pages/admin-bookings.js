@@ -208,7 +208,10 @@
 
   // The backend's answer to a decision, in words the administrator can act on.
   function errorKey(status) {
-    return status === 409 ? "admin.errorClash" : "admin.errorGeneric";
+    if (status === 409) return "admin.errorClash";
+    // The room's calendar no longer allows these times on that date (D-029).
+    if (status === 400) return "admin.errorCalendar";
+    return "admin.errorGeneric";
   }
 
   function decide(request, body) {

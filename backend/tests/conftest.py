@@ -4,11 +4,13 @@ from collections.abc import Iterator
 
 import pytest
 from alembic.config import Config
+from sqlalchemy import delete
 from sqlalchemy.orm import Session
 
 from alembic import command
 from app import config
 from app.db import engine
+from app.models import AcademicPeriod
 
 
 @pytest.fixture(autouse=True)
@@ -28,6 +30,10 @@ def db(migrated: None) -> Iterator[Session]:
     connection = engine.connect()
     outer = connection.begin()
     session = Session(bind=connection, join_transaction_mode="create_savepoint")
+    # Periods an admin set in this database would change what every dated test sees. They are
+    # removed inside the outer transaction only, so the rollback below brings them back.
+    session.execute(delete(AcademicPeriod))
+    session.commit()
     try:
         yield session
     finally:

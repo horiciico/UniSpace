@@ -15,6 +15,11 @@ interface Window {
     freeClassrooms(params: Record<string, any>): Promise<any[]>;
     schedule(params: Record<string, any>): Promise<any>;
     saveStudyProfile(facultyId: string, formationId: string): Promise<any>;
+    academicPeriods(): Promise<any[]>;
+    adminAcademicPeriods(): Promise<any[]>;
+    createAcademicPeriod(body: Record<string, any>): Promise<any>;
+    updateAcademicPeriod(id: string, body: Record<string, any>): Promise<any>;
+    deleteAcademicPeriod(id: string): Promise<null>;
     createBooking(body: Record<string, any>): Promise<any>;
     myBookings(): Promise<any[]>;
     cancelBooking(id: string): Promise<any>;
@@ -67,6 +72,7 @@ interface Window {
       items: any[],
       onSelect?: (item: any) => void,
       freeSlots?: any[],
+      options?: { hourly?: boolean; holidays?: boolean[] },
     ): HTMLElement;
     toMinutes(hhmm: string): number;
   };
@@ -78,6 +84,26 @@ interface Window {
       start: string;
       end: string;
     }>;
+    hours: Array<{
+      number: number;
+      startMin: number;
+      endMin: number;
+      start: string;
+      end: string;
+    }>;
+    hoursEndMin: number;
+    typeOnDate(periods: any[], iso: string, facultyId?: string): string;
+    weekInfo(
+      periods: any[],
+      mondayIso: string,
+      facultyId?: string,
+    ): { type: string; hourly: boolean; days: string[] };
+    nextExamSession(
+      periods: any[],
+      todayIso: string,
+      facultyIds?: string[],
+    ): any | null;
+    slotsFor(type: string): any[];
     clock(min: number): string;
     endMin: number;
     end: string;

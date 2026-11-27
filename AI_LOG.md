@@ -8,6 +8,75 @@ Each entry follows the same shape:
 
 ```
 
+## 2026-11-27 · No class moves into an exam session (D-029)
+Tool: Claude Code, claude-sonnet-5-5
+What I asked: classes cannot be moved during an exam session, judged per faculty (some have 2 semesters and 2 sessions, others 4 modules and 4); also approved the two new messages.
+What I got: the move endpoint and the Move dialog's availability refuse an exam session of the teaching faculty or the new room's faculty; an EXAM activity may still move within a session; D-029, C-009 and Q-020 updated.
+Tests changed (named as required): none changed; five new cases in `backend/tests/test_calendar_checks.py`.
+Result: `node scripts/test-all.mjs`: all suites pass.
+
+## 2026-11-27 · No class moves onto a holiday, and the other PR #37 review findings (D-029)
+Tool: Claude Code, claude-sonnet-5-5
+What I asked: a professor should not be able to move a class onto a holiday; address that and the other issues mentioned.
+What I got: the move endpoint refuses a holiday of the teaching faculty or the new room's faculty, and the Move dialog's modules say "Holiday." (review finding 8); approving a pending booking re-checks the calendar, with an RO and EN message on the admin page (9); a time with a time zone is a 422 (4); period saves take an advisory lock (5); a period ending 9999-12-31 no longer overflows (6); the admin calendar's messages follow a language switch (7).
+Tests changed (named as required): none changed; new `backend/tests/test_calendar_checks.py` and new cases in `admin-bookings.test.js` and `admin-calendar.test.js`.
+Result: `node scripts/test-all.mjs`: all suites pass, 1072 tests and 4 checks. No browser check (no layout change). The new admin message has no mock yet.
+
+## 2026-11-26 · Academic calendar per faculty: screens (D-028)
+Tool: Claude Code, claude-sonnet-5-5
+What I asked: approved the updated mocks ("go for it"): build the per-faculty screens.
+What I got: a faculty field and column on the admin calendar tab; `modules.js` picks periods by faculty; the timetable follows the room's, the selected or the professor's faculties, with one banner line per affected faculty in "Orarul meu"; the Bookings pickers follow the room's faculty; the banner's bottom spacing fixed after the browser check; RO and EN keys.
+Tests changed (named as required), all in `admin-calendar.test.js`: "lists the periods with a type badge, the dates and the actions" (a Faculty column); "adds a period, shows a toast and loads the list again" (the body has `faculty_id`); "explains a %i answer and keeps the form open" for 409, and "asks before it deletes, and keeps the period on Keep" (the wording of the confirmed mock). New tests in the four calendar test files.
+Result: `node scripts/test-all.mjs`: all suites pass. Browser check: headless Chrome with a stubbed API, admin tab and "Orarul meu", English light wide and Romanian dark narrow. The signed-in stack was not checked.
+
+## 2026-11-26 · Academic calendar per faculty: backend (D-028)
+Tool: Claude Code, claude-sonnet-5-5
+What I asked: make the academic calendar configurable for each faculty, since the year structures differ. Answers given: all-faculties periods as the default with faculty overrides; a room booking follows the room's faculty; "Orarul meu" is per faculty; it goes into PR #37. Plan approved; D-027 superseded by D-028, C-009 and C-010 updated.
+What I got: nullable `academic_periods.faculty_id` (revision `b7c1e2f9a4d3`); the lookup and overlap rule take a faculty; weekly courses follow their planning unit's faculty; bookings follow the room's faculty; the periods API takes and returns the faculty; `/me/timetable` returns `faculties`. 11 new tests in `test_academic_calendar_faculty.py`.
+Tests changed (named as required): `test_academic_periods_api.py::test_an_admin_creates_lists_updates_and_deletes_a_period` (the period now has `faculty_id` and `faculty_name`). Also `conftest.py`: the `db` fixture removes academic periods inside its rolled-back transaction, because a period stored in the development database made 38 tests fail.
+Result: `node scripts/test-all.mjs`: 1033 tests, 4 checks, all pass. The screens are not built yet: they wait for the updated mocks to be confirmed.
+
+## 2026-11-26 · PR #37 review fixes: slots and times in mixed weeks, partial-week banner
+Tool: Claude Code, claude-sonnet-5-5
+What I asked: fix findings 1 and 3 of the PR #37 review (a mixed week offered hour slots on teaching days and the Bookings page silently changed the time; the banner spoke for the whole week), then commit.
+What I got: free slots follow each day's type (`timetable.js`); a time from a link that the date does not offer leaves the pickers unchosen, with a note, and the form is not sent until both are chosen (`pages/bookings.js`, `bookings.html`); a partial week's banner names its days and holiday days are marked "Holiday" in the grid (`grid.js`, `timetable.css`); 4 new keys in `ro.js` and `en.js`.
+Design note: the "Holiday" mark follows section 4 of the confirmed timetable mock. The partial-week banner texts and the Bookings note are not in a mock (DESIGN.md asks for one); flagged for confirmation.
+Tests changed (named as required): `timetable-calendar.test.js` "offers every free hour of an exam-session week, but not on a holiday day" (Saturday 19 December is a teaching day: 5 * 14 + 8 slots, was 6 * 14); `bookings-page.test.js` "falls back to the first module when a link time is not a module boundary", now "chooses no module when ..." (the pickers stay empty, was the first module). 10 new tests.
+Result: `node scripts/test-all.mjs`: 1022 tests, 4 checks, all pass. Browser check: headless Chrome on the real frontend files with a stubbed API, English, light and dark, 1280 and 500 px wide; Romanian and the signed-in stack not checked.
+
+## 2026-11-26 · Academic calendar, Tasks 5 and 6: admin tab, adaptive timetable grid, "Sesiune" jump, hourly booking pickers
+Tool: Claude Code, claude-sonnet-5-5
+What I asked: (5) an "An universitar" / "Academic calendar" admin tab (table, type badges, create and edit form with date validation and a 409 message, delete, toasts, RO and EN); (6) the timetable reads `GET /api/academic-periods`: an exam-session week uses hourly rows 08:00 to 22:00 with a banner, a holiday week has a banner and no booking, a "Sesiune" chip jumps to the first week of the next exam session, and the booking pickers use whole hours in a session.
+What I got: two draft mocks first (`DS-unispace-admin-calendar`, `DS-unispace-timetable-calendar`); the user said to reuse the existing timetable design, so the real page reuses the existing grid, chips, pill and notice. Code: `frontend/js/modules.js` (hours, `typeOnDate`, `weekInfo`, `nextExamSession`, `slotsFor`); `frontend/js/grid.js` (render option `hourly`, 84 rows) and `timetable.css` (`.tt-grid--hourly`); `frontend/js/pages/timetable.js` (periods, banner, chip, hourly free slots, no slots on a holiday day); `frontend/js/pages/bookings.js` and `bookings.html` (pickers and note by date, closed on a holiday); `frontend/js/pages/admin-calendar.js`, `admin/index.html` (new tab and panel), `admin-history.js` (shows the new panel); `frontend/js/api.js` and `types.d.ts`; 51 keys in `ro.js` and `en.js` (`acal.*`, `timetable.*`, `bookings.*`, `admin.tabCalendar`). C-010 consumers filled in; Q-019 added (Free now and the Move dialog still use modules; the user chose to leave them).
+Mixed weeks: one grid per week, hourly if any day is an exam-session day; holiday days get no booking links; the server checks each booking by its date.
+Tests changed: none of the existing ones. `backend/tests/test_i18n.py`: the key scan regex now also reads the `acal` prefix (a wider check, no assertion changed). New: `modules-calendar`, `grid-hourly`, `api-calendar`, `timetable-calendar`, `bookings-calendar`, `admin-calendar` (66 tests); the frontend 100% coverage gate holds.
+Biome `lint:fix` also touched `frontend/js/move.js` (a `let` to `const`); I reverted that file, it is not part of this change.
+Not done: no browser check and no screenshots (the pages are behind the sign-in and the earlier check needed a temporary user in the dev database); the Romanian layout and the small width are unchecked. The 409 message is generic (it does not name the clashing period) because the backend detail is English only.
+Not committed at the time of this entry.
+
+## 2026-11-26 · Academic calendar, Tasks 3 and 4: weekly activities follow the calendar; booking times follow the period type
+Tool: Claude Code, claude-sonnet-5-5
+What I asked: (3) suppress weekly activities on EXAM_SESSION and HOLIDAY dates in `occurrences()`, keep one-offs; (4) validate booking times by period type: modules (TEACHING), whole hours 08:00 to 22:00 (EXAM_SESSION), closed with 400 (HOLIDAY); tests for both.
+What I got: `backend/app/planning.py`: `_weekly_suppressed_days` (one query per call) used by `_base_occurrences`, and `validate_booking_times(period_type, start, end)` (TEACHING delegates to the unchanged `booking_window`). `backend/app/routers/bookings.py` calls it with `get_period_type_for_date`. Room view, group view, professor schedule, free-room search and the booking clash check all read `occurrences()`, so they follow without other edits. Tests: `test_academic_calendar_planning.py` (occurrences, one-off blocking, `validate_booking_times` cases) and `test_bookings_academic_periods.py` (POST /api/bookings in all three period types, an exam blocking a 12:00 to 14:00 booking, an approved hourly booking blocking another).
+Tests changed: none.
+Not done on purpose (outside the two tasks): the free-room search (`/api/classrooms/free`), the move endpoint and `availability.py` still use the 90-minute modules even on exam-session dates; the timetable UI grid is unchanged. These need their own tasks and a C-003 / C-009 PROPOSAL.
+Not committed at the time of this entry.
+
+## 2026-11-26 · Academic calendar, Task 2: admin CRUD and the public read endpoint
+Tool: Claude Code, claude-sonnet-5-5
+What I asked: admin-only GET/POST/PUT/DELETE on `/api/admin/academic-periods` (400 inverted dates, 409 overlap, self excluded on update), a read-only `GET /api/academic-periods` for signed-in users, and tests for CRUD, 403, 400 and 409.
+What I got: `backend/app/routers/academic_periods.py` (two routers, registered in `main.py`), reusing `require_admin`, `get_current_user` and `find_overlapping_period`; `backend/tests/test_academic_periods_api.py` (11 tests); contract C-010 in `docs/agents/CONTRACTS.md`. Inverted dates are checked in the handler so they answer 400, not FastAPI's 422.
+Tests changed: none.
+Result: `node scripts/test-all.mjs` run after the change (see the report). No frontend or visible text changed, so no i18n keys. Task 1 was committed first (656887b). Not committed at the time of this entry.
+
+## 2026-11-26 · Academic calendar, Task 1: model, migration, period lookup
+Tool: Claude Code, claude-sonnet-5-5
+What I asked: add the `academic_periods` table (TEACHING, EXAM_SESSION, HOLIDAY), a lookup helper with a TEACHING default, and an overlap rule. Answers given: global periods; overlap checked by the helper only. Decision D-027 proposed and approved.
+What I got: `backend/app/models/academic_period.py` and `AcademicPeriodType` in `enums.py`; migration `20261126_aa97baefd548_academic_periods.py` (upgrade, downgrade and re-upgrade checked; downgrade drops the enum); `backend/app/academic_calendar.py` (`get_period_for_date`, `get_period_type_for_date`, `find_overlapping_period`, `add_period`, `PeriodOverlapError`); `backend/tests/test_academic_calendar.py`. D-027 added to the ledger; a Proposed answer written under Q-008.
+Tests changed (named as required): `backend/tests/test_models.py::test_all_tables_and_enums_registered` now lists `academic_periods` (a table was added on purpose).
+Result: `node scripts/test-all.mjs`: 900 tests, 4 checks, all pass. No frontend or visible text changed, so no i18n keys. Tasks 2 to 7 not started.
+Not committed at the time of this entry.
+
 ## 2026-11-26 · Move dialog: faculty filter for the room step
 Tool: Claude Code, claude-haiku-5-5
 What I asked: on the room step of the Move Activity dialog, a faculty filter, so the professor picks the faculty whose rooms are offered.
