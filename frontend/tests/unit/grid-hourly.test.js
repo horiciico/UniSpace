@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { loadI18n, loadScript } from "../helpers.js";
 
-// The exam-session grid (D-027): hourly rows from 08:00 to 22:00, drawn by grid.js.
+// The exam-session grid (D-027): hourly rows from 08:00 to 22:00, drawn by grid.js. Times inside a row can be half hours (D-030).
 describe("grid.js: the hourly grid", () => {
   let grid;
   let container;
@@ -25,14 +25,14 @@ describe("grid.js: the hourly grid", () => {
     room_name: "B110",
   });
 
-  it("draws one time label per half hour, 28 in all", () => {
+  it("draws one time label per hour, 14 in all", () => {
     grid.render(container, [], undefined, [], { hourly: true });
 
     const labels = [...container.querySelectorAll(".tt-time")];
-    expect(labels).toHaveLength(28);
-    expect(labels[0].textContent).toBe("08:00–08:30");
-    expect(labels[27].textContent).toBe("21:30–22:00");
-    expect(labels[1].style.gridRow).toBe("5 / span 3");
+    expect(labels).toHaveLength(14);
+    expect(labels[0].textContent).toBe("08:00–09:00");
+    expect(labels[13].textContent).toBe("21:00–22:00");
+    expect(labels[1].style.gridRow).toBe("8 / span 6");
     expect(container.classList.contains("tt-grid--hourly")).toBe(true);
     expect(container.querySelector(".tt-day").style.gridRow).toBe("2 / 86");
   });
@@ -66,6 +66,17 @@ describe("grid.js: the hourly grid", () => {
     expect(first.style.top).toContain("14.28");
     expect(late.style.top).toContain("92.85");
     expect(late.style.height).toContain("7.14");
+  });
+
+  it("places a half-hour exam inside the hourly rows", () => {
+    grid.render(container, [item("08:30", "10:00")], undefined, [], {
+      hourly: true,
+    });
+
+    const block = container.querySelector(".tt-block");
+    // 30 of 840 minutes down, 90 minutes tall.
+    expect(block.style.top).toContain("3.57");
+    expect(block.style.height).toContain("10.71");
   });
 
   it("cuts a block at 22:00 in the hourly grid and leaves it out of the module grid", () => {

@@ -513,33 +513,20 @@
   // the hours of an exam-session day (D-027), that no activity covers. The day decides, not the
   // week: a mixed week has both on its hourly grid. A slot that has started is shown but
   // disabled. A holiday has none. Each one opens the Bookings page.
-  // The free blocks of the day that can be booked: each module, or, in an exam session, hours that
-  // start on a half hour (the shortest booking, D-030). Blocks do not overlap.
+  // The free blocks of the day that can be booked: each module, or, in an exam session, each whole
+  // hour. A half-hour time is chosen on the Bookings page (D-030).
   function freeBlocks(type, dayIndex) {
-    var list = window.UniSpaceModules.slotsFor(type);
-    var size = type === "EXAM_SESSION" ? 2 : 1;
-    var blocks = [];
-    for (let index = 0; index + size <= list.length; ) {
-      const block = {
-        startMin: list[index].startMin,
-        endMin: list[index + size - 1].endMin,
-        start: list[index].start,
-        end: list[index + size - 1].end,
-      };
-      const taken = state.items.some(
-        (item) =>
-          Number(item.day_of_week) === dayIndex + 1 &&
-          grid.toMinutes(item.start_time) < block.endMin &&
-          grid.toMinutes(item.end_time) > block.startMin,
-      );
-      if (taken) {
-        index += 1;
-      } else {
-        blocks.push(block);
-        index += size;
-      }
-    }
-    return blocks;
+    var modules = window.UniSpaceModules;
+    var list = type === "EXAM_SESSION" ? modules.hourRows : modules.list;
+    return list.filter(
+      (block) =>
+        !state.items.some(
+          (item) =>
+            Number(item.day_of_week) === dayIndex + 1 &&
+            grid.toMinutes(item.start_time) < block.endMin &&
+            grid.toMinutes(item.end_time) > block.startMin,
+        ),
+    );
   }
 
   function freeSlots() {

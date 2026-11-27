@@ -99,6 +99,13 @@ interface Window {
       start: string;
       end: string;
     }>;
+    hourRows: Array<{
+      number: number;
+      startMin: number;
+      endMin: number;
+      start: string;
+      end: string;
+    }>;
     hoursEndMin: number;
     typeOnDate(periods: any[], iso: string, facultyId?: string): string;
     weekInfo(

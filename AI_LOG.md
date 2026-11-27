@@ -8,6 +8,13 @@ Each entry follows the same shape:
 
 ```
 
+## 2026-11-27 · Exam-session timetable in whole hours (D-030)
+Tool: Claude Code, claude-sonnet-5-5
+What I asked: exams stay bookable in half-hour steps, but the timetable in exam session mode should be displayed from hour to hour.
+What I got: 14 whole-hour rows and whole-hour free slots in the exam-session grid; booking pickers and exam dialog unchanged.
+Tests changed (named as required): `grid-hourly.test.js` (14 hour labels instead of 28 half hours; a new half-hour exam case) and `timetable-calendar.test.js` (14 rows instead of 28; a new partly-taken hour case).
+Result: `node scripts/test-all.mjs`: all suites pass.
+
 ## 2026-11-27 · Schedule Exam flow and half-hour exam sessions (issue #38, D-030)
 Tool: Claude Code, claude-sonnet-5-5
 What I asked: merge PR #37, open an issue for the undelivered part, update main, create a branch for it and resolve it. Answers: exams end by 22:00; session bookings also in half hours; the groups' faculty decides the exam session; go straight to a pull request.

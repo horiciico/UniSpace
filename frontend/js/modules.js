@@ -5,7 +5,8 @@
  * The backend has the same table (backend/app/planning.py, MODULES).
  *
  * The academic calendar (D-028) changes the grid. On a date in an EXAM_SESSION period a room is
- * booked in half-hour steps from 08:00 to 22:00, at least one hour (`hours`, D-030); on a HOLIDAY no room is booked; any other
+ * booked in half-hour steps from 08:00 to 22:00, at least one hour (`hours`, D-030), while the
+ * timetable draws whole hours (`hourRows`); on a HOLIDAY no room is booked; any other
  * date, also one no period covers, uses the modules. The helpers below read the periods of
  * GET /api/academic-periods ([{ type, name, start_date, end_date, faculty_id }], dates
  * "YYYY-MM-DD"). A period is of one faculty or, with no faculty_id, of all of them (D-028): a
@@ -37,19 +38,25 @@
     });
   }
 
-  // The exam-session grid: 28 half hours, 08:00-08:30 ... 21:30-22:00.
+  // The exam session: booked in 28 half hours (`hours`), drawn as 14 whole hours (`hourRows`).
   var HOURS_END = 22 * 60;
-  var STEP = 30;
-  var hours = [];
-  for (let start = FIRST_START; start < HOURS_END; start += STEP) {
-    hours.push({
-      number: hours.length + 1,
-      startMin: start,
-      endMin: start + STEP,
-      start: clock(start),
-      end: clock(start + STEP),
-    });
+
+  function stepsOf(length) {
+    var steps = [];
+    for (let start = FIRST_START; start < HOURS_END; start += length) {
+      steps.push({
+        number: steps.length + 1,
+        startMin: start,
+        endMin: start + length,
+        start: clock(start),
+        end: clock(start + length),
+      });
+    }
+    return steps;
   }
+
+  var hours = stepsOf(30);
+  var hourRows = stepsOf(60);
 
   function addDays(iso, days) {
     var date = new Date(iso + "T00:00:00Z");
@@ -115,11 +122,12 @@
 
   window.UniSpaceModules = {
     hours: hours,
+    hourRows: hourRows,
     hoursEndMin: HOURS_END,
     typeOnDate: typeOnDate,
     weekInfo: weekInfo,
     nextExamSession: nextExamSession,
-    // The bookable slots of a day of this type: hours in an exam session, modules otherwise.
+    // The bookable slots of a day of this type: half hours in an exam session, modules otherwise.
     slotsFor: (type) => (type === "EXAM_SESSION" ? hours : list),
     list: list,
     clock: clock,

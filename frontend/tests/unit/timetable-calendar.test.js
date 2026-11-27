@@ -52,6 +52,7 @@ async function setup({
   periods = () => response(PERIODS),
   entity = true,
   language = "en",
+  items = [],
 } = {}) {
   vi.useFakeTimers({ toFake: ["Date"] });
   vi.setSystemTime(NOW);
@@ -73,7 +74,10 @@ async function setup({
     "/api/faculties": () => response(FACULTIES),
     "/api/classrooms": () => response(CLASSROOMS),
     "/api/schedule": (url) =>
-      response(schedule(new URL(url, "http://x").searchParams.get("date"))),
+      response({
+        ...schedule(new URL(url, "http://x").searchParams.get("date")),
+        items,
+      }),
     "/api/academic-periods": periods,
   });
   await loadScript("js/pages/timetable.js");
@@ -96,7 +100,7 @@ describe("timetable.js: the academic calendar", () => {
     expect($("tt-period-pill").textContent).toBe("Exam session");
     expect($("tt-period-pill").className).toBe("pill pill--pending");
     expect($("tt-period-text").textContent).toContain("08:00 to 22:00");
-    expect(hourLabels()).toHaveLength(28);
+    expect(hourLabels()).toHaveLength(14);
     expect($("tt-grid").classList.contains("tt-grid--hourly")).toBe(true);
   });
 
@@ -108,6 +112,28 @@ describe("timetable.js: the academic calendar", () => {
     expect(freeSlots()).toHaveLength(5 * 14 + 8);
     const first = freeSlots()[0];
     expect(first.getAttribute("aria-label")).toBe("Book 08:00–09:00, Mon");
+  });
+
+  it("offers no free hour that an exam covers only in part", async () => {
+    await setup({
+      date: "2026-12-14",
+      items: [
+        {
+          day_of_week: 1,
+          start_time: "08:30",
+          end_time: "10:00",
+          activity_type: "EXAM",
+          title: "Algebra",
+          room_name: "B110",
+        },
+      ],
+    });
+
+    // Monday loses 08:00-09:00 and 09:00-10:00; the other days keep all 14 hours.
+    expect(freeSlots()).toHaveLength(5 * 14 - 2 + 8);
+    expect(freeSlots()[0].getAttribute("aria-label")).toBe(
+      "Book 10:00–11:00, Mon",
+    );
   });
 
   it("links a free hour to the booking page with the hour as the window", async () => {
@@ -144,7 +170,7 @@ describe("timetable.js: the academic calendar", () => {
   it("shows the hourly grid for a week that only starts the session", async () => {
     await setup({ date: "2026-12-07" });
 
-    expect(hourLabels()).toHaveLength(28);
+    expect(hourLabels()).toHaveLength(14);
     expect($("tt-period-pill").textContent).toBe("Exam session");
   });
 
@@ -227,7 +253,7 @@ describe("timetable.js: the academic calendar", () => {
       .filter((c) => String(c[0]).includes("/api/schedule"))
       .at(-1);
     expect(String(last[0])).toContain("date=2026-12-07");
-    expect(hourLabels()).toHaveLength(28);
+    expect(hourLabels()).toHaveLength(14);
   });
 
   it("hides the chip when no exam session is left", async () => {
@@ -273,7 +299,7 @@ describe("timetable.js: the academic calendar", () => {
     await flush();
     await flush();
 
-    expect(hourLabels()).toHaveLength(28);
+    expect(hourLabels()).toHaveLength(14);
     expect($("tt-period").hidden).toBe(false);
   });
 
@@ -294,7 +320,7 @@ describe("timetable.js: a calendar per faculty", () => {
   it("draws a room by the calendar of its faculty", async () => {
     await setup({ periods: () => response([session("f1")]) });
 
-    expect(hourLabels()).toHaveLength(28);
+    expect(hourLabels()).toHaveLength(14);
     expect($("tt-period").hidden).toBe(false);
   });
 
@@ -380,7 +406,7 @@ describe("timetable.js: a calendar per faculty", () => {
       "Exam session Drept: exam session on Thu, Fri, Sat, Sun. Its weekly courses are not held then.",
       "Holiday Inginerie: holiday on Mon. Its weekly courses are not held then.",
     ]);
-    expect(hourLabels()).toHaveLength(28);
+    expect(hourLabels()).toHaveLength(14);
     // Monday is a holiday for one faculty only, so the day is not marked.
     expect(document.querySelectorAll("#tt-grid .tt-off")).toHaveLength(0);
     expect($("tt-exam").hidden).toBe(false);
@@ -406,7 +432,7 @@ describe("timetable.js: a calendar per faculty", () => {
   it("follows the all-faculties periods when the professor has no courses", async () => {
     await mine([session(null)], []);
 
-    expect(hourLabels()).toHaveLength(28);
+    expect(hourLabels()).toHaveLength(14);
   });
 
   it("translates the faculty lines when the language changes", async () => {

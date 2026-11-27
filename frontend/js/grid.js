@@ -10,7 +10,8 @@
  * ("lanes"), so the grid keeps its shape.
  *
  * In an exam session (D-028) the grid runs to 22:00 instead: 84 rows, the time column shows one
- * range per half hour, and the day lines fall at each half hour (render option hourly, D-030).
+ * range per hour, and the day lines fall at each hour (render option hourly). An activity may
+ * start or end on a half hour (D-030): it is placed by its real times.
  *
  * Text comes from the backend as it arrives (D-012). Labels are from the i18n dictionaries.
  */
@@ -19,13 +20,13 @@
   var FIRST_MINUTE = MODULES.list[0].startMin; // 08:00
   var SLOT_MINUTES = 10;
 
-  // The rows of the grid: modules to 21:10 (79 rows), or hours to 22:00 (84 rows).
+  // The rows of the grid: modules to 21:10 (79 rows), or whole hours to 22:00 (84 rows).
   function layoutFor(hourly) {
     var lastMinute = hourly ? MODULES.hoursEndMin : MODULES.endMin;
     return {
       lastMinute: lastMinute,
       slotCount: (lastMinute - FIRST_MINUTE) / SLOT_MINUTES,
-      slots: hourly ? MODULES.hours : MODULES.list,
+      slots: hourly ? MODULES.hourRows : MODULES.list,
     };
   }
   var DAY_KEYS = [

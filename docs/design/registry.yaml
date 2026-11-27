@@ -234,4 +234,4 @@ designs:
     source: frontend/pages/student/timetable.html  # "Orarul meu": the Schedule Exam button and dialog (D-030)
     screenshots: []
     design_ref: docs/design/mocks/DS-unispace-schedule-exam.html
-    status: implemented  # built 2026-11-27 before the mock was confirmed (user: "Straight to PR"; mock and screen are reviewed in the pull request); tests in frontend/tests/unit/exam.test.js, timetable-my-schedule.test.js
+    status: implemented  # 2026-11-27: the exam-session timetable draws whole hours (user), booking and exam times stay half hours. Built 2026-11-27 before the mock was confirmed (user: "Straight to PR"; mock and screen are reviewed in the pull request); tests in frontend/tests/unit/exam.test.js, timetable-my-schedule.test.js
